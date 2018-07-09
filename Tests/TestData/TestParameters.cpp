@@ -5,7 +5,7 @@ static const char *usage =
 "TestProg text of unit testing command line parameters\n"
 "\n"
 "Usage:\n"
-"    Rot3DLib input_file {options}\n"
+"    TestProg input_file {options}\n"
 "\n"
 "Where:\n"
 "    input_file         - filename not passed in as parameter\n"

@@ -36,7 +36,7 @@ OBJ_DIR = obj
 
 # Debug mode
 ifeq ($(DEBUG), 1)
-  CXX_FLAGS += -DDEBUG -g -O0
+  CXX_FLAGS += -Wall -DDEBUG -g -O0
   OBJ_DIR := $(OBJ_DIR)-debug
 else
   CXX_FLAGS += -DNDEBUG -O3
@@ -92,12 +92,6 @@ $(OBJ_DIR)/Lib/%.o: $(ROOT)/%.cpp | $(OBJ_DIR)
 #
 
 RUN_TESTS := $(OBJ_DIR)/bin/runTests
-
-# sudo required for QPU-mode on Pi
-ifeq ($(QPU), 1)
-	RUN_TESTS := sudo $(RUN_TESTS)
-endif
-
 
 # Source files for unit tests to include in compilation
 UNIT_TESTS = \

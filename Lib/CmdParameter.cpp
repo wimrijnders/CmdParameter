@@ -541,7 +541,6 @@ bool CmdParameter::handle_commandline(
 	int argc,
 	const char* argv[],
 	bool show_help_on_error) {
-	bool has_error      = false;
 	ostringstream errors;
 	int curindex = 0;
 
@@ -591,7 +590,6 @@ bool CmdParameter::handle_commandline(
 	} catch (string &error) {
 		if (error != "all is well") {
 			errors << "  " << error.c_str() << endl;
-			has_error = true;
 		}
 	}
 
