@@ -3,56 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
-
-enum ParamType {
-  NONE,             //> Parameter without a value, e.g. `-enabled`
-  UNSIGNED_INTEGER, //> Parameter takes an integer >= 0
-  POSITIVE_INTEGER, //> Parameter takes a integer > 0
-  POSITIVE_FLOAT,   //> Parameter takes a float > 0
-  STRING,           //> Parameter takes a string, e.g. `-output=filename.txt`
-  UNNAMED           //> Not a switch parameter, but expected on the command line.
-                    //  Order is important
-};
-
-
-/**
- * @brief Structure for the definitions of the parameters
- */
-struct DefParameter {
-  DefParameter(const char *in_name);
-
-  DefParameter(
-    const char *in_name,
-    const char *in_prefix,
-    ParamType in_param_type,
-    const char *in_usage
-  );
-
-  DefParameter(
-    const char *in_name,
-    ParamType in_param_type,
-    const char *in_usage
-  );
-
-  DefParameter(
-    const char *in_name,
-    const char *in_prefix,
-    ParamType   in_param_type,
-    const char *in_usage,
-    int default_value
-  );
-
-  const char *name;       //> The name or short description of the parameter.
-                          //  This value is used as label and must be unique
-  const char *prefix;
-  ParamType   param_type; //> Parameter type
-  const char *usage;      //> Long description of the parameter, displayed in the help text
-
-  bool         bool_default;
-  int          int_default;
-  float        float_default;
-  std::string  string_default;
-};
+#include "DefParameter.h"
 
 
 /**
@@ -147,45 +98,6 @@ private:
 };
 
 
-struct UnsignedIntParameter : public CmdParameter {
-public:
-  UnsignedIntParameter(DefParameter &var) : CmdParameter(var) {}
-  const char *value_indicator() const override { return "<num>"; }
 
-private:
-  bool parse_param_internal(const std::string &in_value) override;
-};
-
-
-struct PositiveIntParameter : public CmdParameter {
-public:
-  PositiveIntParameter(DefParameter &var) : CmdParameter(var) {}
-  const char *value_indicator() const override { return "<num>"; }
-
-private:
-  bool parse_param_internal(const std::string &in_value) override;
-};
-
-
-struct PositiveFloatParameter : public CmdParameter {
-public:
-  PositiveFloatParameter(DefParameter &var) : CmdParameter(var) {}
-  const char *value_indicator() const override { return "<float>"; }
-
-private:
-  bool parse_param_internal(const std::string &in_value) override;
-};
-
-
-struct UnnamedParameter : public CmdParameter {
-public:
-  UnnamedParameter(DefParameter &var) : CmdParameter(var) {}
-  const char *value_indicator() const override { return ""; }
-
-private:
-  bool parse_param_internal(const std::string &in_value) override {
-    return parse_string_param(in_value);
-  }
-};
 
 #endif // CMDPARAMETER_H

@@ -45,6 +45,11 @@ endif
 # Object files
 LIB_OBJ := \
 	Lib/Strings.o \
+	Lib/Types/UnnamedParameter.o \
+	Lib/Types/UnsignedIntParameter.o \
+	Lib/Types/PositiveIntParameter.o \
+	Lib/Types/PositiveFloatParameter.o \
+	Lib/DefParameter.o \
 	Lib/CmdParameter.o
 
 LIB_OBJ := $(patsubst %,$(OBJ_DIR)/%,$(LIB_OBJ))
@@ -121,4 +126,4 @@ test : $(OBJ_DIR)/bin/runTests
 # init directories
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)/bin
-	@mkdir -p $(OBJ_DIR)/Lib
+	@mkdir -p $(OBJ_DIR)/Lib/Types

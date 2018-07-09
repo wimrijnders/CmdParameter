@@ -28,6 +28,7 @@
 #include <sstream>   // ostringstream
 #include <vector>
 #include "Strings.h"
+#include "Types/Types.h"
 
 using namespace std;
 
@@ -35,71 +36,6 @@ using namespace std;
 //////////////////////////////////////
 // class DefParameter
 //////////////////////////////////////
-
-/**
- * @brief Contructor accepting null pointer as single parameter
- *
- * Used to indicate and detect the end of a parameterdefinition array.
- */
-DefParameter::DefParameter(const char *in_name) :
-  name(in_name),
-  prefix(nullptr),
-  param_type(NONE),
-  usage(nullptr),
-  bool_default(false),
-  int_default(0),
-  float_default(0.0)
-{
-}
-
-
-DefParameter::DefParameter(
-  const char *in_name,
-  const char *in_prefix,
-  ParamType   in_param_type,
-  const char *in_usage
-) :
-  name(in_name),
-  prefix(in_prefix),
-  param_type(in_param_type),
-  usage(in_usage),
-  bool_default(false),
-  int_default(0),
-  float_default(0.0)
-{}
-
-DefParameter::DefParameter(
-  const char *in_name,
-  const char *in_prefix,
-  ParamType   in_param_type,
-  const char *in_usage,
-  int default_value
-) :
-  name(in_name),
-  prefix(in_prefix),
-  param_type(in_param_type),
-  usage(in_usage),
-  bool_default(false),
-  int_default(default_value),
-  float_default(0.0)
-{}
-
-
-// TODO: check if really needed
-DefParameter::DefParameter(
-  const char *in_name,
-  ParamType   in_param_type,
-  const char *in_usage
-) :
-  name(in_name),
-  prefix(nullptr),
-  param_type(in_param_type),
-  usage(in_usage),
-  bool_default(false),
-  int_default(0),
-  float_default(0.0)
-{}
-
 
 
 //////////////////////////////////////
@@ -609,64 +545,3 @@ bool CmdParameter::handle_commandline(
 
 	return true;
 }
-
-
-//////////////////////////////////////
-// class UnsignedIntParameter
-//////////////////////////////////////
-
-bool UnsignedIntParameter::parse_param_internal(const std::string &in_value) {
-  assert(!in_value.empty());
-
-  int value = get_int_value(in_value);
-
-  if (value < 0) {
-    string msg = "Field '";
-    throw string(msg + name + "' value must be zero or positive.");
-  }
-
-  int_value = value;
-  m_detected = true;
-  return true;
-}
-
-
-//////////////////////////////////////
-// class PositiveIntParameter
-//////////////////////////////////////
-
-bool PositiveIntParameter::parse_param_internal(const std::string &in_value) {
-  assert(!in_value.empty());
-
-  int value = get_int_value(in_value);
-
-  if (value <= 0) {
-    string msg = "Field '";
-    throw string(msg + name + "' value must be positive.");
-  }
-
-  int_value = value;
-  m_detected = true;
-  return true;
-}
-
-
-//////////////////////////////////////
-// class PositiveFloatParameter
-//////////////////////////////////////
-
-bool PositiveFloatParameter::parse_param_internal(const std::string &in_value) {
-  assert(!in_value.empty());
-
-  float value = get_float_value(in_value);
-
-  if (value <= 0.0f) {
-    string msg = "Field '";
-    throw string(msg + name + "' value must be positive.");
-  }
-
-  float_value = value;
-  m_detected = true;
-  return true;
-}
-
