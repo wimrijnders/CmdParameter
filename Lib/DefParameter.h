@@ -1,6 +1,6 @@
 #ifndef DEFPARAMETER_H
 #define DEFPARAMETER_H
-#include "ParamType.h"
+#include "Types/ParamType.h"
 #include <string>
 
 

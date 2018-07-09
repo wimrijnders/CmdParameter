@@ -30,7 +30,7 @@
 #include <iostream>
 #include <sstream>   // ostringstream
 #include <vector>
-#include "Strings.h"
+#include "Support/Strings.h"
 #include "Types/Types.h"
 
 using namespace std;
@@ -84,19 +84,9 @@ bool CmdParameter::parse_param(const char *curarg) {
     }
   }
 
-
   return parse_param_internal(value);
 }
 
-
-bool CmdParameter::parse_param_internal(const std::string &in_value) {
-  assert(false);  // Should be abstract eventually, this for development
-}
-
-
-const char *CmdParameter::value_indicator() const {
-  assert(false);  // Should be abstract eventually, this for development
-}
 
 bool CmdParameter::parse_bool_param(const string &in_value) {
 	assert(in_value.empty());
@@ -137,7 +127,7 @@ float CmdParameter::get_float_value(const string &param) {
   float value = -1;
   const char *str = param.c_str();
   char *end = nullptr;
-  value = (float)strtod(str, &end);
+  value = (float) strtod(str, &end);
 
   if (end == str || *end != '\0') {
     string msg(def_param.name);
@@ -320,55 +310,17 @@ void CmdParameter::show_usage() {
  * @return true if all went well, false if an error occured during conversion.
  */
 bool CmdParameter::init_params(const char *in_usage, DefParameter params[]) {
-  int length = 0;
-  for (length = 0; params[length].name != nullptr; ++length) {}
-
-  // Check that labels are unique
-  bool labels_unique = true;
-  for (int index1 = 0; index1 < length - 1; ++index1) {
-    for (int index2 = index1 + 1; index2 < length; ++index2) {
-      if (params[index1].name == params[index2].name) {
-        std::ostringstream msg;
-        msg << "Error: Multiple parameter definitions with name '" << params[index1].name << "'; "
-            << "names should be unique";
-        std::cout << msg.str() << std::endl;
-        labels_unique = false;
-      }
-    }
-  }
-
-  if (!labels_unique) {
+  if (!check_labels_unique(params)) {
     return false;
   }
-
 
   parameters.clear();
   usage_text = in_usage;
 
   for (int index = 0; params[index].name != nullptr; ++index) {
     auto &item = params[index];
-
-    CmdParameter *p = nullptr;
-    switch (item.param_type) {
-    case NONE:             p = new NoneParameter(item);          break;
-    case INTEGER:          p = new IntParameter(item);           break;
-    case UNSIGNED_INTEGER: p = new UnsignedIntParameter(item);   break;
-    case POSITIVE_INTEGER: p = new PositiveIntParameter(item);   break;
-    case POSITIVE_FLOAT:   p = new PositiveFloatParameter(item); break;
-    case STRING:           p = new StringParameter(item);        break;
-    case UNNAMED:          p = new UnnamedParameter(item);       break;
-
-    default: {
-        std::ostringstream msg;
-        msg << "Error: Unhandled parameter type " << item.param_type;
-        std::cout << msg.str() << std::endl;
-        return false;
-      }
-    }
-
-    assert(p != nullptr);
+    CmdParameter *p = DefParameter_factory(item);
     parameters.emplace_back(p);
-
   }
 
   return true;
@@ -419,8 +371,6 @@ bool CmdParameter::handle_commandline(
 	int curindex = 0;
 
 	try {
-		curindex = 0;
-
 		while (true) {
 			curindex++;
 			if (curindex >= argc) break;
@@ -444,7 +394,6 @@ bool CmdParameter::handle_commandline(
 				errors << "  No " << field.def_param.name << " specified.\n";
 			}
 		}
-
 	} catch (string &error) {
 		if (error != "all is well") {
 			errors << "  " << error.c_str() << endl;
@@ -489,4 +438,31 @@ bool CmdParameter::set_default() {
   }
 
   return false;
+}
+
+
+/**
+ * @brief Check that the params-labels are unique
+ *
+ * @return true if unique, false otherwise
+ */
+bool CmdParameter::check_labels_unique(DefParameter params[]) {
+  int length = 0;
+  for (length = 0; params[length].name != nullptr; ++length) {}
+
+  // Check that labels are unique
+  bool labels_unique = true;
+  for (int index1 = 0; index1 < length - 1; ++index1) {
+    for (int index2 = index1 + 1; index2 < length; ++index2) {
+      if (params[index1].name == params[index2].name) {
+        std::ostringstream msg;
+        msg << "Error: Multiple parameter definitions with name '" << params[index1].name << "'; "
+            << "names should be unique";
+        std::cout << msg.str() << std::endl;
+        labels_unique = false;
+      }
+    }
+  }
+
+  return labels_unique;
 }

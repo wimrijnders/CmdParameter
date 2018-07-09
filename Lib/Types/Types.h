@@ -1,13 +1,11 @@
 #ifndef TYPES_H
 #define TYPES_H
-
+#include "ParamType.h"
 #include "NoneParameter.h"
-#include "UnnamedParameter.h"
-#include "IntParameter.h"
-#include "UnsignedIntParameter.h"
-#include "PositiveIntParameter.h"
-#include "PositiveFloatParameter.h"
-#include "StringParameter.h"
-#include "UnnamedParameter.h"
+
+class CmdParameter;
+class DefParameter;
+
+CmdParameter *DefParameter_factory(DefParameter &item);
 
 #endif // TYPES_H

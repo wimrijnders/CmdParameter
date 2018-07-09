@@ -71,12 +71,13 @@ private:
 
   bool set_default();
 
-  virtual bool parse_param_internal(const std::string &in_value);  // = 0;
-  virtual const char *value_indicator() const;  // = 0;
+  virtual bool parse_param_internal(const std::string &in_value) = 0;
+  virtual const char *value_indicator() const = 0;
   virtual void default_indicator(std::ostringstream &os) = 0;
 
   static bool handle_help(int argc, const char *argv[]);
   static std::string pad(const std::string &str, unsigned width);
+  static bool check_labels_unique(DefParameter params[]);
 };
 
 

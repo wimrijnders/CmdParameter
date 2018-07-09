@@ -44,7 +44,8 @@ endif
 
 # Object files
 LIB_OBJ := \
-	Lib/Strings.o \
+	Lib/Support/Strings.o \
+	Lib/Types/Types.o \
 	Lib/Types/NoneParameter.o \
 	Lib/Types/IntParameter.o \
 	Lib/Types/UnnamedParameter.o \
@@ -129,3 +130,4 @@ test : $(OBJ_DIR)/bin/runTests
 $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)/bin
 	@mkdir -p $(OBJ_DIR)/Lib/Types
+	@mkdir -p $(OBJ_DIR)/Lib/Support
