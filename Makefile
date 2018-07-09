@@ -45,6 +45,8 @@ endif
 # Object files
 LIB_OBJ := \
 	Lib/Strings.o \
+	Lib/Types/NoneParameter.o \
+	Lib/Types/IntParameter.o \
 	Lib/Types/UnnamedParameter.o \
 	Lib/Types/UnsignedIntParameter.o \
 	Lib/Types/PositiveIntParameter.o \

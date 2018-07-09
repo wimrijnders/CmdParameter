@@ -8,6 +8,9 @@
  * @brief Structure for the definitions of the parameters
  */
 struct DefParameter {
+  static const int   INT_NOT_SET;
+  static const float FLOAT_NOT_SET;
+
   DefParameter(const char *in_name);
 
   DefParameter(
@@ -37,10 +40,18 @@ struct DefParameter {
   ParamType   param_type; //> Parameter type
   const char *usage;      //> Long description of the parameter, displayed in the help text
 
-  bool         bool_default;
-  int          int_default;
-  float        float_default;
+  bool         bool_default{false};
+  int          int_default{INT_NOT_SET};
+  float        float_default{FLOAT_NOT_SET};
   std::string  string_default;
+
+  bool is_int_type() const;
+  bool is_float_type() const;
+
+  bool has_default() const;
+
+private:
+  void handle_defaults();
 };
 
 

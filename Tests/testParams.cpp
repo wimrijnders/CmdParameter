@@ -36,7 +36,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 	}
 
 
-	SECTION("Check defaults of parameters") {
+	SECTION("Check unset defaults of parameters") {
 		int argc1 = 2;
 		const char *argv1[] = {
 			PROG,
@@ -50,13 +50,19 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 		REQUIRE(params.m_unsigned  != -1);
 		REQUIRE(params.m_float     != -1.0f);
 
-		REQUIRE(params.m_positive  == 123);
-		REQUIRE(params.m_unsigned  == 42);
-		REQUIRE(params.m_float     == Approx(3.1419).epsilon(0.00001));
+		// Test expected defaults
+		REQUIRE(params.m_positive  == 1);
+		REQUIRE(params.m_unsigned  == 0);
+		REQUIRE(params.m_float     == 0.0f);  //Approx(3.1419).epsilon(0.00001));
 		REQUIRE(params.input_file  == "input_file.txt");
-		REQUIRE(params.output_file == "output_file.txt");
-		REQUIRE(params.m_bool == true);
-		REQUIRE(params.bool_detected == true);
+		REQUIRE(params.output_file.empty());
+		REQUIRE(params.m_bool == false);
+		REQUIRE(params.bool_detected == false);
+	}
+
+
+	SECTION("Check set defaults of parameters") {
+		// TODO
 	}
 
 

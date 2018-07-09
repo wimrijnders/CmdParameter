@@ -12,7 +12,7 @@ bool UnsignedIntParameter::parse_param_internal(const std::string &in_value) {
 
   if (value < 0) {
     string msg = "Field '";
-    throw string(msg + name + "' value must be zero or positive.");
+    throw string(msg + def_param.name + "' value must be zero or positive.");
   }
 
   int_value = value;

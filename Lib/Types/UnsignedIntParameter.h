@@ -1,11 +1,10 @@
 #ifndef UNSIGNEDINTPARAMETER_H
 #define UNSIGNEDINTPARAMETER_H
-#include "CmdParameter.h"
+#include "IntParameter.h"
 
-struct UnsignedIntParameter : public CmdParameter {
+struct UnsignedIntParameter : public IntParameter {
 public:
-  UnsignedIntParameter(DefParameter &var) : CmdParameter(var) {}
-  const char *value_indicator() const override { return "<num>"; }
+  UnsignedIntParameter(DefParameter &var) : IntParameter(var) {}
 
 private:
   bool parse_param_internal(const std::string &in_value) override;

@@ -19,11 +19,7 @@
 struct CmdParameter {
   using List = std::vector<std::unique_ptr<CmdParameter>>;
 
-
-  const char *name;
-  const char *prefix;
-  ParamType   param_type;
-  const char *usage;
+  DefParameter &def_param;
 
   CmdParameter(DefParameter &var);
 
@@ -38,7 +34,7 @@ struct CmdParameter {
 
   static bool handle_commandline(
     int argc,
-    const char* argv[],
+    const char *argv[],
     bool show_help_on_error = true);
 
   static bool init_params(const char *in_usage, DefParameter params[]);
@@ -54,17 +50,11 @@ protected:
 
   // Yes, crappy. Go ahead and enjoy your nausea.
   bool         bool_value;
-  bool         bool_default;
   int          int_value;
-  int          int_default;
   float        float_value;
-  float        float_default;
   std::string  string_value;
-  std::string  string_default;
 
   bool parse_bool_param  (const std::string &in_value);
-  bool parse_int_param   (const std::string &in_value);
-  bool parse_float_param (const std::string &in_value);
   bool parse_string_param(const std::string &in_value);
 
   int         get_int_value   (const std::string &param);
@@ -76,26 +66,20 @@ protected:
   std::string get_param(const char *curarg);
 
 private:
-
+  static DefParameter help_def;
   static const char *usage_text;
+
+  bool set_default();
 
   virtual bool parse_param_internal(const std::string &in_value);  // = 0;
   virtual const char *value_indicator() const;  // = 0;
+  virtual void default_indicator(std::ostringstream &os) = 0;
 
+  static bool handle_help(int argc, const char *argv[]);
   static std::string pad(const std::string &str, unsigned width);
 };
 
 
-struct NoneParameter : public CmdParameter {
-public:
-  NoneParameter(DefParameter &var) : CmdParameter(var) {}
-  const char *value_indicator() const override { return ""; }
-
-private:
-  bool parse_param_internal(const std::string &in_value) override {
-    return parse_bool_param(in_value);
-  }
-};
 
 
 

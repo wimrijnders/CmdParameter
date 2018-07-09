@@ -1,12 +1,11 @@
 #ifndef POSITIVEINTPARAMETER_H
 #define POSITIVEINTPARAMETER_H
-#include "CmdParameter.h"
+#include "IntParameter.h"
 
 
-struct PositiveIntParameter : public CmdParameter {
+struct PositiveIntParameter : public IntParameter {
 public:
-  PositiveIntParameter(DefParameter &var) : CmdParameter(var) {}
-  const char *value_indicator() const override { return "<num>"; }
+  PositiveIntParameter(DefParameter &var) : IntParameter(var) {}
 
 private:
   bool parse_param_internal(const std::string &in_value) override;

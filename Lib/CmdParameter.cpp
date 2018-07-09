@@ -12,7 +12,10 @@
  * ------------------------------------------------------------
  * ## TODO
  *
- * <none right now>
+ * - Consider adding required parameters (both switches and unnamed)
+ *   I.e. *must* be specified, not use default.
+ * - Use short names as key to access values.
+ *
  * ------------------------------------------------------------
  * ## TESTS
  *
@@ -33,75 +36,56 @@
 using namespace std;
 
 
-//////////////////////////////////////
-// class DefParameter
-//////////////////////////////////////
+// Internal definition of help switch
+DefParameter CmdParameter::help_def(
+  "Help switch",
+  "-h",
+  NONE,
+  "Show this information. Overrides all other parameters"
+);
 
-
-//////////////////////////////////////
-// class CmdParameter
-//////////////////////////////////////
 
 CmdParameter::List CmdParameter::parameters;
 const char *CmdParameter::usage_text = nullptr;
 
 
 CmdParameter::CmdParameter(DefParameter &var) :
-  name(var.name),
-  prefix(var.prefix),
-  param_type(var.param_type),
-  usage(var.usage),
+  def_param(var),
   m_detected(false),
   bool_value(false),
-  bool_default(var.bool_default),
   int_value(-1),
-  int_default(var.int_default),
-  float_value(-1.0f),
-  float_default(var.float_default)
-{ }
+  float_value(-1.0f)
+{
+  set_default();
+}
 
 
 bool CmdParameter::parse_param(const char *curarg) {
-  bool ret = false;
-
-  if (!Strings::starts_with(curarg, prefix)) {
+  if (!Strings::starts_with(curarg, def_param.prefix)) {
     return false;
   }
 
-  string msg = name;
+  string msg = def_param.name;
   string value = get_param(curarg);
 
   // All param's except type NONE should have a value specified
-  if (param_type == NONE) {
+  if (def_param.param_type == NONE) {
+    // NONE does not take a value
     if (!value.empty()) {
-      throw string( msg + " value specified, shouldn't have one.");
+      throw string(msg + " value specified, shouldn't have one.");
     }
   } else {
     if (value.empty()) {
-      throw string( msg + " value not specified.");
+      if (def_param.has_default()) {
+        return true;  // All is well, we have default value
+      } else {
+        throw string(msg + " no value present and default not specified.");
+      }
     }
   }
 
-  switch(param_type) {
-  case NONE:
-    ret = parse_bool_param(value);
-    break;
 
-  case STRING:
-    ret = parse_string_param(value);
-    break;
-
-  case POSITIVE_INTEGER:
-  case UNSIGNED_INTEGER:
-  case POSITIVE_FLOAT:
-    ret = parse_param_internal(value);
-    break;
-
-  default:
-    throw string("Unknown parameter type detected.");
-  }
-
-  return ret;
+  return parse_param_internal(value);
 }
 
 
@@ -114,10 +98,9 @@ const char *CmdParameter::value_indicator() const {
   assert(false);  // Should be abstract eventually, this for development
 }
 
-
 bool CmdParameter::parse_bool_param(const string &in_value) {
 	assert(in_value.empty());
-	assert(param_type == NONE);
+	assert(def_param.param_type == NONE);
 
   bool_value = true;
   m_detected = true;
@@ -125,55 +108,14 @@ bool CmdParameter::parse_bool_param(const string &in_value) {
 }
 
 
-bool CmdParameter::parse_int_param(const string &in_value) {
-	assert(!in_value.empty());
-
-	int value = get_int_value(in_value);
-
-  switch(param_type) {
-  default:
-		assert(false);
-	}
-
-  int_value = value;
-  m_detected = true;
-  return true;
-}
-
-
-bool CmdParameter::parse_float_param(const string &in_value) {
-	assert(!in_value.empty());
-
-	string msg = name;
-
-	float value = get_float_value(in_value);
-
-  switch(param_type) {
-  case POSITIVE_FLOAT:
-    if (value <= 0) {
-      throw string(msg + " value must be positive.");
-    }
-    break;
-
-	default:
-		assert(false);
-	}
-
-  float_value = value;
-  m_detected = true;
-  return true;
-}
-
-
 bool CmdParameter::parse_string_param(const string &in_value) {
 	assert(!in_value.empty());
-	assert(param_type == STRING);
+	assert(def_param.param_type == STRING);
 
   string_value = in_value;
   m_detected = true;
   return true;
 }
-
 
 
 int CmdParameter::get_int_value(const string &param) {
@@ -183,7 +125,7 @@ int CmdParameter::get_int_value(const string &param) {
   value = (int) strtol(str, &end, 10);
 
   if (end == str || *end != '\0') {
-    string msg(name);
+    string msg(def_param.name);
     throw string(msg + " value not a number.");
   }
 
@@ -198,7 +140,7 @@ float CmdParameter::get_float_value(const string &param) {
   value = (float)strtod(str, &end);
 
   if (end == str || *end != '\0') {
-    string msg(name);
+    string msg(def_param.name);
     throw string(msg + " value not a float.");
   }
 
@@ -251,7 +193,7 @@ bool CmdParameter::process_option(List &parameters, const char *curarg) {
 bool CmdParameter::process_unnamed(List &parameters, const char *curarg) {
   for (auto &item: parameters) {
     CmdParameter &param = *item;
-    if (param.param_type != UNNAMED) continue;
+    if (param.def_param.param_type != UNNAMED) continue;
     if (param.string_value.empty()) {
       param.string_value = curarg;
       return true;
@@ -282,8 +224,8 @@ void CmdParameter::show_usage() {
     const string &value_indicator,
     std::ostringstream &default_indicator) {
     string tmp;
-    if (param.prefix != nullptr) {
-      tmp = param.prefix;
+    if (param.def_param.prefix != nullptr) {
+      tmp = param.def_param.prefix;
     }
     tmp += value_indicator;
     disp_params.push_back(tmp);
@@ -299,12 +241,6 @@ void CmdParameter::show_usage() {
 
 
   // Help switch
-  DefParameter help_def(
-        "Help switch",
-        "-h",
-        NONE,
-        "Show this information. Overrides all other parameters"
-        );
   NoneParameter help_switch(help_def);
   string value_indicator;
   std::ostringstream default_indicator;
@@ -324,34 +260,8 @@ void CmdParameter::show_usage() {
     string value_indicator;
     std::ostringstream default_indicator;
 
-    switch (param.param_type) {
-      case NONE:
-        break;
-      case POSITIVE_FLOAT:
-        value_indicator = "<float>";
-        default_indicator << param.float_default;
-        break;
-      case STRING:
-        value_indicator = "<string>";
-        if (!param.string_default.empty()) {
-          default_indicator << param.string_default;
-        }
-        break;
-
-    case POSITIVE_INTEGER:
-    case UNSIGNED_INTEGER:
-      value_indicator = param.value_indicator();
-      default_indicator << param.int_default;
-      break;
-
-      case UNNAMED:
-        break;
-
-      default:
-        assert(false);
-        string msg = param.name;
-        throw string("Unknown parameter type for parameter '" + msg + "'");
-    };
+    value_indicator = param.value_indicator();
+    param.default_indicator(default_indicator);
 
     add_param(param, value_indicator, default_indicator);
   }
@@ -376,7 +286,7 @@ void CmdParameter::show_usage() {
     const string &disp_param,
     const string &disp_default) {
     // Ensure line endings have proper indent
-    string usage = param.usage;
+    string usage = param.def_param.usage;
     string indent("\n");
     string mt;
     indent += pad(mt, width + 4 + 3);
@@ -440,16 +350,13 @@ bool CmdParameter::init_params(const char *in_usage, DefParameter params[]) {
 
     CmdParameter *p = nullptr;
     switch (item.param_type) {
+    case NONE:             p = new NoneParameter(item);          break;
+    case INTEGER:          p = new IntParameter(item);           break;
     case UNSIGNED_INTEGER: p = new UnsignedIntParameter(item);   break;
     case POSITIVE_INTEGER: p = new PositiveIntParameter(item);   break;
     case POSITIVE_FLOAT:   p = new PositiveFloatParameter(item); break;
-    case  UNNAMED:         p = new UnnamedParameter(item);       break;
-
-    // TODO
-    case NONE:
-    case STRING:
-      p = new CmdParameter(item);
-      break;
+    case STRING:           p = new StringParameter(item);        break;
+    case UNNAMED:          p = new UnnamedParameter(item);       break;
 
     default: {
         std::ostringstream msg;
@@ -469,18 +376,13 @@ bool CmdParameter::init_params(const char *in_usage, DefParameter params[]) {
 
 
 /**
- * @brief Handle the command line and initialize files/dir's.
+ * @brief Scan for '-h' and handle if present.
  *
- * Will abort if an error is detected.
+ * @return true '-h' handle, false otherwise
  */
-bool CmdParameter::handle_commandline(
-	int argc,
-	const char* argv[],
-	bool show_help_on_error) {
-	ostringstream errors;
-	int curindex = 0;
+bool CmdParameter::handle_help(int argc, const char *argv[]) {
+  int curindex = 0;
 
-	// Prescan for '-h'; this overrides everything
 	while (true) {
 		curindex++;
 
@@ -495,6 +397,26 @@ bool CmdParameter::handle_commandline(
 			return true;
 		}
 	}
+
+	return false;
+}
+
+
+/**
+ * @brief Handle the command line and initialize files/dir's.
+ *
+ * Will abort if an error is detected.
+ */
+bool CmdParameter::handle_commandline(
+	int argc,
+	const char *argv[],
+	bool show_help_on_error) {
+	ostringstream errors;
+
+	// Prescan for '-h'; this overrides everything
+	if (handle_help(argc, argv)) return true;;
+
+	int curindex = 0;
 
 	try {
 		curindex = 0;
@@ -516,10 +438,10 @@ bool CmdParameter::handle_commandline(
 		// Check if all unnamed fields have a value
 		for (auto &ptr : CmdParameter::parameters) {
 			auto &field = *ptr.get();
-			if (field.param_type != UNNAMED) continue;
+			if (field.def_param.param_type != UNNAMED) continue;
 
 			if (field.get_string_value().empty()) {
-				errors << "  No " << field.name << " specified.\n";
+				errors << "  No " << field.def_param.name << " specified.\n";
 			}
 		}
 
@@ -544,4 +466,27 @@ bool CmdParameter::handle_commandline(
 	}
 
 	return true;
+}
+
+
+bool CmdParameter::set_default() {
+  if (def_param.is_int_type()) {
+    if (def_param.int_default != DefParameter::INT_NOT_SET) {
+      // Use default instead
+      int_value = def_param.int_default;
+      return true;
+    }
+  } else if (def_param.is_float_type()) {
+    if (def_param.float_default != DefParameter::FLOAT_NOT_SET) {
+      // Use default instead
+      float_value = def_param.float_default;
+      return true;
+    }
+  } else {
+    // All other cases for now: not handled
+    // TODO: see if explicit default settings is needed for these types
+    return false;
+  }
+
+  return false;
 }
