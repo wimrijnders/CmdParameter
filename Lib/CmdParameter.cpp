@@ -74,11 +74,7 @@ const char *CmdParameter::usage_text = nullptr;
 
 CmdParameter::CmdParameter(DefParameter &var) :
   def_param(var),
-  m_detected(false),
-  bool_value(false),
-  int_value(-1),
-  float_value(-1.0f)
-{
+  m_detected(false) {
   set_default();
 }
 
@@ -116,26 +112,6 @@ bool CmdParameter::parse_param(const char *curarg) {
 }
 
 
-bool CmdParameter::parse_bool_param(const string &in_value) {
-	assert(in_value.empty());
-	assert(def_param.param_type == NONE);
-
-  bool_value = true;
-  m_detected = true;
-  return true;
-}
-
-
-bool CmdParameter::parse_string_param(const string &in_value) {
-	assert(!in_value.empty());
-	assert(def_param.param_type == STRING);
-
-  string_value = in_value;
-  m_detected = true;
-  return true;
-}
-
-
 int CmdParameter::get_int_value(const string &param) {
   int value = -1;
   const char *str = param.c_str();
@@ -145,21 +121,6 @@ int CmdParameter::get_int_value(const string &param) {
   if (end == str || *end != '\0') {
     string msg(def_param.name);
     throw string(msg + " value not a number.");
-  }
-
-  return value;
-}
-
-
-float CmdParameter::get_float_value(const string &param) {
-  float value = -1;
-  const char *str = param.c_str();
-  char *end = nullptr;
-  value = (float) strtod(str, &end);
-
-  if (end == str || *end != '\0') {
-    string msg(def_param.name);
-    throw string(msg + " value not a float.");
   }
 
   return value;
@@ -208,6 +169,26 @@ bool CmdParameter::process_option(List &parameters, const char *curarg) {
 }
 
 
+#ifndef LITE
+bool CmdParameter::parse_bool_param(const string &in_value) {
+	assert(in_value.empty());
+	assert(def_param.param_type == NONE);
+
+  bool_value = true;
+  m_detected = true;
+  return true;
+}
+
+
+bool CmdParameter::parse_string_param(const string &in_value) {
+	assert(!in_value.empty());
+	assert(def_param.param_type == STRING);
+
+  string_value = in_value;
+  m_detected = true;
+  return true;
+}
+
 bool CmdParameter::process_unnamed(List &parameters, const char *curarg) {
   for (auto &item: parameters) {
     CmdParameter &param = *item;
@@ -222,6 +203,22 @@ bool CmdParameter::process_unnamed(List &parameters, const char *curarg) {
 }
 
 
+float CmdParameter::get_float_value(const string &param) {
+  float value = -1;
+  const char *str = param.c_str();
+  char *end = nullptr;
+  value = (float) strtod(str, &end);
+
+  if (end == str || *end != '\0') {
+    string msg(def_param.name);
+    throw string(msg + " value not a float.");
+  }
+
+  return value;
+}
+
+
+#endif  // LITE
 /**
  * @brief Create help usage text for all the defined optional param's.
  *
@@ -406,12 +403,17 @@ bool CmdParameter::handle_commandline(
 			const char *curarg = argv[curindex];
 
 			if (!CmdParameter::process_option(CmdParameter::parameters, curarg)) {
+#ifndef LITE
 				// It's not one of the defined options, so it must be unnamed input
 				if (!CmdParameter::process_unnamed(CmdParameter::parameters, curarg)) {
 					errors << "  Too many unnamed parameters on command line, '" << curarg << " unexpected.\n";
 				}
+#else  // LITE
+				errors << "  Unknown parameter '" << curarg << "'.\n";
+#endif  // LITE
 			}
 		}
+#ifndef LITE
 
 		// Check if all unnamed fields have a value
 		for (auto &ptr : CmdParameter::parameters) {
@@ -422,6 +424,7 @@ bool CmdParameter::handle_commandline(
 				errors << "  No " << field.def_param.name << " specified.\n";
 			}
 		}
+#endif  // LITE
 	} catch (string &error) {
 		if (error != "all is well") {
 			errors << "  " << error.c_str() << endl;
@@ -453,12 +456,14 @@ bool CmdParameter::set_default() {
       int_value = def_param.int_default;
       return true;
     }
+#ifndef LITE
   } else if (def_param.is_float_type()) {
     if (def_param.float_default != DefParameter::FLOAT_NOT_SET) {
       // Use default instead
       float_value = def_param.float_default;
       return true;
     }
+#endif  // LITE
   } else {
     // All other cases for now: not handled
     // TODO: see if explicit default settings is needed for these types

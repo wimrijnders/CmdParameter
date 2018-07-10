@@ -27,10 +27,12 @@ struct CmdParameter {
 
   CmdParameter(DefParameter &var);
 
-  bool        get_bool_value()   { return bool_value; }
   int         get_int_value()    { return int_value; }
+#ifndef LITE
+  bool        get_bool_value()   { return bool_value; }
   float       get_float_value()  { return float_value; }
   std::string get_string_value() { return string_value; }
+#endif  // LITE
 
   bool detected() const { return m_detected; }
 
@@ -43,30 +45,33 @@ struct CmdParameter {
 
   static bool init_params(const char *in_usage, DefParameter params[]);
   static bool process_option(List &parameters, const char *curarg);
-  static bool process_unnamed(List &parameters, const char *curarg);
   static void show_usage();
 
   // TODO: make private
   static List parameters;
 
 protected:
-  bool m_detected;
+  bool m_detected{false};
+  int  int_value{-1};
 
+  int         get_int_value   (const std::string &param);
+
+#ifndef LITE
   // Yes, crappy. Go ahead and enjoy your nausea.
-  bool         bool_value;
-  int          int_value;
-  float        float_value;
+  bool         bool_value{false};
+  float        float_value{-1.0f};
   std::string  string_value;
 
   bool parse_bool_param  (const std::string &in_value);
   bool parse_string_param(const std::string &in_value);
+  static bool process_unnamed(List &parameters, const char *curarg);
 
-  int         get_int_value   (const std::string &param);
   float       get_float_value (const std::string &param);
   std::string get_string_value(const std::string &param) {
     return get_param(param.c_str());
   }
 
+#endif  // LITE
   std::string get_param(const char *curarg);
 
 private:
@@ -83,10 +88,5 @@ private:
   static std::string pad(const std::string &str, unsigned width);
   static bool check_labels_unique(DefParameter params[]);
 };
-
-
-
-
-
 
 #endif // CMDPARAMETER_H

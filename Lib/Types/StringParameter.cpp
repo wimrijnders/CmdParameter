@@ -4,6 +4,6 @@
 #include <sstream>
 
 
-void StringParameter::default_indicator(std::ostringstream &os) override {
+void StringParameter::default_indicator(std::ostringstream &os) {
   os << def_param.string_default;
 }
