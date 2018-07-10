@@ -335,10 +335,12 @@ void CmdParameter::show_usage() {
  * @return true if all went well, false if an error occured during conversion.
  */
 bool CmdParameter::init_params(const char *in_usage, DefParameter params[]) {
+#ifndef LITE
   if (!check_labels_unique(params)) {
     return false;
   }
 
+#endif  // LITE
   parameters.clear();
   usage_text = in_usage;
 
@@ -362,10 +364,7 @@ bool CmdParameter::handle_help(int argc, const char *argv[]) {
 
 	while (true) {
 		curindex++;
-
-		if (curindex >= argc) {
-			break;
-		}
+		if (curindex >= argc) break;
 
 		const char *curarg = argv[curindex];
 
@@ -472,6 +471,7 @@ bool CmdParameter::set_default() {
 
   return false;
 }
+#ifndef LITE
 
 
 /**
@@ -499,3 +499,4 @@ bool CmdParameter::check_labels_unique(DefParameter params[]) {
 
   return labels_unique;
 }
+#endif  // LITE

@@ -32,10 +32,9 @@ struct CmdParameter {
   bool        get_bool_value()   { return bool_value; }
   float       get_float_value()  { return float_value; }
   std::string get_string_value() { return string_value; }
+
 #endif  // LITE
-
   bool detected() const { return m_detected; }
-
   bool parse_param(const char *curarg);
 
   static bool handle_commandline(
@@ -55,8 +54,8 @@ protected:
   int  int_value{-1};
 
   int         get_int_value   (const std::string &param);
-
 #ifndef LITE
+
   // Yes, crappy. Go ahead and enjoy your nausea.
   bool         bool_value{false};
   float        float_value{-1.0f};
@@ -86,7 +85,9 @@ private:
 
   static bool handle_help(int argc, const char *argv[]);
   static std::string pad(const std::string &str, unsigned width);
+#ifndef LITE
   static bool check_labels_unique(DefParameter params[]);
+#endif  // LITE
 };
 
 #endif // CMDPARAMETER_H

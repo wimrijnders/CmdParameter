@@ -13,10 +13,11 @@ help:
 	@echo
 	@echo 'Where target:'
 	@echo
-	@echo '    help          - Show this text'
+	@echo '    help          - Show this text (default)'
 	@echo '    all           - Build all test programs'
 	@echo '    clean         - Delete all interim and target files'
 	@echo '    test          - Run the unit tests'
+	@echo '    lite          - Generate the light version of the library code'
 	@echo
 	@echo 'Flags:'
 	@echo
