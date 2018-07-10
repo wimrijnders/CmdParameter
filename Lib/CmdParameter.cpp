@@ -1,13 +1,6 @@
 /**
  * Classes for the handling of command line parameters.
- *
- * The goals are:
- *
- *  - to make this as simple as possible *for usage*
- *  - to make is easy to add new parameter types
- *
- * Note that these are very different goals from making this
- * a simple class system.
+#ifndef LITE
  *
  * ------------------------------------------------------------
  * ## TODO
@@ -20,8 +13,7 @@
  * ## TESTS
  *
  * - unnamed params: required or not/arbitrary number or limit
- * - '-h' not at first
- * - unsigned int param bad or out of range (eg. -2, 0, 'meow')
+#endif  // LITE
  */
 #include "CmdParameter.h"
 #include <cassert>
