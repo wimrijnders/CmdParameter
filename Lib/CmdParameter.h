@@ -17,7 +17,11 @@
  *   more complex. I think this is a worthwhile tradeoff.
  */
 struct CmdParameter {
-  using List = std::vector<std::unique_ptr<CmdParameter>>;
+  class List : public std::vector<std::unique_ptr<CmdParameter>> {
+   public:
+    CmdParameter *operator[] (int index);
+    CmdParameter *operator[] (const char *key);
+  };
 
   DefParameter &def_param;
 

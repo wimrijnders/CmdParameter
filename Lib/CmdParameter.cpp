@@ -14,14 +14,12 @@
  *
  * - Consider adding required parameters (both switches and unnamed)
  *   I.e. *must* be specified, not use default.
- * - Use short names as key to access values.
+ * - Perhaps sort switches alphabetically
  *
  * ------------------------------------------------------------
  * ## TESTS
  *
- * - parameter labels must be unique
  * - unnamed params: required or not/arbitrary number or limit
- * - nonexistent param
  * - '-h' not at first
  * - unsigned int param bad or out of range (eg. -2, 0, 'meow')
  */
@@ -30,10 +28,35 @@
 #include <iostream>
 #include <sstream>   // ostringstream
 #include <vector>
+#include <cstring>   // strcmp
 #include "Support/Strings.h"
 #include "Types/Types.h"
 
 using namespace std;
+
+
+/**
+ * Grumbl need to redefine this after adding the key version.
+ */
+CmdParameter *CmdParameter::List::operator[] (int index) {
+  return at(index).get();
+}
+
+
+CmdParameter *CmdParameter::List::operator[] (const char *key) {
+  assert(key != nullptr);
+
+  for (auto &ptr : *this) {
+    auto &field = *ptr.get();
+    if (0 == strcmp(field.def_param.name, key)) {
+      return &field;
+    }
+  }
+
+  std::string msg = "'";
+  throw msg + key + "' is not a short name of a parameter.";
+  return nullptr;
+}
 
 
 // Internal definition of help switch
@@ -77,9 +100,14 @@ bool CmdParameter::parse_param(const char *curarg) {
   } else {
     if (value.empty()) {
       if (def_param.has_default()) {
-        return true;  // All is well, we have default value
+        return true;  // All is well, we have a default
       } else {
         throw string(msg + " no value present and default not specified.");
+      }
+    } else {
+      // Disallow whitespace after '='
+      if (std::isspace(static_cast<unsigned char>(value[0]))) {
+        throw string(msg + " has unexpected whitespace after '='.");
       }
     }
   }

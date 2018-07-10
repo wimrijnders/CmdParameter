@@ -45,6 +45,12 @@ DefParameter defined_parameters[] = {
     "This value is just plain set. There is no value"
   },
   {
+    "An integer value",
+    "-int",
+    INTEGER,
+    "This value can be any integer"
+  },
+  {
     "Input file",
     "first_file",
     UNNAMED,
@@ -89,7 +95,8 @@ void TestParameters::pass_params() {
   m_float     = parameters[2]->get_float_value();
   output_file = parameters[3]->get_string_value();
   m_bool      = parameters[4]->get_bool_value();
-  input_file  = parameters[5]->get_string_value();
+  m_int       = parameters[5]->get_int_value();
+  input_file  = parameters[6]->get_string_value();
 
   bool_detected = parameters[4]->detected();
 }
