@@ -161,15 +161,17 @@ bool CmdParameter::process_option(List &parameters, const char *curarg) {
 }
 
 
-#ifndef LITE
 bool CmdParameter::parse_bool_param(const string &in_value) {
 	assert(in_value.empty());
 	assert(def_param.param_type == NONE);
 
+#ifndef LITE
   bool_value = true;
+#endif  // LITE
   m_detected = true;
   return true;
 }
+#ifndef LITE
 
 
 bool CmdParameter::parse_string_param(const string &in_value) {
@@ -382,7 +384,7 @@ bool CmdParameter::handle_commandline(
 	ostringstream errors;
 
 	// Prescan for '-h'; this overrides everything
-	if (handle_help(argc, argv)) return true;;
+	if (handle_help(argc, argv)) exit(0);
 
 	int curindex = 0;
 

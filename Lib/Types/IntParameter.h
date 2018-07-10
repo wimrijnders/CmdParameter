@@ -1,7 +1,6 @@
 #ifndef INTPARAMETER_H
 #define INTPARAMETER_H
-
-#include "CmdParameter.h"
+#include "../CmdParameter.h"
 
 struct IntParameter : public CmdParameter {
 public:

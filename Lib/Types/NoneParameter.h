@@ -1,6 +1,6 @@
 #ifndef NONEPARAMETER_H
 #define NONEPARAMETER_H
-#include "CmdParameter.h"
+#include "../CmdParameter.h"
 
 
 struct NoneParameter : public CmdParameter {

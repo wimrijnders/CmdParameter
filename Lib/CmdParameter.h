@@ -3,6 +3,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <sstream>
 #include "DefParameter.h"
 
 
@@ -53,7 +54,8 @@ protected:
   bool m_detected{false};
   int  int_value{-1};
 
-  int         get_int_value   (const std::string &param);
+  int  get_int_value(const std::string &param);
+  bool parse_bool_param(const std::string &in_value);
 #ifndef LITE
 
   // Yes, crappy. Go ahead and enjoy your nausea.
@@ -61,7 +63,6 @@ protected:
   float        float_value{-1.0f};
   std::string  string_value;
 
-  bool parse_bool_param  (const std::string &in_value);
   bool parse_string_param(const std::string &in_value);
   static bool process_unnamed(List &parameters, const char *curarg);
 
