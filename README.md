@@ -12,3 +12,58 @@ Its goals are:
 
  Note that these are very different goals from making this simple.
  The downside is that this code becomes more complex. I think this is a worthwhile tradeoff.
+
+## Example
+
+This definition, taken from the `Simple` example program:
+
+```c++
+static const char *usage =
+"Simple test with single integer command line parameters\n"
+;
+
+
+DefParameter defined_parameters[] = {
+  {
+    "An integer value",
+    "-int=",
+    INTEGER,
+    "This value can be any integer"
+  },
+  nullptr   // End marker
+};
+```
+
+Leads to the following output:
+
+```
+> ./Simple -h
+Simple test with single integer command line parameters
+
+options:
+    (Can appear in any position on the command line after the program name)
+    -h         - Show this information. Overrides all other parameters.
+    -int=<num> - This value can be any integer; default '0'.
+
+> ./Simple -int=hello
+Error(s) on command line:
+  The value for field 'An integer value' is not a number.
+
+  Use switch '-h' to view options
+
+> ./Simple -int
+Error(s) on command line:
+  Parameter 'An integer value' (-int) takes a value, none specified.
+
+  Use switch '-h' to view options
+
+> ./Simple -int=
+Error(s) on command line:
+  Parameter 'An integer value' (-int) takes a value, none specified.
+
+  Use switch '-h' to view options
+
+> ./Simple -int=42
+switch value: 42
+
+```

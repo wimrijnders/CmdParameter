@@ -16,8 +16,9 @@ HeaderComment = "/*
  * CmdParameter Lite v0.1.0
  * Copyright (c) 2018 Wim Rijnders
  *
- * Distributed under the MIT License (see ...)
- * -------------------------------------------
+ * Distributed under the MIT License,
+ * see https://github.com/wimrijnders/CmdParameter/blob/master/LICENSE
+ * --------------------------------------------------------------------
  * Generated on: %s
  */
 "

@@ -101,6 +101,16 @@ string Strings::trim(const std::string& s, const std::string& delimiters) {
 
 	return tmp;
 }
+
+
+/**
+ * Determine if the given string haystack has needle as substring.
+ *
+ * @return true if substring present, else false.
+ */
+bool Strings::contains(std::string const& haystack, std::string const& needle) {
+  return (haystack.find(needle) != string::npos);
+}
 #ifndef LITE
 
 
@@ -131,17 +141,6 @@ std::string Strings::to_lower(const std::string &str) {
 	std::transform(data.begin(), data.end(), data.begin(), ::tolower);
 	return data;
 }
-
-
-/**
- * Determine if the given string haystack has needle as substring.
- *
- * @return true if substring present, else false.
- */
-bool Strings::contains(std::string const& haystack, std::string const& needle) {
-	return (haystack.find(needle) != string::npos);
-}
-
 
 
 /**

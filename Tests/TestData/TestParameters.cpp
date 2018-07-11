@@ -2,7 +2,7 @@
 #include "../../Lib/CmdParameter.h"
 
 static const char *usage =
-"TestProg text of unit testing command line parameters\n"
+"TestProg test of unit testing command line parameters\n"
 "\n"
 "Usage:\n"
 "    TestProg input_file {options}\n"
@@ -46,7 +46,7 @@ DefParameter defined_parameters[] = {
   },
   {
     "An integer value",
-    "-int",
+    "-int=",
     INTEGER,
     "This value can be any integer"
   },
@@ -65,31 +65,28 @@ DefParameter defined_parameters[] = {
 // Class TestParameters
 //////////////////////////////////////////////////
 
-
+/**
+ * @return true if everything OK, false otherwise
+ */
 bool TestParameters::handle_commandline(
   int argc,
   const char* argv[],
   bool show_help_on_error) {
 
-  if (!CmdParameter::init_params(usage, defined_parameters)) {
-    return false;
-  }
+	auto ret = CmdParameter::handle_commandline(usage, defined_parameters, argc, argv, show_help_on_error);
+	if (ret == CmdParameter::ALL_IS_WELL) {
+		pass_params();
+		return true;
+	}
 
-  if (CmdParameter::handle_commandline(argc, argv, show_help_on_error)) {
-    pass_params();
-    return true;
-  }
-
-  return false;
+	return (ret != CmdParameter::EXIT_ERROR);
 }
 
 
 void TestParameters::pass_params() {
   CmdParameter::List &parameters = CmdParameter::parameters;
 
-  // This is the weak spot in the cmd handling;
-  // need indexes into the array.
-  // TODO: Find something better.
+  // TODO: use keys here instead.
   m_unsigned  = parameters[0]->get_int_value();
   m_positive  = parameters[1]->get_int_value();
   m_float     = parameters[2]->get_float_value();

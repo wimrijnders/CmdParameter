@@ -24,9 +24,6 @@ bool single_param(TestParameters &params, const char *in_switch) {
 // The actual unit tests
 //////////////////////////////////////////////////
 
-/**
- * TODO: check border cases for param's with limits
- */
 TEST_CASE("Test Command Line parameters", "[params]") {
 	cout_redirect redirect;
 	TestParameters params;  // NOTE: putting this in global space causes a segfault
@@ -42,15 +39,10 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 														"-h", "what", "I", "put", "here"	};
 		REQUIRE(params.handle_commandline(argc2, argv2, false));
 
-		//redirect.clear();
-
 		int argc3 = 9;
 		const char *argv3[] = { PROG, "it", "doesn't", "matter",
 														"what", "I", "put", "here", "-h"	};
 		REQUIRE(params.handle_commandline(argc3, argv3, false));
-
-		//redirect.close();
-		//std::cout << "redirect: " << redirect.str() << std::endl;
 
 		int argc4 = 11;
 		const char *argv4[] = { PROG, "This", "-h", "should",
@@ -115,9 +107,20 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 
 
 	SECTION("Check bad parameters") {
+		//redirect.clear();
+
 		// Each value here is tested separately.
 		// They should all fail.
 		const char *test_params[] = {
+			"-int",        // Value required
+			"-int=",
+
+			"-bool=1",     // Take no value
+			"-bool=",
+			"-bool=false",
+			"-h=",
+			"-h=1",
+
 			"-int=\t123",
 			"-int=meow",
 			"-int=3.1419",
@@ -133,6 +136,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 			"-float=meow",
 			"-float=-0.01",
 			"-float=3.14string",
+			"-output=",
 			"-output= ",
 			nullptr
 		};
@@ -142,7 +146,12 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 			REQUIRE(!single_param(params, test_params[n]));
 		}
 
-		// Test border case(s)
+		//redirect.close();
+		//std::cout << "redirect: " << redirect.str() << std::endl;
+	}
+
+
+	SECTION("Check border cases") {
 		REQUIRE(single_param(params, "-positive=1"));
 		REQUIRE(single_param(params, "-unsigned=0"));
 		REQUIRE(single_param(params, "-output=123"));

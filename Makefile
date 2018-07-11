@@ -6,6 +6,12 @@
 #
 ###########################################################
 
+EXAMPLES = \
+	Simple
+
+EXAMPLE_TARGETS = $(patsubst %,$(OBJ_DIR)/bin/%,$(EXAMPLES))
+
+
 help:
 	@echo 'Usage:'
 	@echo
@@ -18,6 +24,8 @@ help:
 	@echo '    clean         - Delete all interim and target files'
 	@echo '    test          - Run the unit tests'
 	@echo '    lite          - Generate the light version of the library code'
+	@echo
+	@echo '    Any of the examples: $(EXAMPLES)'
 	@echo
 	@echo 'Flags:'
 	@echo
@@ -60,7 +68,6 @@ LIB_OBJ := \
 LIB_OBJ := $(patsubst %,$(OBJ_DIR)/%,$(LIB_OBJ))
 #$(info LIB_OBJ: $(LIB_OBJ))
 
-
 # Dependencies from list of object files
 DEPS := $(LIB_OBJ:.o=.d)
 #$(info $(DEPS))
@@ -78,7 +85,7 @@ TARGET=$(OBJ_DIR)/libCmdParameter.a
 #$(info TARGET: $(TARGET))
 
 
-all: $(OBJ_DIR) $(TARGET)
+all: $(OBJ_DIR) $(TARGET) $(EXAMPLE_TARGETS)
 
 clean:
 	rm -rf obj obj-debug generated
@@ -88,6 +95,7 @@ $(OBJ_DIR):
 	@mkdir -p $(OBJ_DIR)/bin
 	@mkdir -p $(OBJ_DIR)/Lib/Types
 	@mkdir -p $(OBJ_DIR)/Lib/Support
+	@mkdir -p $(OBJ_DIR)/Examples
 
 
 #
@@ -127,12 +135,26 @@ $(OBJ_DIR)/bin/runTests: $(UNIT_TESTS) $(TARGET)
 	@$(CXX) $(CXX_FLAGS) -Wno-psabi $^ -L$(OBJ_DIR) -lCmdParameter -o $@
 
 make_test: $(OBJ_DIR)/bin/runTests
-	@echo building unit tests
 
 test : $(OBJ_DIR)/bin/runTests
 	@echo Running unit tests with '$(RUN_TESTS)'
 	@$(RUN_TESTS)
 
+#
+# Targets for Examples
+#
+
+$(OBJ_DIR)/bin/%: $(OBJ_DIR)/Examples/%.o $(TARGET)
+	@echo Linking $@...
+	@$(CXX) $(CXX_FLAGS) $^ $(LIBS) -o $@
+
+$(EXAMPLES) :% :$(OBJ_DIR)/bin/%
+
+# General compilation of cpp files
+# Keep in mind that the % will take into account subdirectories under OBJ_DIR.
+$(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
+	@echo Compiling $<
+	@$(CXX) -c $(CXX_FLAGS) -o $@ $<
 
 #
 # Targets for Lite Output
