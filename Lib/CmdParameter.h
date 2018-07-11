@@ -9,13 +9,6 @@
 
 /**
  * @brief Defines and processes command line parameters.
- *
- * ----------------------------------------------------------
- * ## NOTES
- *
- * * The goal of this class is to make the definitions and usage of
- *   the parameters easy. The downside is that this code becomes
- *   more complex. I think this is a worthwhile tradeoff.
  */
 struct CmdParameter {
   class List : public std::vector<std::unique_ptr<CmdParameter>> {

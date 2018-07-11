@@ -24,8 +24,6 @@ bool single_param(TestParameters &params, const char *in_switch) {
 // The actual unit tests
 //////////////////////////////////////////////////
 
-
-
 /**
  * TODO: check border cases for param's with limits
  */

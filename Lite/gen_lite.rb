@@ -1,6 +1,9 @@
 #!/usr/bin/ruby
-
-#puts "args: #{ARGV.inspect}"
+#
+# Script to generate a 'lite' version of `CmdParameter`, which
+# only handles integer values of command line parameters.
+#
+#################################################################
 
 dst = ARGV[0]
 src = ARGV[1]
@@ -9,7 +12,19 @@ skip_lite = "#ifndef LITE\n"
 skip_else = "#else  // LITE\n"
 skip_end = "#endif  // LITE\n"
 
+HeaderComment = "/*
+ * CmdParameter Lite v0.1.0
+ * Copyright (c) 2018 Wim Rijnders
+ *
+ * Distributed under the MIT License (see ...)
+ * -------------------------------------------
+ * Generated on: %s
+ */
+"
 
+#
+# Read in a text file and store as an array of lines.
+#
 def file_to_array filename
 	array_line = []  
 
@@ -23,10 +38,15 @@ def file_to_array filename
 end
 
 
+#
+# Main routine
+#
 
 lines = file_to_array src
 
 File.open(dst, 'w') { |f|
+	f.write HeaderComment % [Time.now]
+
 	do_write = true
 
 	lines.each { |l|
