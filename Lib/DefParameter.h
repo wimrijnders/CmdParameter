@@ -2,6 +2,7 @@
 #define DEFPARAMETER_H
 #include "Types/ParamType.h"
 #include <string>
+#include <vector>
 
 
 /**
@@ -12,8 +13,6 @@ struct DefParameter {
 #ifndef LITE
   static const float FLOAT_NOT_SET;
 #endif  // LITE
-
-  DefParameter(const char *in_name);
 
   DefParameter(
     const char *in_name,
@@ -64,5 +63,7 @@ private:
   void handle_defaults();
 };
 
+
+using DefParameters = std::vector<DefParameter>;
 
 #endif // DEFPARAMETER_H

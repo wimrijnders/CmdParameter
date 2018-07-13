@@ -157,18 +157,18 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 		REQUIRE(single_param(params, "-output=123"));
 	}
 
+	// TODO: test empty prefix
 
 	SECTION("Same names for parameter definitions should not be allowed") {
-		const char *usage = "blurb";
-
-		DefParameter double_params[] = {
+		CmdDefinition double_params = {
+			"blurb", {  // Usage
 			{	"Name not unique", "", UNNAMED,	"" },
-			{	"Name not unique", "", UNNAMED,	"" },
-			nullptr
-		};
+			{	"Name not unique", "", UNNAMED,	"" }
+		}};
 
-		REQUIRE(!CmdParameter::init_params(usage, double_params));
+		REQUIRE(!CmdParameter::init_params(double_params));
 	}
+
 
 	SECTION("Indexed access of parameter values should return the same as keyed access") {
 		CmdParameter::List &p = CmdParameter::parameters;

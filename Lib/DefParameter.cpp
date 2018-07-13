@@ -9,19 +9,6 @@ const int   DefParameter::INT_NOT_SET   = std::numeric_limits<int>::min();
 const float DefParameter::FLOAT_NOT_SET = nanf("");
 #endif  // LITE
 
-/**
- * @brief Contructor accepting null pointer as single parameter
- *
- * Used to indicate and detect the end of a parameterdefinition array.
- */
-DefParameter::DefParameter(const char *in_name) :
-  name(in_name),
-  prefix(nullptr),
-  param_type(NONE),
-  usage(nullptr) {
-  handle_defaults();
-}
-
 
 DefParameter::DefParameter(
   const char *in_name,

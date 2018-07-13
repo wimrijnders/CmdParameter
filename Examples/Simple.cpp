@@ -7,24 +7,19 @@
 using namespace std;
 
 
-static const char *usage =
-"Simple test with single integer command line parameters\n"
-;
-
-
-DefParameter defined_parameters[] = {
-  {
+CmdDefinition definition = {
+  "Simple test with single integer command line parameters\n",
+  {{
     "An integer value",
     "-int=",
     INTEGER,
     "This value can be any integer"
-  },
-  nullptr   // End marker
+  }}
 };
 
 
 int main(int argc, const char *argv[]) {
-	auto ret = CmdParameter::handle_commandline(usage, defined_parameters, argc, argv, false);
+	auto ret = CmdParameter::handle_commandline(definition, argc, argv, false);
 	if (ret != CmdParameter::ALL_IS_WELL) {
 		return ret;
 	}

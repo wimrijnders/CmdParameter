@@ -1,63 +1,55 @@
 #include "TestParameters.h"
+#include "../../Lib/CmdDefinition.h"
 #include "../../Lib/CmdParameter.h"
 
-static const char *usage =
-"TestProg test of unit testing command line parameters\n"
-"\n"
-"Usage:\n"
-"    TestProg input_file {options}\n"
-"\n"
-"Where:\n"
-"    input_file         - filename not passed in as parameter\n"
-;
 
+CmdDefinition definition = {
+  // Usage
+  "TestProg test of unit testing command line parameters\n"
+  "\n"
+  "Usage:\n"
+  "    TestProg input_file {options}\n"
+  "\n"
+  "Where:\n"
+  "    input_file         - filename not passed in as parameter\n",
 
-
-DefParameter defined_parameters[] = {
-  {
+  // global parameters
+  {{
     "Unsigned integer",
     "-unsigned=",
     UNSIGNED_INTEGER,
     "Some value which must not be negative"
-  },
-  {
+  }, {
     "Positive integer",
     "-positive=",
     POSITIVE_INTEGER,
     "It can't be negative and also not zero."
-  },
-  {
+  }, {
     "Positive float",
     "-float=",
     POSITIVE_FLOAT,
     "A float which can't be zero or smaller"
-  },
-  {
+  }, {
     "Output file",
     "-output=",
     STRING,
     "The name of some file we want to output to"
-  },
-  {
+  }, {
     "A boolean value",
     "-bool",
     NONE,
     "This value is just plain set. There is no value"
-  },
-  {
+  }, {
     "An integer value",
     "-int=",
     INTEGER,
     "This value can be any integer"
-  },
-  {
+  }, {
     "Input file",
     "first_file",
     UNNAMED,
     "The first unnamed parameter, which we take to be a filename"
-  },
-
-  nullptr   // End marker
+  }}
 };
 
 
@@ -73,7 +65,7 @@ bool TestParameters::handle_commandline(
   const char* argv[],
   bool show_help_on_error) {
 
-	auto ret = CmdParameter::handle_commandline(usage, defined_parameters, argc, argv, show_help_on_error);
+	auto ret = CmdParameter::handle_commandline(definition, argc, argv, show_help_on_error);
 	if (ret == CmdParameter::ALL_IS_WELL) {
 		pass_params();
 		return true;

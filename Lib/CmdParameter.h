@@ -4,7 +4,11 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include "DefParameter.h"
+#include "CmdDefinition.h"
+#ifndef LITE
+#include "DefAction.h"
+#endif  // LITE
+
 
 
 /**
@@ -25,11 +29,12 @@ struct CmdParameter {
     CmdParameter *operator[] (const char *key);
   };
 
-  DefParameter &def_param;
+  static CmdDefinition *definition;
+  DefParameter  &def_param;
 
   CmdParameter(DefParameter &var);
 
-  int         get_int_value()    { return int_value; }
+  int    get_int_value()    { return int_value; }
 #ifndef LITE
   bool   get_bool_value()   { return bool_value; }
   float  get_float_value()  { return float_value; }
@@ -40,8 +45,7 @@ struct CmdParameter {
   bool parse_param(const char *curarg);
 
   static ExitCode handle_commandline(
-    const char *in_usage,
-    DefParameter params[],
+    CmdDefinition &definition,
     int argc,
     const char* argv[],
     bool show_help_on_error = true);
@@ -51,7 +55,7 @@ struct CmdParameter {
     const char *argv[],
     bool show_help_on_error = true);
 
-  static bool init_params(const char *in_usage, DefParameter params[]);
+  static bool init_params(CmdDefinition &in_definition);
   static bool process_option(List &parameters, const char *curarg);
   static void show_usage();
   static bool has_errors() { return m_has_errors; }
@@ -88,7 +92,6 @@ protected:
 private:
   static bool m_has_errors;
   static DefParameter help_def;
-  static const char *usage_text;
 
   bool set_default();
 
@@ -97,10 +100,11 @@ private:
   virtual void default_indicator(std::ostringstream &os) = 0;
 	virtual bool takes_value() const { return true; }
 
+  static void show_params();
   static bool handle_help(int argc, const char *argv[]);
   static string pad(const string &str, unsigned width);
 #ifndef LITE
-  static bool check_labels_unique(DefParameter params[]);
+  static bool check_labels_unique(DefParameters &params);
 #endif  // LITE
 };
 

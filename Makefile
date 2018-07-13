@@ -7,7 +7,8 @@
 ###########################################################
 
 EXAMPLES = \
-	Simple
+	Simple \
+	Actions
 
 EXAMPLE_TARGETS = $(patsubst %,$(OBJ_DIR)/bin/%,$(EXAMPLES))
 
@@ -62,6 +63,8 @@ LIB_OBJ := \
 	Lib/Types/UnsignedIntParameter.o \
 	Lib/Types/PositiveIntParameter.o \
 	Lib/Types/PositiveFloatParameter.o \
+	Lib/DefAction.o \
+	Lib/CmdDefinition.o \
 	Lib/DefParameter.o \
 	Lib/CmdParameter.o
 
@@ -75,7 +78,7 @@ DEPS := $(LIB_OBJ:.o=.d)
 
 # Top-level targets
 
-.PHONY: help clean all lib test lite
+.PHONY: help clean all lib test lite $(EXAMPLES)
 
 # Following prevents deletion of object files after linking
 # Otherwise, deletion happens for targets of the form '%.o'
@@ -121,8 +124,10 @@ RUN_TESTS := $(OBJ_DIR)/bin/runTests
 UNIT_TESTS = \
 	Tests/testMain.cpp                \
 	Tests/testParams.cpp              \
+	Tests/testActions.cpp             \
 	Tests/Support/cout_redirect.cpp   \
-	Tests/TestData/TestParameters.cpp
+	Tests/TestData/TestParameters.cpp \
+	Tests/TestData/TestActions.cpp
 
 #
 # For some reason, doing an interim step to .o results in linkage errors (undefined references).
@@ -134,7 +139,7 @@ $(OBJ_DIR)/bin/runTests: $(UNIT_TESTS) $(TARGET)
 	@echo Compiling unit tests
 	@$(CXX) $(CXX_FLAGS) -Wno-psabi $^ -L$(OBJ_DIR) -lCmdParameter -o $@
 
-make_test: $(OBJ_DIR)/bin/runTests
+make_test: $(OBJ_DIR)/bin/runTests | Simple
 
 test : $(OBJ_DIR)/bin/runTests
 	@echo Running unit tests with '$(RUN_TESTS)'

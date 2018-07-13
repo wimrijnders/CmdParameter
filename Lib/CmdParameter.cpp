@@ -18,7 +18,6 @@
 #include "CmdParameter.h"
 #include <cassert>
 #include <iostream>
-#include <sstream>   // ostringstream
 #include <vector>
 #include <cstring>   // strcmp
 #include "Support/Strings.h"
@@ -69,15 +68,22 @@ DefParameter CmdParameter::help_def(
 
 bool CmdParameter::m_has_errors = false;
 CmdParameter::List CmdParameter::parameters;
-const char *CmdParameter::usage_text = nullptr;
+CmdDefinition *CmdParameter::definition = nullptr;
 
 
 CmdParameter::CmdParameter(DefParameter &var) :
   def_param(var),
   m_detected(false) {
 
+  if (var.prefix == nullptr || strlen(var.prefix) == 0) {
+    int i = 1;  // breakpoint trap
+  }
+
 	// Remove '=' from the field prefix
-  m_prefix = Strings::explode(var.prefix, '=')[0];
+	auto tmp = Strings::explode(var.prefix, '=');
+	if (!tmp.empty()) {
+		m_prefix = tmp[0];
+	}
 	assert(!m_prefix.empty());
 
   set_default();
@@ -248,8 +254,23 @@ float CmdParameter::get_float_value(const string &param) {
  * Some effort is done to keep the descriptions aligned.
  */
 void CmdParameter::show_usage() {
-  cout << usage_text;
+  cout << definition->usage;
 
+  if (!definition->actions.empty()) {
+    cout << "\n\nActions:\n\n";
+
+    for (auto &action: definition->actions) {
+      // TODO: padding between name and usage
+      cout << "    " << action.name << "   " << action.usage << "\n";
+    }
+
+  }
+
+  show_params();
+}
+
+
+void CmdParameter::show_params() {
   vector<string> disp_defaults;
   vector<string> disp_params;
 
@@ -274,7 +295,7 @@ void CmdParameter::show_usage() {
   };
 
 
-  // Help switch
+  // Internal help switch definition
   NoneParameter help_switch(help_def);
   string value_indicator;
   std::ostringstream default_indicator;
@@ -310,9 +331,12 @@ void CmdParameter::show_usage() {
     }
   }
 
-  cout << "\n"
-          "Options:\n"
-          "    (Can appear in any position on the command line after the program name)\n";
+  if (definition->actions.empty()) {
+    cout << "\nOptions:\n";
+  } else {
+    cout << "\nGlobal Options:\n";
+  }
+  cout << "    (Can appear in any position on the command line after the program name)\n";
 
 
   auto output_padded = [width] (
@@ -326,7 +350,7 @@ void CmdParameter::show_usage() {
     indent += pad(mt, width + 4 + 3);
     usage = Strings::implode(Strings::explode(usage, '\n'), indent.c_str());
 
-    cout << "    " << pad(disp_param, width) << " - " << usage << disp_default << endl;
+    cout << "    " << pad(disp_param, width) << "  " << usage << disp_default << endl;
   };
 
   int index = 0;
@@ -339,37 +363,6 @@ void CmdParameter::show_usage() {
     output_padded(param, disp_params[index], disp_defaults[index]);
     index++;
   }
-}
-
-
-/**
- * @brief Process the main text blurb and the parameter definitions
- *
- * The parameter definitions are converted to an internal representation, better
- * suited for parsing the actual values on the command line.
- *
- * @param in_usage main text to use for the help description
- * @param params   array of parameter definitions, ended by a 'nullptr' field
- *
- * @return true if all went well, false if an error occured during conversion.
- */
-bool CmdParameter::init_params(const char *in_usage, DefParameter params[]) {
-#ifndef LITE
-  if (!check_labels_unique(params)) {
-    return false;
-  }
-
-#endif  // LITE
-  parameters.clear();
-  usage_text = in_usage;
-
-  for (int index = 0; params[index].name != nullptr; ++index) {
-    auto &item = params[index];
-    CmdParameter *p = DefParameter_factory(item);
-    parameters.emplace_back(p);
-  }
-
-  return true;
 }
 
 
@@ -405,12 +398,11 @@ bool CmdParameter::handle_help(int argc, const char *argv[]) {
  *         EXIT_ERROR    if should stop with errors
  */
 CmdParameter::ExitCode CmdParameter::handle_commandline(
-  const char *usage,
-  DefParameter params[],
+  CmdDefinition &definition,
   int argc,
   const char* argv[],
   bool show_help_on_error) {
-  if (!CmdParameter::init_params(usage, params)) {
+  if (!CmdParameter::init_params(definition)) {
     return EXIT_ERROR;
   }
 
@@ -502,6 +494,35 @@ bool CmdParameter::handle_commandline(
 }
 
 
+/**
+ * @brief Process the main text blurb and the parameter definitions
+ *
+ * The parameter definitions are converted to an internal representation, better
+ * suited for parsing the actual values on the command line.
+ *
+ * @param in_usage main text to use for the help description
+ * @param params   array of parameter definitions, ended by a 'nullptr' field
+ *
+ * @return true if all went well, false if an error occured during conversion.
+ */
+bool CmdParameter::init_params(CmdDefinition &in_definition) {
+  if (!in_definition.validate()) {
+    return false;
+  }
+
+  definition = &in_definition;
+
+  parameters.clear();
+
+  for(auto &item : in_definition.global_parameters) {
+    CmdParameter *p = DefParameter_factory(item);
+    parameters.emplace_back(p);
+  }
+
+  return true;
+}
+
+
 bool CmdParameter::set_default() {
   if (def_param.is_int_type()) {
     if (def_param.int_default != DefParameter::INT_NOT_SET) {
@@ -525,32 +546,4 @@ bool CmdParameter::set_default() {
 
   return false;
 }
-#ifndef LITE
 
-
-/**
- * @brief Check that the params-labels are unique
- *
- * @return true if unique, false otherwise
- */
-bool CmdParameter::check_labels_unique(DefParameter params[]) {
-  int length = 0;
-  for (length = 0; params[length].name != nullptr; ++length) {}
-
-  // Check that labels are unique
-  bool labels_unique = true;
-  for (int index1 = 0; index1 < length - 1; ++index1) {
-    for (int index2 = index1 + 1; index2 < length; ++index2) {
-      if (params[index1].name == params[index2].name) {
-        std::ostringstream msg;
-        msg << "Error: Multiple parameter definitions with name '" << params[index1].name << "'; "
-            << "names should be unique";
-        std::cout << msg.str() << std::endl;
-        labels_unique = false;
-      }
-    }
-  }
-
-  return labels_unique;
-}
-#endif  // LITE
