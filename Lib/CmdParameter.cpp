@@ -137,7 +137,7 @@ int CmdParameter::get_int_value(const string &param) {
 
   if (end == str || *end != '\0') {
     string msg("The value for field '");
-    throw string(msg + def_param.name + "' is not a number.");
+    error("is not a number.");
   }
 
   return value;
@@ -311,7 +311,7 @@ void CmdParameter::show_usage() {
   }
 
   cout << "\n"
-          "options:\n"
+          "Options:\n"
           "    (Can appear in any position on the command line after the program name)\n";
 
 
