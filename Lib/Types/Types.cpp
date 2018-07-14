@@ -14,8 +14,8 @@
 #endif  // LITE
 
 
-CmdParameter *DefParameter_factory(DefParameter &item) {
-  CmdParameter *p = nullptr;
+TypedParameter *DefParameter_factory(DefParameter &item) {
+  TypedParameter *p = nullptr;
 
   switch (item.param_type) {
   case NONE:             p = new NoneParameter(item);          break;

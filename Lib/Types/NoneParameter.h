@@ -1,11 +1,11 @@
 #ifndef NONEPARAMETER_H
 #define NONEPARAMETER_H
-#include "../CmdParameter.h"
+#include "../TypedParameter.h"
 
 
-struct NoneParameter : public CmdParameter {
+struct NoneParameter : public TypedParameter {
 public:
-  NoneParameter(DefParameter &var) : CmdParameter(var) {}
+  NoneParameter(DefParameter &var) : TypedParameter(var) {}
   const char *value_indicator() const override { return ""; }
   void default_indicator(std::ostringstream &os) override { /* do nothing */ }
 

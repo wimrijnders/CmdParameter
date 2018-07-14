@@ -55,6 +55,7 @@ endif
 # Object files
 LIB_OBJ := \
 	Lib/Support/Strings.o \
+	Lib/TypedParameter.o \
 	Lib/Types/Types.o \
 	Lib/Types/NoneParameter.o \
 	Lib/Types/IntParameter.o \
@@ -64,9 +65,8 @@ LIB_OBJ := \
 	Lib/Types/PositiveIntParameter.o \
 	Lib/Types/PositiveFloatParameter.o \
 	Lib/DefAction.o \
-	Lib/CmdDefinition.o \
-	Lib/DefParameter.o \
-	Lib/CmdParameter.o
+	Lib/CmdParameters.o \
+	Lib/DefParameter.o
 
 LIB_OBJ := $(patsubst %,$(OBJ_DIR)/%,$(LIB_OBJ))
 #$(info LIB_OBJ: $(LIB_OBJ))
@@ -170,11 +170,12 @@ $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
 
 LITE_OBJ := \
 	Lib/Support/Strings.o \
+	Lib/TypedParameter.o \
 	Lib/Types/Types.o \
 	Lib/Types/NoneParameter.o \
 	Lib/Types/IntParameter.o \
 	Lib/DefParameter.o \
-	Lib/CmdParameter.o
+	Lib/CmdParameters.o
 
 LITE_DEPS := $(LITE_OBJ:.o=.cpp)
 

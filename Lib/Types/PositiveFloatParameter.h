@@ -1,11 +1,11 @@
 #ifndef POSITIVEFLOATPARAMETER_H
 #define POSITIVEFLOATPARAMETER_H
-#include "CmdParameter.h"
+#include "TypedParameter.h"
 
 
-struct PositiveFloatParameter : public CmdParameter {
+struct PositiveFloatParameter : public TypedParameter {
 public:
-  PositiveFloatParameter(DefParameter &var) : CmdParameter(var) {}
+  PositiveFloatParameter(DefParameter &var) : TypedParameter(var) {}
   const char *value_indicator() const override { return "<float>"; }
   void default_indicator(std::ostringstream &os) override;
 

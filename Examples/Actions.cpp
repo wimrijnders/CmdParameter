@@ -1,12 +1,12 @@
 /**
  * Example with actions
  */
-#include "../Lib/CmdDefinition.h"
+#include "../Lib/CmdParameters.h"
 
 using namespace std;
 
 
-CmdDefinition definition = {
+CmdParameters definition = {
 	"Example with usage of actions\n\n"
 	"Usage:\n\n"
 	"    > Actions <action> {options}",
@@ -52,7 +52,7 @@ CmdDefinition definition = {
 
 int main(int argc, const char *argv[]) {
 	auto ret = definition.handle_commandline(argc, argv, false);
-	if (ret != CmdDefinition::ALL_IS_WELL) {
+	if (ret != CmdParameters::ALL_IS_WELL) {
 		return ret;
 	}
 

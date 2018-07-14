@@ -1,5 +1,5 @@
 #include "catch.hpp"
-#include "../Lib/CmdDefinition.h"
+#include "../Lib/CmdParameters.h"
 #include "Support/cout_redirect.h"
 #include "TestData/TestParameters.h"
 
@@ -160,7 +160,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 	// TODO: test empty prefix
 
 	SECTION("Same names for parameter definitions should not be allowed") {
-		CmdDefinition double_params = {
+		CmdParameters double_params = {
 			"blurb", {  // Usage
 			{	"Name not unique", "", UNNAMED,	"" },
 			{	"Name not unique", "", UNNAMED,	"" }
@@ -171,7 +171,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 
 
 	SECTION("Indexed access of parameter values should return the same as keyed access") {
-		CmdDefinition::List &p = params.parameters();
+		CmdParameters::List &p = params.parameters();
 
 		const char *keys[] = {
 			"Unsigned integer",

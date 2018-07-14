@@ -1,10 +1,10 @@
 #ifndef STRINGPARAMETER_H
 #define STRINGPARAMETER_H
-#include "CmdParameter.h"
+#include "TypedParameter.h"
 
-struct StringParameter : public CmdParameter {
+struct StringParameter : public TypedParameter {
 public:
-  StringParameter(DefParameter &var) : CmdParameter(var) {}
+  StringParameter(DefParameter &var) : TypedParameter(var) {}
   const char *value_indicator() const override { return "<string>"; }
   void default_indicator(std::ostringstream &os) override;
 

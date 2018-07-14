@@ -1,7 +1,9 @@
 #!/usr/bin/ruby
 #
-# Script to generate a 'lite' version of `CmdParameter`, which
-# only handles integer values of command line parameters.
+# Script to generate a 'lite' version of `CmdParameter`.
+#
+# - Only handles integer values of command line parameters
+# - No actions
 #
 #################################################################
 

@@ -2,7 +2,7 @@
 //#include "../../Lib/CmdParameter.h"
 
 
-CmdDefinition definition = {
+CmdParameters definition = {
   // Usage
   "TestProg test of unit testing command line parameters\n"
   "\n"
@@ -65,22 +65,22 @@ bool TestParameters::handle_commandline(
   bool show_help_on_error) {
 
 	auto ret = definition.handle_commandline(argc, argv, show_help_on_error);
-	if (ret == CmdDefinition::ALL_IS_WELL) {
+	if (ret == CmdParameters::ALL_IS_WELL) {
 		pass_params();
 		return true;
 	}
 
-	return (ret != CmdDefinition::EXIT_ERROR);
+	return (ret != CmdParameters::EXIT_ERROR);
 }
 
 
-CmdDefinition::List &TestParameters::parameters() {
+CmdParameters::List &TestParameters::parameters() {
 	return definition.parameters();
 }
 
 
 void TestParameters::pass_params() {
-  CmdDefinition::List &p = parameters();
+  CmdParameters::List &p = parameters();
 
   // TODO: use keys here instead.
   m_unsigned  = p[0]->get_int_value();

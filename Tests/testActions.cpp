@@ -1,7 +1,7 @@
 #include "catch.hpp"
 #include "TestData/TestActions.h"
-#include "../Lib/CmdDefinition.h"
-#include "../Lib/CmdParameter.h"
+#include "../Lib/CmdParameters.h"
+#include "../Lib/TypedParameter.h"
 
 //
 // TODO: something similar for parameters
@@ -28,7 +28,7 @@ TEST_CASE("Test bad action definitions", "[actions]") {
       "action1",
       "This is action 2"
     }};
-    CmdDefinition no_actions("blurb", a);
+    CmdParameters no_actions("blurb", a);
 
     REQUIRE(!no_actions.init_params());
   }

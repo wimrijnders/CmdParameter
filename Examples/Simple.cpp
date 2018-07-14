@@ -2,12 +2,12 @@
  * Example with one integer switch on the command line
  */
 #include <iostream>
-#include "../Lib/CmdDefinition.h"
+#include "../Lib/CmdParameters.h"
 
 using namespace std;
 
 
-CmdDefinition definition = {
+CmdParameters definition = {
   "Simple test with single integer command line parameters\n",
   {{
     "An integer value",
@@ -20,7 +20,7 @@ CmdDefinition definition = {
 
 int main(int argc, const char *argv[]) {
 	auto ret = definition.handle_commandline(argc, argv, false);
-	if (ret != CmdDefinition::ALL_IS_WELL) {
+	if (ret != CmdParameters::ALL_IS_WELL) {
 		return ret;
 	}
 

@@ -1,7 +1,7 @@
 #ifndef DEFACTION_H
 #define DEFACTION_H
 #include <vector>
-#include "CmdParameter.h"
+#include "TypedParameter.h"
 #include "DefParameter.h"
 
 
@@ -20,7 +20,7 @@ public:
   const char *usage;  //> Description of the action
 
   std::vector<DefParameter> params;
-  CmdParameter::List parameters;
+  TypedParameter::List parameters;
 
   bool init_params();
 };

@@ -1,37 +1,39 @@
-#ifndef CMDPARAMETER_H
-#define CMDPARAMETER_H
+#ifndef TYPEDPARAMETER_H
+#define TYPEDPARAMETER_H
 #include <memory>
 #include <string>
 #include <vector>
 #include <sstream>
 
 
-class CmdDefinition;
+class CmdParameters;
 class DefParameter;
 
 
 /**
  * @brief Defines and processes command line parameters.
  */
-struct CmdParameter {
+struct TypedParameter {
   using string = std::string;
 
-  class List : public std::vector<std::unique_ptr<CmdParameter>> {
-    using Parent = std::vector<std::unique_ptr<CmdParameter>>;
+  class List : public std::vector<std::unique_ptr<TypedParameter>> {
+    using Parent = std::vector<std::unique_ptr<TypedParameter>>;
    public:
-    CmdParameter *operator[] (int index);
-    CmdParameter *operator[] (const char *key);
+    TypedParameter *operator[] (int index);
+    TypedParameter *operator[] (const char *key);
 
     void prepare_usage(
       vector<string> &disp_defaults,
       vector<string> &disp_params);
+#ifndef LITE
     bool process_unnamed(const char *curarg);
+#endif  // LITE
   };
 
 
   DefParameter  &def_param;
 
-  CmdParameter(DefParameter &var);
+  TypedParameter(DefParameter &var);
 
   int    get_int_value()    { return int_value; }
 #ifndef LITE
@@ -78,4 +80,4 @@ private:
 	virtual bool takes_value() const { return true; }
 };
 
-#endif // CMDPARAMETER_H
+#endif // TYPEDPARAMETER_H

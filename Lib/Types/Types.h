@@ -3,9 +3,9 @@
 #include "ParamType.h"
 #include "NoneParameter.h"
 
-class CmdParameter;
+class TypedParameter;
 class DefParameter;
 
-CmdParameter *DefParameter_factory(DefParameter &item);
+TypedParameter *DefParameter_factory(DefParameter &item);
 
 #endif // TYPES_H

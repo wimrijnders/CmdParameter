@@ -41,7 +41,7 @@ bool DefAction::init_params() {
   parameters.clear();
 
   for(auto &item : params) {
-    CmdParameter *p = DefParameter_factory(item);
+    TypedParameter *p = DefParameter_factory(item);
     parameters.emplace_back(p);
   }
 

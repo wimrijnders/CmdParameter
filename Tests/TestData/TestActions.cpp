@@ -2,7 +2,7 @@
 //#include "CmdParameter.h"
 
 
-CmdDefinition defined_actions {
+CmdParameters defined_actions {
   "Blurb",
 
   {{

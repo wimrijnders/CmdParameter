@@ -15,14 +15,14 @@
  * - unnamed params: required or not/arbitrary number or limit
 #endif  // LITE
  */
-#include "CmdParameter.h"
+#include "TypedParameter.h"
 #include <cassert>
 #include <iostream>
 #include <vector>
 #include <cstring>   // strcmp
 #include "Support/Strings.h"
 #include "DefParameter.h"
-#include "CmdDefinition.h"
+#include "CmdParameters.h"
 
 using namespace std;
 
@@ -36,12 +36,12 @@ using namespace std;
 /**
  * Grumbl need to redefine this after adding the key version.
  */
-CmdParameter *CmdParameter::List::operator[] (int index) {
+TypedParameter *TypedParameter::List::operator[] (int index) {
   return at(index).get();
 }
 
 
-CmdParameter *CmdParameter::List::operator[] (const char *key) {
+TypedParameter *TypedParameter::List::operator[] (const char *key) {
   assert(key != nullptr);
 
   for (auto &ptr : *this) {
@@ -63,11 +63,11 @@ CmdParameter *CmdParameter::List::operator[] (const char *key) {
  *
  * Also create display of defaults.
  */
-void CmdParameter::List::prepare_usage(
+void TypedParameter::List::prepare_usage(
   vector<string> &disp_defaults,
   vector<string> &disp_params) {
   auto add_param = [&] (
-    CmdParameter &param,
+    TypedParameter &param,
     const string &value_indicator,
     std::ostringstream &default_indicator) {
     string tmp;
@@ -91,12 +91,12 @@ void CmdParameter::List::prepare_usage(
   string value_indicator;
   std::ostringstream default_indicator;
 
-  add_param(CmdDefinition::help_switch, value_indicator, default_indicator);
+  add_param(CmdParameters::help_switch, value_indicator, default_indicator);
   // end help switch
 
 
   for (auto &item : *this) {
-    CmdParameter &param = *item;
+    TypedParameter &param = *item;
 
     string value_indicator;
     std::ostringstream default_indicator;
@@ -109,9 +109,10 @@ void CmdParameter::List::prepare_usage(
 }
 
 
-bool CmdParameter::List::process_unnamed(const char *curarg) {
+#ifndef LITE
+bool TypedParameter::List::process_unnamed(const char *curarg) {
   for (auto &item: *this) {
-    CmdParameter &param = *item;
+    TypedParameter &param = *item;
     if (param.def_param.param_type != UNNAMED) continue;
     if (param.string_value.empty()) {
       param.string_value = curarg;
@@ -123,21 +124,14 @@ bool CmdParameter::List::process_unnamed(const char *curarg) {
 }
 
 
+#endif  // LITE
 //////////////////////////////////////////////
 // Class CmdParameter
 //////////////////////////////////////////////
 
-
-//CmdDefinition *CmdParameter::definition = nullptr;
-
-
-CmdParameter::CmdParameter(DefParameter &var) :
+TypedParameter::TypedParameter(DefParameter &var) :
   def_param(var),
   m_detected(false) {
-
-  if (var.prefix == nullptr || strlen(var.prefix) == 0) {
-    int i = 1;  // breakpoint trap
-  }
 
 	// Remove '=' from the field prefix
 	auto tmp = Strings::explode(var.prefix, '=');
@@ -150,7 +144,7 @@ CmdParameter::CmdParameter(DefParameter &var) :
 }
 
 
-void CmdParameter::error(const string &msg) const {
+void TypedParameter::error(const string &msg) const {
 	string pre("Parameter '");
 	pre += def_param.name;
 	pre += "' (" + m_prefix + ") ";
@@ -158,7 +152,7 @@ void CmdParameter::error(const string &msg) const {
 }
 
 
-bool CmdParameter::parse_param(const char *curarg) {
+bool TypedParameter::parse_param(const char *curarg) {
   if (!Strings::starts_with(curarg, m_prefix)) {
     return false;
   }
@@ -195,7 +189,7 @@ bool CmdParameter::parse_param(const char *curarg) {
 }
 
 
-int CmdParameter::get_int_value(const string &param) {
+int TypedParameter::get_int_value(const string &param) {
   int value = -1;
   const char *str = param.c_str();
   char *end = nullptr;
@@ -210,7 +204,7 @@ int CmdParameter::get_int_value(const string &param) {
 }
 
 
-string CmdParameter::get_param(const char *curarg) {
+string TypedParameter::get_param(const char *curarg) {
   string ret;
 
   string::size_type loc = string(curarg).find("=");
@@ -222,7 +216,7 @@ string CmdParameter::get_param(const char *curarg) {
 }
 
 
-bool CmdParameter::parse_bool_param(const string &in_value) {
+bool TypedParameter::parse_bool_param(const string &in_value) {
 	assert(in_value.empty());
 	assert(def_param.param_type == NONE);
 
@@ -235,7 +229,7 @@ bool CmdParameter::parse_bool_param(const string &in_value) {
 #ifndef LITE
 
 
-bool CmdParameter::parse_string_param(const string &in_value) {
+bool TypedParameter::parse_string_param(const string &in_value) {
 	assert(!in_value.empty());
 	assert(def_param.param_type == STRING);
 
@@ -245,7 +239,7 @@ bool CmdParameter::parse_string_param(const string &in_value) {
 }
 
 
-float CmdParameter::get_float_value(const string &param) {
+float TypedParameter::get_float_value(const string &param) {
   float value = -1;
   const char *str = param.c_str();
   char *end = nullptr;
@@ -261,7 +255,7 @@ float CmdParameter::get_float_value(const string &param) {
 
 
 #endif  // LITE
-bool CmdParameter::set_default() {
+bool TypedParameter::set_default() {
   if (def_param.is_int_type()) {
     if (def_param.int_default != DefParameter::INT_NOT_SET) {
       // Use default instead

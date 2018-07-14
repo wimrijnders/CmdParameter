@@ -1,4 +1,4 @@
-#include "CmdDefinition.h"
+#include "CmdParameters.h"
 #include <iostream>
 #include <sstream>   // ostringstream
 #include "Support/Strings.h"
@@ -8,7 +8,7 @@ using namespace std;
 
 
 // Internal definition of help switch
-DefParameter CmdDefinition::help_def(
+DefParameter CmdParameters::help_def(
   "Help switch",
   "-h",
   NONE,
@@ -16,25 +16,12 @@ DefParameter CmdDefinition::help_def(
 );
 
 
-NoneParameter CmdDefinition::help_switch(CmdDefinition::help_def);
+NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
 
-CmdDefinition::CmdDefinition(const char *in_usage, DefParameters global_params) :
+CmdParameters::CmdParameters(const char *in_usage, DefParameters global_params) :
   usage(in_usage),
   global_parameters(global_params)
-{}
-
-
-CmdDefinition::CmdDefinition(const char *in_usage, DefActions in_actions) :
-  usage(in_usage),
-  actions(in_actions)
-{}
-
-
-CmdDefinition::CmdDefinition(const char *in_usage, DefActions in_actions, DefParameters global_params) :
-  usage(in_usage),
-  global_parameters(global_params),
-  actions(in_actions)
 {}
 
 
@@ -47,19 +34,11 @@ CmdDefinition::CmdDefinition(const char *in_usage, DefActions in_actions, DefPar
  *
  * Some effort is done to keep the descriptions aligned.
  */
-void CmdDefinition::show_usage() {
+void CmdParameters::show_usage() {
   cout << usage;
-
-  if (!actions.empty()) {
-    cout << "\n\nActions:\n\n";
-
-    for (auto &action: actions) {
-      // TODO: padding between name and usage
-      cout << "    " << action.name << "   " << action.usage << "\n";
-    }
-
-  }
-
+#ifndef LITE
+  show_actions();
+#endif  // LITE
   show_params(m_parameters);
 }
 
@@ -71,7 +50,7 @@ void CmdDefinition::show_usage() {
  *         EXIT_NO_ERROR if should stop without errors,
  *         EXIT_ERROR    if should stop with errors
  */
-CmdDefinition::ExitCode CmdDefinition::handle_commandline(
+CmdParameters::ExitCode CmdParameters::handle_commandline(
   int argc,
   const char* argv[],
   bool show_help_on_error) {
@@ -100,7 +79,7 @@ CmdDefinition::ExitCode CmdDefinition::handle_commandline(
  *
  * @return true if execution can continue, false otherwise
  */
-bool CmdDefinition::handle_commandline_intern(
+bool CmdParameters::handle_commandline_intern(
 	int argc,
 	const char *argv[],
 	bool show_help_on_error) {
@@ -175,27 +154,24 @@ bool CmdDefinition::handle_commandline_intern(
  *
  * @return true if all went well, false if an error occured during conversion.
  */
-bool CmdDefinition::init_params() {
+bool CmdParameters::init_params() {
   if (!validate()) return false;
 
   m_parameters.clear();
 
   for(auto &item : global_parameters) {
-    CmdParameter *p = DefParameter_factory(item);
+    TypedParameter *p = DefParameter_factory(item);
     m_parameters.emplace_back(p);
   }
+#ifndef LITE
 
-  for(auto &action : actions) {
-    if (!action.init_params()) {
-      return false;
-    }
-  }
-
+  if (!init_actions()) return false;
+#endif  // LITE
   return true;
 }
 
 
-bool CmdDefinition::validate() {
+bool CmdParameters::validate() {
   if (m_validated) return true;
   bool ret = true;
 
@@ -204,16 +180,23 @@ bool CmdDefinition::validate() {
     ret = false;
   }
 
+#ifndef LITE
   if (global_parameters.empty() && actions.empty()) {
     cout << "WARNING: No global parameters or actions defined. This definition does nothing" << endl;
   }
 
-  // TODO: do this for all actions; also over global and actions as well
-  if (!check_labels_distinct(global_parameters)) {
+  if (!check_actions_distinct(actions)) {
     ret = false;
   }
 
-  if (!check_actions_distinct(actions)) {
+  // TODO: do this for all actions; also over global and actions as well
+#else  // LITE
+  if (global_parameters.empty()) {
+    cout << "WARNING: No global parameters defined. This definition does nothing" << endl;
+  }
+
+#endif  // LITE
+  if (!check_labels_distinct(global_parameters)) {
     ret = false;
   }
 
@@ -227,13 +210,9 @@ bool CmdDefinition::validate() {
  *
  * @return true if unique, false otherwise
  */
-bool CmdDefinition::check_labels_distinct(DefParameters &params) {
+bool CmdParameters::check_labels_distinct(DefParameters &params) {
   bool ret = true;
   int length = (int) params.size();
-
-  if (length == 0 ) {
-    int i = 1;  // breakpoint trap
-  }
 
   std::ostringstream msg;
 
@@ -263,18 +242,163 @@ bool CmdDefinition::check_labels_distinct(DefParameters &params) {
 }
 
 
+void CmdParameters::show_params(TypedParameter::List &parameters) {
+  vector<string> disp_defaults;
+  vector<string> disp_params;
+
+  parameters.prepare_usage(disp_defaults, disp_params);
+
+  // Determine max width of displayed param's
+  unsigned width = 0;
+  for (unsigned i = 0; i < disp_params.size(); ++i) {
+    string &str = disp_params[i];
+    // CRAP: Following fails when 'int width = -1', due to signedness
+    if (str.length() > width) {
+      width = (unsigned) str.length();
+    }
+  }
+
+#ifndef LITE
+  if (actions.empty()) {
+    cout << "\nOptions:\n";
+  } else {
+    cout << "\nGlobal Options:\n";
+  }
+#else  // LITE
+  cout << "\nOptions:\n";
+#endif  // LITE
+  cout << "    (Can appear in any position on the command line after the program name)\n";
+
+
+  auto output_padded = [width] (
+    TypedParameter &param,
+    const string &disp_param,
+    const string &disp_default) {
+    // Ensure line endings have proper indent
+    string usage = param.def_param.usage;
+    string indent("\n");
+    string mt;
+    indent += pad(mt, width + 4 + 3);
+    usage = Strings::implode(Strings::explode(usage, '\n'), indent.c_str());
+
+    cout << "    " << pad(disp_param, width) << "  " << usage << disp_default << endl;
+  };
+
+  int index = 0;
+  output_padded(help_switch, disp_params[index], disp_defaults[index]);
+  index++;
+
+  for (auto &item: parameters) {
+    TypedParameter &param = *item;
+
+    output_padded(param, disp_params[index], disp_defaults[index]);
+    index++;
+  }
+}
+
+
+string CmdParameters::pad(const string &str, unsigned width) {
+  string out;
+
+  for (auto i = str.length(); i < width; ++ i) {
+    out += " ";
+  }
+
+  return str + out;
+}
+
+
+/**
+ * @brief Scan for '-h' and handle if present.
+ *
+ * @return true '-h' handled, false otherwise
+ */
+bool CmdParameters::handle_help(int argc, const char *argv[]) {
+  int curindex = 0;
+
+	while (true) {
+		curindex++;
+		if (curindex >= argc) break;
+
+		const char *curarg = argv[curindex];
+
+		if (string("-h") == curarg) {
+			show_usage();
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+bool CmdParameters::process_option(List &parameters, const char *curarg) {
+  for (auto &item: parameters) {
+    TypedParameter &param = *item;
+
+    if (param.parse_param(curarg)) {
+      return true;
+    }
+  }
+
+  // No option detected
+  if (Strings::starts_with(curarg, "-")) {
+    // Flag anything else that looks like an option param as an error
+    throw string("Unknown command line option '") + (curarg + 1) + "'";
+  }
+
+  return false;
+}
+#ifndef LITE
+
+
+////////////////////////
+// Action handling
+////////////////////////
+
+CmdParameters::CmdParameters(const char *in_usage, DefActions in_actions) :
+  usage(in_usage),
+  actions(in_actions)
+{}
+
+
+CmdParameters::CmdParameters(const char *in_usage, DefActions in_actions, DefParameters global_params) :
+  usage(in_usage),
+  global_parameters(global_params),
+  actions(in_actions)
+{}
+
+
+bool CmdParameters::init_actions() {
+  for(auto &action : actions) {
+    if (!action.init_params()) {
+      return false;
+    }
+  }
+}
+
+
+void CmdParameters::show_actions() {
+  if (!actions.empty()) {
+    cout << "\n\nActions:\n\n";
+
+    for (auto &action: actions) {
+      // TODO: padding between name and usage
+      cout << "    " << action.name << "   " << action.usage << "\n";
+    }
+
+  }
+}
+
+
 /**
  * @brief Check that the action-labels are unique.
  *
  * @return true if unique, false otherwise
  */
-bool CmdDefinition::check_actions_distinct(DefActions &actions) {
+bool CmdParameters::check_actions_distinct(DefActions &actions) {
   bool ret = true;
   int length = (int) actions.size();
-
-  if (length == 0 ) {
-    int i = 1;  // breakpoint trap
-  }
 
   std::ostringstream msg;
 
@@ -295,108 +419,4 @@ bool CmdDefinition::check_actions_distinct(DefActions &actions) {
 
   return ret;
 }
-
-
-void CmdDefinition::show_params(CmdParameter::List &parameters) {
-  vector<string> disp_defaults;
-  vector<string> disp_params;
-
-  parameters.prepare_usage(disp_defaults, disp_params);
-
-  // Determine max width of displayed param's
-  unsigned width = 0;
-  for (unsigned i = 0; i < disp_params.size(); ++i) {
-    string &str = disp_params[i];
-    // CRAP: Following fails when 'int width = -1', due to signedness
-    if (str.length() > width) {
-      width = (unsigned) str.length();
-    }
-  }
-
-  if (actions.empty()) {
-    cout << "\nOptions:\n";
-  } else {
-    cout << "\nGlobal Options:\n";
-  }
-  cout << "    (Can appear in any position on the command line after the program name)\n";
-
-
-  auto output_padded = [width] (
-    CmdParameter &param,
-    const string &disp_param,
-    const string &disp_default) {
-    // Ensure line endings have proper indent
-    string usage = param.def_param.usage;
-    string indent("\n");
-    string mt;
-    indent += pad(mt, width + 4 + 3);
-    usage = Strings::implode(Strings::explode(usage, '\n'), indent.c_str());
-
-    cout << "    " << pad(disp_param, width) << "  " << usage << disp_default << endl;
-  };
-
-  int index = 0;
-  output_padded(help_switch, disp_params[index], disp_defaults[index]);
-  index++;
-
-  for (auto &item: parameters) {
-    CmdParameter &param = *item;
-
-    output_padded(param, disp_params[index], disp_defaults[index]);
-    index++;
-  }
-}
-
-
-string CmdDefinition::pad(const string &str, unsigned width) {
-  string out;
-
-  for (auto i = str.length(); i < width; ++ i) {
-    out += " ";
-  }
-
-  return str + out;
-}
-
-
-/**
- * @brief Scan for '-h' and handle if present.
- *
- * @return true '-h' handled, false otherwise
- */
-bool CmdDefinition::handle_help(int argc, const char *argv[]) {
-  int curindex = 0;
-
-	while (true) {
-		curindex++;
-		if (curindex >= argc) break;
-
-		const char *curarg = argv[curindex];
-
-		if (string("-h") == curarg) {
-			show_usage();
-			return true;
-		}
-	}
-
-	return false;
-}
-
-
-bool CmdDefinition::process_option(List &parameters, const char *curarg) {
-  for (auto &item: parameters) {
-    CmdParameter &param = *item;
-
-    if (param.parse_param(curarg)) {
-      return true;
-    }
-  }
-
-  // No option detected
-  if (Strings::starts_with(curarg, "-")) {
-    // Flag anything else that looks like an option param as an error
-    throw string("Unknown command line option '") + (curarg + 1) + "'";
-  }
-
-  return false;
-}
+#endif  // LITE

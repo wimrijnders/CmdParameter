@@ -1,10 +1,10 @@
 #ifndef UNNAMEDPARAMETER_H
 #define UNNAMEDPARAMETER_H
-#include "CmdParameter.h"
+#include "TypedParameter.h"
 
-struct UnnamedParameter : public CmdParameter {
+struct UnnamedParameter : public TypedParameter {
 public:
-  UnnamedParameter(DefParameter &var) : CmdParameter(var) {}
+  UnnamedParameter(DefParameter &var) : TypedParameter(var) {}
   const char *value_indicator() const override { return ""; }
   void default_indicator(std::ostringstream &os) override { /* do nothing */ }
 
