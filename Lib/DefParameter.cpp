@@ -38,23 +38,6 @@ DefParameter::DefParameter(
 }
 
 
-#ifndef LITE
-#if 0
-// TODO: check if really needed
-DefParameter::DefParameter(
-  const char *in_name,
-  ParamType   in_param_type,
-  const char *in_usage) :
-  name(in_name),
-  prefix(nullptr),
-  param_type(in_param_type),
-  usage(in_usage) {
-  handle_defaults();
-}
-#endif
-#endif  // LITE
-
-
 bool DefParameter::is_int_type() const {
   switch(param_type) {
   case INTEGER:

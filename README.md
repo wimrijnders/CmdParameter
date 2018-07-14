@@ -13,6 +13,8 @@ Its goals are:
  Note that these are very different goals from making this simple.
  The downside is that this code becomes more complex. I think this is a worthwhile tradeoff.
 
+-----
+
 ## Example
 
 This definition, taken from the `Simple` example program:
@@ -36,10 +38,15 @@ Leads to the following output:
 > ./Simple -h
 Simple test with single integer command line parameters
 
-options:
-    (Can appear in any position on the command line after the program name)
-    -h         - Show this information. Overrides all other parameters.
-    -int=<num> - This value can be any integer; default '0'.
+Options:
+
+    -h          Show this information. Overrides all other parameters.
+    -int=<num>  This value can be any integer; default '0'.
+
+Notes:
+
+ * Global options can appear in any position on the command line after the program name.
+
 
 > ./Simple -int=hello
 Error(s) on command line:

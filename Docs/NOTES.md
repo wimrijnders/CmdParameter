@@ -10,12 +10,16 @@
 
 ### Command line parsing
 
-- Action-specific help - show options per actioni (+ long blurb)
+- **DONE** Action-specific help - show options per action (+ long blurb)
 - Handle `UNNAMED` for actions, also in combination with global `UNNAMED`
 
 ### Test
 
-- Multiple actions on command line not allowed
+- **DONE** Multiple actions on command line not allowed
+
+### Code
+
+- Get tabs/spaces right for indent -> 2 spaces
 
 -----
 

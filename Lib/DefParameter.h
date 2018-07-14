@@ -29,16 +29,6 @@ struct DefParameter {
     int default_value
   );
 
-#ifndef LITE
-#if 0
-  DefParameter(
-    const char *in_name,
-    ParamType in_param_type,
-    const char *in_usage
-  );
-#endif
-
-#endif  // LITE
   const char *name;       //> The name or short description of the parameter.
                           //  This value is used as label and must be unique
   const char *prefix;

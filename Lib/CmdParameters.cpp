@@ -237,7 +237,6 @@ bool CmdParameters::validate() {
 bool CmdParameters::check_labels_distinct(DefParameters &params) {
   bool ret = true;
   int length = (int) params.size();
-
   std::ostringstream msg;
 
   for (int index1 = 0; index1 < length - 1; ++index1) {
@@ -280,7 +279,6 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
 
  show_just_params(parameters);
 
-
   cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n";
   if (have_actions) {
     cout << " * '-h' combined with an action show the help for that action.\n";
@@ -295,7 +293,6 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
   vector<string> disp_params;
 
   parameters.prepare_usage(disp_defaults, disp_params, add_help);
-
   unsigned width = max_width(disp_params);
 
   auto output_padded = [width, this] (
@@ -322,6 +319,7 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
     index++;
   }
 }
+
 
 string CmdParameters::pad(const string &str, unsigned width) {
   string out;
@@ -374,10 +372,7 @@ bool CmdParameters::handle_help(int argc, const char *argv[]) {
 bool CmdParameters::process_option(List &parameters, const char *curarg) {
   for (auto &item: parameters) {
     TypedParameter &param = *item;
-
-    if (param.parse_param(curarg)) {
-      return true;
-    }
+    if (param.parse_param(curarg)) return true;
   }
 
   return false;
@@ -407,8 +402,6 @@ string CmdParameters::set_indent(int indent, const string &str) {
   str_indent += pad(mt, indent);
   return Strings::implode(Strings::explode(str, '\n'), str_indent.c_str());
 }
-
-
 #ifndef LITE
 
 
@@ -431,9 +424,7 @@ CmdParameters::CmdParameters(const char *in_usage, DefActions in_actions, DefPar
 
 bool CmdParameters::init_actions() {
   for(auto &action : actions) {
-    if (!action.init_params()) {
-      return false;
-    }
+    if (!action.init_params()) return false;
   }
 
   return true;
@@ -472,10 +463,7 @@ bool CmdParameters::scan_action(int argc, const char *argv[]) {
 		if (curindex >= argc) break;
 
 		const char *curarg = argv[curindex];
-
-		if (handle_action(curarg)) {
-			return true;
-		}
+		if (handle_action(curarg)) return true;
 	}
 
 	return false;
@@ -526,7 +514,6 @@ void CmdParameters::show_action_usage() {
 bool CmdParameters::check_actions_distinct(DefActions &actions) {
   bool ret = true;
   int length = (int) actions.size();
-
   std::ostringstream msg;
 
   for (int index1 = 0; index1 < length - 1; ++index1) {

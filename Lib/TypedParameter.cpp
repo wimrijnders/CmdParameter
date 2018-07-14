@@ -31,8 +31,6 @@ using namespace std;
 // Class CmdParameter::List
 //////////////////////////////////////////////
 
-
-
 /**
  * Grumbl need to redefine this after adding the key version.
  */
@@ -97,7 +95,6 @@ void TypedParameter::List::prepare_usage(
     add_param(CmdParameters::help_switch, value_indicator, default_indicator);
   }
 
-
   for (auto &item : *this) {
     TypedParameter &param = *item;
 
@@ -156,9 +153,7 @@ void TypedParameter::error(const string &msg) const {
 
 
 bool TypedParameter::parse_param(const char *curarg) {
-  if (!Strings::starts_with(curarg, m_prefix)) {
-    return false;
-  }
+  if (!Strings::starts_with(curarg, m_prefix)) return false;
 
   string value = get_param(curarg);
 
@@ -176,6 +171,7 @@ bool TypedParameter::parse_param(const char *curarg) {
      error("has value specified, shouldn't have one.");
     }
   }
+#ifndef LITE
 
 /*
   // All param's except type NONE should have a value specified
@@ -187,6 +183,7 @@ bool TypedParameter::parse_param(const char *curarg) {
       }
     }
 */
+#endif  // LITE
 
   return parse_param_internal(value);
 }
@@ -199,7 +196,6 @@ int TypedParameter::get_int_value(const string &param) {
   value = (int) strtol(str, &end, 10);
 
   if (end == str || *end != '\0') {
-    string msg("The value for field '");
     error("is not a number.");
   }
 
