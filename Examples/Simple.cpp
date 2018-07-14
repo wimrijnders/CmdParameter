@@ -2,7 +2,7 @@
  * Example with one integer switch on the command line
  */
 #include <iostream>
-#include "../Lib/CmdParameter.h"
+#include "../Lib/CmdDefinition.h"
 
 using namespace std;
 
@@ -19,12 +19,12 @@ CmdDefinition definition = {
 
 
 int main(int argc, const char *argv[]) {
-	auto ret = CmdParameter::handle_commandline(definition, argc, argv, false);
-	if (ret != CmdParameter::ALL_IS_WELL) {
+	auto ret = definition.handle_commandline(argc, argv, false);
+	if (ret != CmdDefinition::ALL_IS_WELL) {
 		return ret;
 	}
 
-	cout << "switch value: " << CmdParameter::parameters[0]->get_int_value() << endl;
+	cout << "switch value: " << definition.parameters()[0]->get_int_value() << endl;
 
 	return 0;
 }

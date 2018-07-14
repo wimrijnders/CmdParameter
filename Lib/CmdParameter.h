@@ -4,32 +4,31 @@
 #include <string>
 #include <vector>
 #include <sstream>
-#include "CmdDefinition.h"
-#ifndef LITE
-#include "DefAction.h"
-#endif  // LITE
 
+
+class CmdDefinition;
+class DefParameter;
 
 
 /**
  * @brief Defines and processes command line parameters.
  */
 struct CmdParameter {
-	enum ExitCode {
-		ALL_IS_WELL   = -2,
-		EXIT_NO_ERROR =  0,
-		EXIT_ERROR    =  1
-	};
-
-	using string = std::string; // TODO adjust definitions
+  using string = std::string;
 
   class List : public std::vector<std::unique_ptr<CmdParameter>> {
+    using Parent = std::vector<std::unique_ptr<CmdParameter>>;
    public:
     CmdParameter *operator[] (int index);
     CmdParameter *operator[] (const char *key);
+
+    void prepare_usage(
+      vector<string> &disp_defaults,
+      vector<string> &disp_params);
+    bool process_unnamed(const char *curarg);
   };
 
-  static CmdDefinition *definition;
+
   DefParameter  &def_param;
 
   CmdParameter(DefParameter &var);
@@ -44,24 +43,6 @@ struct CmdParameter {
   bool detected() const { return m_detected; }
   bool parse_param(const char *curarg);
 
-  static ExitCode handle_commandline(
-    CmdDefinition &definition,
-    int argc,
-    const char* argv[],
-    bool show_help_on_error = true);
-
-  static bool handle_commandline(
-    int argc,
-    const char *argv[],
-    bool show_help_on_error = true);
-
-  static bool init_params(CmdDefinition &in_definition);
-  static bool process_option(List &parameters, const char *curarg);
-  static void show_usage();
-  static bool has_errors() { return m_has_errors; }
-
-  // TODO: make private
-  static List parameters;
 
 protected:
 	string m_prefix;
@@ -79,7 +60,6 @@ protected:
   string  string_value;
 
   bool parse_string_param(const string &in_value);
-  static bool process_unnamed(List &parameters, const char *curarg);
 
   float  get_float_value (const string &param);
   string get_string_value(const string &param) {
@@ -90,22 +70,12 @@ protected:
   string get_param(const char *curarg);
 
 private:
-  static bool m_has_errors;
-  static DefParameter help_def;
-
   bool set_default();
 
   virtual bool parse_param_internal(const string &in_value) = 0;
   virtual const char *value_indicator() const = 0;
   virtual void default_indicator(std::ostringstream &os) = 0;
 	virtual bool takes_value() const { return true; }
-
-  static void show_params();
-  static bool handle_help(int argc, const char *argv[]);
-  static string pad(const string &str, unsigned width);
-#ifndef LITE
-  static bool check_labels_unique(DefParameters &params);
-#endif  // LITE
 };
 
 #endif // CMDPARAMETER_H

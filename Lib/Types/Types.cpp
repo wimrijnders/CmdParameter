@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <sstream>   // ostringstream
+#include "../DefParameter.h"
 #include "NoneParameter.h"
 #include "IntParameter.h"
 #ifndef LITE

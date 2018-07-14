@@ -30,6 +30,6 @@ TEST_CASE("Test bad action definitions", "[actions]") {
     }};
     CmdDefinition no_actions("blurb", a);
 
-    REQUIRE(!CmdParameter::init_params(no_actions));
+    REQUIRE(!no_actions.init_params());
   }
 }

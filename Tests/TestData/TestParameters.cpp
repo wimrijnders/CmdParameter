@@ -1,6 +1,5 @@
 #include "TestParameters.h"
-#include "../../Lib/CmdDefinition.h"
-#include "../../Lib/CmdParameter.h"
+//#include "../../Lib/CmdParameter.h"
 
 
 CmdDefinition definition = {
@@ -65,28 +64,33 @@ bool TestParameters::handle_commandline(
   const char* argv[],
   bool show_help_on_error) {
 
-	auto ret = CmdParameter::handle_commandline(definition, argc, argv, show_help_on_error);
-	if (ret == CmdParameter::ALL_IS_WELL) {
+	auto ret = definition.handle_commandline(argc, argv, show_help_on_error);
+	if (ret == CmdDefinition::ALL_IS_WELL) {
 		pass_params();
 		return true;
 	}
 
-	return (ret != CmdParameter::EXIT_ERROR);
+	return (ret != CmdDefinition::EXIT_ERROR);
+}
+
+
+CmdDefinition::List &TestParameters::parameters() {
+	return definition.parameters();
 }
 
 
 void TestParameters::pass_params() {
-  CmdParameter::List &parameters = CmdParameter::parameters;
+  CmdDefinition::List &p = parameters();
 
   // TODO: use keys here instead.
-  m_unsigned  = parameters[0]->get_int_value();
-  m_positive  = parameters[1]->get_int_value();
-  m_float     = parameters[2]->get_float_value();
-  output_file = parameters[3]->get_string_value();
-  m_bool      = parameters[4]->get_bool_value();
-  m_int       = parameters[5]->get_int_value();
-  input_file  = parameters[6]->get_string_value();
+  m_unsigned  = p[0]->get_int_value();
+  m_positive  = p[1]->get_int_value();
+  m_float     = p[2]->get_float_value();
+  output_file = p[3]->get_string_value();
+  m_bool      = p[4]->get_bool_value();
+  m_int       = p[5]->get_int_value();
+  input_file  = p[6]->get_string_value();
 
-  bool_detected = parameters[4]->detected();
+  bool_detected = p[4]->detected();
 }
 

@@ -1,7 +1,7 @@
 /**
  * Example with actions
  */
-#include "../Lib/CmdParameter.h"
+#include "../Lib/CmdDefinition.h"
 
 using namespace std;
 
@@ -51,8 +51,8 @@ CmdDefinition definition = {
 
 
 int main(int argc, const char *argv[]) {
-	auto ret = CmdParameter::handle_commandline(definition, argc, argv, false);
-	if (ret != CmdParameter::ALL_IS_WELL) {
+	auto ret = definition.handle_commandline(argc, argv, false);
+	if (ret != CmdDefinition::ALL_IS_WELL) {
 		return ret;
 	}
 

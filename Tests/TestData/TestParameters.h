@@ -1,6 +1,7 @@
 #ifndef TESTPARAMETERS_H
 #define TESTPARAMETERS_H
 #include <string>
+#include "../../Lib/CmdDefinition.h"
 
 
 class TestParameters {
@@ -25,6 +26,8 @@ public:
 	int    m_int;
 	bool   m_bool;
 	bool   bool_detected;
+
+	CmdDefinition::List &parameters();
 
 private:
 	void pass_params();

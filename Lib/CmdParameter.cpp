@@ -21,7 +21,8 @@
 #include <vector>
 #include <cstring>   // strcmp
 #include "Support/Strings.h"
-#include "Types/Types.h"
+#include "DefParameter.h"
+#include "CmdDefinition.h"
 
 using namespace std;
 
@@ -29,6 +30,8 @@ using namespace std;
 //////////////////////////////////////////////
 // Class CmdParameter::List
 //////////////////////////////////////////////
+
+
 
 /**
  * Grumbl need to redefine this after adding the key version.
@@ -54,21 +57,78 @@ CmdParameter *CmdParameter::List::operator[] (const char *key) {
 }
 
 
+/**
+ * @brief Prepare the switch and value part of the usage line,
+ *        so that we can determine their max width for formatting.
+ *
+ * Also create display of defaults.
+ */
+void CmdParameter::List::prepare_usage(
+  vector<string> &disp_defaults,
+  vector<string> &disp_params) {
+  auto add_param = [&] (
+    CmdParameter &param,
+    const string &value_indicator,
+    std::ostringstream &default_indicator) {
+    string tmp;
+    if (param.def_param.prefix != nullptr) {
+      tmp = param.def_param.prefix;
+    }
+    tmp += value_indicator;
+    disp_params.push_back(tmp);
+
+    if (default_indicator.str().empty()) {
+      disp_defaults.push_back(".");
+    } else {
+      std::ostringstream buf;
+      buf << "; default '" << default_indicator.str() << "'.";
+      disp_defaults.push_back(buf.str());
+    }
+  };
+
+
+  // Internal help switch definition
+  string value_indicator;
+  std::ostringstream default_indicator;
+
+  add_param(CmdDefinition::help_switch, value_indicator, default_indicator);
+  // end help switch
+
+
+  for (auto &item : *this) {
+    CmdParameter &param = *item;
+
+    string value_indicator;
+    std::ostringstream default_indicator;
+
+    value_indicator = param.value_indicator();
+    param.default_indicator(default_indicator);
+
+    add_param(param, value_indicator, default_indicator);
+  }
+}
+
+
+bool CmdParameter::List::process_unnamed(const char *curarg) {
+  for (auto &item: *this) {
+    CmdParameter &param = *item;
+    if (param.def_param.param_type != UNNAMED) continue;
+    if (param.string_value.empty()) {
+      param.string_value = curarg;
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
 //////////////////////////////////////////////
 // Class CmdParameter
 //////////////////////////////////////////////
 
-// Internal definition of help switch
-DefParameter CmdParameter::help_def(
-  "Help switch",
-  "-h",
-  NONE,
-  "Show this information. Overrides all other parameters"
-);
 
-bool CmdParameter::m_has_errors = false;
-CmdParameter::List CmdParameter::parameters;
-CmdDefinition *CmdParameter::definition = nullptr;
+//CmdDefinition *CmdParameter::definition = nullptr;
 
 
 CmdParameter::CmdParameter(DefParameter &var) :
@@ -162,36 +222,6 @@ string CmdParameter::get_param(const char *curarg) {
 }
 
 
-string CmdParameter::pad(const string &str, unsigned width) {
-  string out;
-
-  for (auto i = str.length(); i < width; ++ i) {
-    out += " ";
-  }
-
-  return str + out;
-}
-
-
-bool CmdParameter::process_option(List &parameters, const char *curarg) {
-  for (auto &item: parameters) {
-    CmdParameter &param = *item;
-
-    if (param.parse_param(curarg)) {
-      return true;
-    }
-  }
-
-  // No option detected
-  if (Strings::starts_with(curarg, "-")) {
-    // Flag anything else that looks like an option param as an error
-    throw string("Unknown command line option '") + (curarg + 1) + "'";
-  }
-
-  return false;
-}
-
-
 bool CmdParameter::parse_bool_param(const string &in_value) {
 	assert(in_value.empty());
 	assert(def_param.param_type == NONE);
@@ -214,19 +244,6 @@ bool CmdParameter::parse_string_param(const string &in_value) {
   return true;
 }
 
-bool CmdParameter::process_unnamed(List &parameters, const char *curarg) {
-  for (auto &item: parameters) {
-    CmdParameter &param = *item;
-    if (param.def_param.param_type != UNNAMED) continue;
-    if (param.string_value.empty()) {
-      param.string_value = curarg;
-      return true;
-    }
-  }
-
-  return false;
-}
-
 
 float CmdParameter::get_float_value(const string &param) {
   float value = -1;
@@ -244,285 +261,6 @@ float CmdParameter::get_float_value(const string &param) {
 
 
 #endif  // LITE
-/**
- * @brief Create help usage text for all the defined optional param's.
- *
- * Output per option has the form:
- *
- *   switch[=<param_type>] description[<text for default>]
- *
- * Some effort is done to keep the descriptions aligned.
- */
-void CmdParameter::show_usage() {
-  cout << definition->usage;
-
-  if (!definition->actions.empty()) {
-    cout << "\n\nActions:\n\n";
-
-    for (auto &action: definition->actions) {
-      // TODO: padding between name and usage
-      cout << "    " << action.name << "   " << action.usage << "\n";
-    }
-
-  }
-
-  show_params();
-}
-
-
-void CmdParameter::show_params() {
-  vector<string> disp_defaults;
-  vector<string> disp_params;
-
-  auto add_param = [&] (
-    CmdParameter &param,
-    const string &value_indicator,
-    std::ostringstream &default_indicator) {
-    string tmp;
-    if (param.def_param.prefix != nullptr) {
-      tmp = param.def_param.prefix;
-    }
-    tmp += value_indicator;
-    disp_params.push_back(tmp);
-
-    if (default_indicator.str().empty()) {
-      disp_defaults.push_back(".");
-    } else {
-      std::ostringstream buf;
-      buf << "; default '" << default_indicator.str() << "'.";
-      disp_defaults.push_back(buf.str());
-    }
-  };
-
-
-  // Internal help switch definition
-  NoneParameter help_switch(help_def);
-  string value_indicator;
-  std::ostringstream default_indicator;
-
-  add_param(help_switch, value_indicator, default_indicator);
-  // end help switch
-
-  //
-  // Prepare the switch and value part of the usage line,
-  // so that we can determine their max width for formatting.
-  //
-  // Also create display of defaults.
-  //
-  for (auto &item : parameters) {
-    CmdParameter &param = *item;
-
-    string value_indicator;
-    std::ostringstream default_indicator;
-
-    value_indicator = param.value_indicator();
-    param.default_indicator(default_indicator);
-
-    add_param(param, value_indicator, default_indicator);
-  }
-
-  // Determine max width of displayed param's
-  unsigned width = 0;
-  for (unsigned i = 0; i < disp_params.size(); ++i) {
-    string &str = disp_params[i];
-    // CRAP: Following fails when 'int width = -1', due to signedness
-    if (str.length() > width) {
-      width = (unsigned) str.length();
-    }
-  }
-
-  if (definition->actions.empty()) {
-    cout << "\nOptions:\n";
-  } else {
-    cout << "\nGlobal Options:\n";
-  }
-  cout << "    (Can appear in any position on the command line after the program name)\n";
-
-
-  auto output_padded = [width] (
-    CmdParameter &param,
-    const string &disp_param,
-    const string &disp_default) {
-    // Ensure line endings have proper indent
-    string usage = param.def_param.usage;
-    string indent("\n");
-    string mt;
-    indent += pad(mt, width + 4 + 3);
-    usage = Strings::implode(Strings::explode(usage, '\n'), indent.c_str());
-
-    cout << "    " << pad(disp_param, width) << "  " << usage << disp_default << endl;
-  };
-
-  int index = 0;
-  output_padded(help_switch, disp_params[index], disp_defaults[index]);
-  index++;
-
-  for (auto &item: parameters) {
-    CmdParameter &param = *item;
-
-    output_padded(param, disp_params[index], disp_defaults[index]);
-    index++;
-  }
-}
-
-
-/**
- * @brief Scan for '-h' and handle if present.
- *
- * @return true '-h' handled, false otherwise
- */
-bool CmdParameter::handle_help(int argc, const char *argv[]) {
-  int curindex = 0;
-
-	while (true) {
-		curindex++;
-		if (curindex >= argc) break;
-
-		const char *curarg = argv[curindex];
-
-		if (string("-h") == curarg) {
-			CmdParameter::show_usage();
-			return true;
-		}
-	}
-
-	return false;
-}
-
-
-/**
- * @brief Override of `handle_commandline()` which also does `init_params()`.
- *
- * @return ALL_IS_WELL   if all is well,
- *         EXIT_NO_ERROR if should stop without errors,
- *         EXIT_ERROR    if should stop with errors
- */
-CmdParameter::ExitCode CmdParameter::handle_commandline(
-  CmdDefinition &definition,
-  int argc,
-  const char* argv[],
-  bool show_help_on_error) {
-  if (!CmdParameter::init_params(definition)) {
-    return EXIT_ERROR;
-  }
-
-  if (!CmdParameter::handle_commandline(argc, argv, show_help_on_error)) {
-    if(CmdParameter::has_errors()) {
-      return EXIT_ERROR;
-    } else {
-      return EXIT_NO_ERROR;
-    }
-  }
-
-  return ALL_IS_WELL;
-}
-
-
-/**
- * @brief Handle the command line and initialize files/dir's.
- *
- * If help detected, this will return true but there should
- * be no further processing. The caller should check with
- * `has_errors()` if execution can continue.
- *
- * @return true if execution can continue, false otherwise
- */
-bool CmdParameter::handle_commandline(
-	int argc,
-	const char *argv[],
-	bool show_help_on_error) {
-	ostringstream errors;
-
-	m_has_errors = false;
-
-	// Prescan for '-h'; this overrides everything
-	if (handle_help(argc, argv)) return false;
-
-	int curindex = 0;
-
-	try {
-		while (true) {
-			curindex++;
-			if (curindex >= argc) break;
-
-			const char *curarg = argv[curindex];
-
-			if (!CmdParameter::process_option(CmdParameter::parameters, curarg)) {
-#ifndef LITE
-				// It's not one of the defined options, so it must be unnamed input
-				if (!CmdParameter::process_unnamed(CmdParameter::parameters, curarg)) {
-					errors << "  Too many unnamed parameters on command line, '" << curarg << " unexpected.\n";
-				}
-#else  // LITE
-				errors << "  Unknown parameter '" << curarg << "'.\n";
-#endif  // LITE
-			}
-		}
-#ifndef LITE
-
-		// Check if all unnamed fields have a value
-		for (auto &ptr : CmdParameter::parameters) {
-			auto &field = *ptr.get();
-			if (field.def_param.param_type != UNNAMED) continue;
-
-			if (field.get_string_value().empty()) {
-				errors << "  No " << field.def_param.name << " specified.\n";
-			}
-		}
-#endif  // LITE
-	} catch (string &error) {
-		if (error != "all is well") {
-			errors << "  " << error.c_str() << endl;
-		}
-	}
-
-	string err_string = errors.str();
-
-	if (!err_string.empty()) {
-		cout << "Error(s) on command line:\n" << err_string.c_str() << endl;
-
-		if (show_help_on_error) {
-			CmdParameter::show_usage();
-		} else {
-			cout << "  Use switch '-h' to view options\n"  << endl;
-		}
-
-		m_has_errors = true;
-	}
-
-	return !m_has_errors;
-}
-
-
-/**
- * @brief Process the main text blurb and the parameter definitions
- *
- * The parameter definitions are converted to an internal representation, better
- * suited for parsing the actual values on the command line.
- *
- * @param in_usage main text to use for the help description
- * @param params   array of parameter definitions, ended by a 'nullptr' field
- *
- * @return true if all went well, false if an error occured during conversion.
- */
-bool CmdParameter::init_params(CmdDefinition &in_definition) {
-  if (!in_definition.validate()) {
-    return false;
-  }
-
-  definition = &in_definition;
-
-  parameters.clear();
-
-  for(auto &item : in_definition.global_parameters) {
-    CmdParameter *p = DefParameter_factory(item);
-    parameters.emplace_back(p);
-  }
-
-  return true;
-}
-
-
 bool CmdParameter::set_default() {
   if (def_param.is_int_type()) {
     if (def_param.int_default != DefParameter::INT_NOT_SET) {

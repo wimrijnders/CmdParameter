@@ -2,6 +2,7 @@
 #include <cassert>
 #include <string>
 #include <sstream>
+#include "../DefParameter.h"
 
 using std::string;
 

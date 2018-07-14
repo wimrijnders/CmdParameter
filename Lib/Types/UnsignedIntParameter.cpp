@@ -1,4 +1,5 @@
 #include "UnsignedIntParameter.h"
+#include "../DefParameter.h"
 #include <cassert>
 #include <string>
 

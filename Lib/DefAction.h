@@ -1,11 +1,14 @@
 #ifndef DEFACTION_H
 #define DEFACTION_H
 #include <vector>
+#include "CmdParameter.h"
 #include "DefParameter.h"
 
 
 class DefAction {
 public:
+  DefAction(const DefAction &val);
+
   DefAction(const char *in_name, const char *in_usage);
   DefAction(
     const char *in_name,
@@ -17,6 +20,9 @@ public:
   const char *usage;  //> Description of the action
 
   std::vector<DefParameter> params;
+  CmdParameter::List parameters;
+
+  bool init_params();
 };
 
 using DefActions = std::vector<DefAction>;

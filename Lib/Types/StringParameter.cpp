@@ -1,4 +1,5 @@
 #include "StringParameter.h"
+#include "../DefParameter.h"
 #include <cassert>
 #include <string>
 #include <sstream>

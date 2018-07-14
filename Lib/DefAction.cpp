@@ -1,4 +1,19 @@
 #include "DefAction.h"
+#include <cassert>
+#include "Types/Types.h"
+
+
+/**
+ * @brief Copy ctor which explicitly does not copy over `parameters`
+ *        This can't be copied due to unique_ptr elements, we don't
+ *        want it copied anyway.
+ */
+DefAction::DefAction(const DefAction &val) :
+  name(val.name),
+  usage(val.usage),
+  params(val.params) {
+  assert(val.parameters.empty());
+}
 
 
 /**
@@ -20,3 +35,15 @@ DefAction::DefAction(
   usage(in_usage),
   params(in_params)
 {}
+
+
+bool DefAction::init_params() {
+  parameters.clear();
+
+  for(auto &item : params) {
+    CmdParameter *p = DefParameter_factory(item);
+    parameters.emplace_back(p);
+  }
+
+  return true;
+}

@@ -1,4 +1,5 @@
 #include "PositiveIntParameter.h"
+#include "../DefParameter.h"
 #include <cassert>
 #include <string>
 
