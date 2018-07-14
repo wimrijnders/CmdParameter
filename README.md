@@ -1,7 +1,7 @@
 CmdParameter
 ============
 
-Version 0.0.2.0
+Version 0.1.0.0
 
 `CmdParameter` is a library for handling command line parameters in C++.
 
@@ -18,7 +18,7 @@ Its goals are:
 This definition, taken from the `Simple` example program:
 
 ```c++
-CmdDefinition defined_parameters = {
+CmdParameters parames = {
   "Simple test with single integer command line parameters\n",
   {{
     "An integer value",

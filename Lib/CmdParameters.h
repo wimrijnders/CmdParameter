@@ -23,12 +23,15 @@ struct CmdParameters {
   const char   *usage{nullptr};
   DefParameters global_parameters;
 
+  static NoneParameter help_switch;
+
 #ifndef LITE
   // Action handling
   CmdParameters(const char *in_usage, DefActions in_actions);
   CmdParameters(const char *in_usage, DefActions in_actions, DefParameters global_params);
 
-  DefActions    actions;
+  DefActions actions;
+  DefAction *m_p_action{nullptr};
 
  private:
   bool check_actions_distinct(DefActions &params);
@@ -36,11 +39,7 @@ struct CmdParameters {
   void show_actions();
 
  public:
-
 #endif  // LITE
-  // TODO: make private
-  TypedParameter::List m_parameters;
-
   bool init_params();
   bool validate();
   void show_usage();
@@ -52,10 +51,12 @@ struct CmdParameters {
     const char *argv[],
     bool show_help_on_error = true);
 
-  // TODO private
-  static NoneParameter help_switch;
-
 private:
+  enum {
+    PAD_OFFSET = 7
+  };
+
+  TypedParameter::List m_parameters;
   bool m_has_errors{false};
   bool m_validated{false};
   static DefParameter help_def;
@@ -69,6 +70,7 @@ private:
 
   bool handle_help(int argc, const char *argv[]);
   void show_params(TypedParameter::List &parameters);
+  unsigned max_width(const std::vector<std::string> &list) const;
 
   static bool process_option(List &parameters, const char *curarg);
   static std::string pad(const std::string &str, unsigned width);

@@ -1,6 +1,7 @@
 #include "CmdParameters.h"
 #include <iostream>
 #include <sstream>   // ostringstream
+#include <cstring>   // strcmp
 #include "Support/Strings.h"
 #include "Types/Types.h"
 
@@ -54,9 +55,7 @@ CmdParameters::ExitCode CmdParameters::handle_commandline(
   int argc,
   const char* argv[],
   bool show_help_on_error) {
-  if (!init_params()) {
-    return EXIT_ERROR;
-  }
+  if (!init_params()) return EXIT_ERROR;
 
   if (!handle_commandline_intern(argc, argv, show_help_on_error)) {
     if(has_errors()) {
@@ -86,6 +85,9 @@ bool CmdParameters::handle_commandline_intern(
 	ostringstream errors;
 
 	m_has_errors = false;
+#ifndef LITE
+	m_p_action = nullptr;
+#endif  // LITE
 
 	// Prescan for '-h'; this overrides everything
 	if (handle_help(argc, argv)) return false;
@@ -99,16 +101,46 @@ bool CmdParameters::handle_commandline_intern(
 
 			const char *curarg = argv[curindex];
 
-			if (!process_option(m_parameters, curarg)) {
+			// Global options first
+			if (process_option(m_parameters, curarg)) continue;
 #ifndef LITE
-				// It's not one of the defined options, so it must be unnamed input
-				if (!m_parameters.process_unnamed(curarg)) {
-					errors << "  Too many unnamed parameters on command line, '" << curarg << " unexpected.\n";
+
+			// Actions
+			bool found_action = false;
+			for (auto &action: actions) {
+				if (strcmp(action.name, curarg) == 0) {
+					found_action = true;
+
+					if (m_p_action != nullptr) {
+						errors << "Multiple actions encountered on the command line.\n";
+						break;
+					}
+
+					m_p_action = &action;
+					// WRI DEBUG
+					cout << "Found action '" << m_p_action->name << "'." << endl;
 				}
-#else  // LITE
-				errors << "  Unknown parameter '" << curarg << "'.\n";
-#endif  // LITE
 			}
+			if (found_action) continue;
+
+			if (m_p_action != nullptr) {
+				// Check action options
+				if (process_option(m_p_action->parameters, curarg)) {
+					// WRI DEBUG
+					cout << "Found option '" << curarg << "' for action '" << m_p_action->name << "'." << endl;
+					found_action = true;
+				}
+			}
+			if (found_action) continue;
+
+			// It's not one an option or an action, so it must be unnamed input
+			// NOTE: this implementation check UNNAMED on global options only!
+			if (!m_parameters.process_unnamed(curarg)) {
+				errors << "  Too many unnamed parameters on command line, '" << curarg << " unexpected.\n";
+			}
+#else  // LITE
+			errors << "  Unknown parameter '" << curarg << "'.\n";
+#endif  // LITE
 		}
 #ifndef LITE
 
@@ -120,6 +152,11 @@ bool CmdParameters::handle_commandline_intern(
 			if (field.get_string_value().empty()) {
 				errors << "  No " << field.def_param.name << " specified.\n";
 			}
+		}
+
+		// If actions defined, an action must have been detected
+		if (!actions.empty() && m_p_action == nullptr) {
+			errors << "  Actions defined but none detected on the command line.\n";
 		}
 #endif  // LITE
 	} catch (string &error) {
@@ -243,32 +280,23 @@ bool CmdParameters::check_labels_distinct(DefParameters &params) {
 
 
 void CmdParameters::show_params(TypedParameter::List &parameters) {
+  bool have_actions = false;
+#ifndef LITE
+  have_actions = !actions.empty();
+#endif  // LITE
+
   vector<string> disp_defaults;
   vector<string> disp_params;
 
   parameters.prepare_usage(disp_defaults, disp_params);
 
-  // Determine max width of displayed param's
-  unsigned width = 0;
-  for (unsigned i = 0; i < disp_params.size(); ++i) {
-    string &str = disp_params[i];
-    // CRAP: Following fails when 'int width = -1', due to signedness
-    if (str.length() > width) {
-      width = (unsigned) str.length();
-    }
-  }
+  unsigned width = max_width(disp_params);
 
-#ifndef LITE
-  if (actions.empty()) {
-    cout << "\nOptions:\n";
+  if (have_actions) {
+    cout << "\nGlobal Options:\n\n";
   } else {
-    cout << "\nGlobal Options:\n";
+    cout << "\nOptions:\n\n";
   }
-#else  // LITE
-  cout << "\nOptions:\n";
-#endif  // LITE
-  cout << "    (Can appear in any position on the command line after the program name)\n";
-
 
   auto output_padded = [width] (
     TypedParameter &param,
@@ -278,7 +306,7 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
     string usage = param.def_param.usage;
     string indent("\n");
     string mt;
-    indent += pad(mt, width + 4 + 3);
+    indent += pad(mt, width + PAD_OFFSET);
     usage = Strings::implode(Strings::explode(usage, '\n'), indent.c_str());
 
     cout << "    " << pad(disp_param, width) << "  " << usage << disp_default << endl;
@@ -294,6 +322,13 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
     output_padded(param, disp_params[index], disp_defaults[index]);
     index++;
   }
+
+  cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n";
+  if (have_actions) {
+    cout << " * '-h' combined with an action show the help for that action.\n";
+    cout << " * Actions-specific options must come *after* the action on the commandline.\n";
+  }
+  cout << "\n";
 }
 
 
@@ -341,13 +376,32 @@ bool CmdParameters::process_option(List &parameters, const char *curarg) {
     }
   }
 
+/*
   // No option detected
   if (Strings::starts_with(curarg, "-")) {
     // Flag anything else that looks like an option param as an error
     throw string("Unknown command line option '") + (curarg + 1) + "'";
   }
+*/
 
   return false;
+}
+
+
+/**
+ * @brief determine longest string length in string vector.
+ */
+unsigned CmdParameters::max_width(const std::vector<std::string> &list) const {
+  // Determine max width of displayed param's
+  unsigned width = 0;
+  for (const string &str : list) {
+    // CRAP: Following fails when 'int width = -1', due to signedness
+    if (str.length() > width) {
+      width = (unsigned) str.length();
+    }
+  }
+
+  return width;
 }
 #ifndef LITE
 
@@ -375,18 +429,38 @@ bool CmdParameters::init_actions() {
       return false;
     }
   }
+
+  return true;
 }
 
 
 void CmdParameters::show_actions() {
-  if (!actions.empty()) {
-    cout << "\n\nActions:\n\n";
+  if (actions.empty()) return;
 
-    for (auto &action: actions) {
-      // TODO: padding between name and usage
-      cout << "    " << action.name << "   " << action.usage << "\n";
-    }
+  // Determine max width
+  vector<string> disp_names;
+  for (auto &action: actions) {
+    disp_names.push_back(action.name);
+  }
+  unsigned width = max_width(disp_names);
 
+  // Adjusted from `output_padded` in `()`
+  auto output_padded = [width] (
+    const string &label,
+    const string &in_usage) {
+    // Ensure line endings have proper indent
+    string indent("\n");
+    string mt;
+    indent += pad(mt, width + PAD_OFFSET);
+    string usage = Strings::implode(Strings::explode(in_usage, '\n'), indent.c_str());
+
+    cout << "    " << pad(label, width) << "  " << usage << endl;
+  };
+
+  cout << "\n\nActions:\n\n";
+
+  for (auto &action: actions) {
+    output_padded(action.name, action.usage);
   }
 }
 

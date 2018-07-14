@@ -2,6 +2,23 @@
 
 *<plenty will be added here>*
 
+### Validation
+
+- Options must be unique within global (**DONE**) and action
+- Options must be unique over any combination of global and action
+- No whitespace in options and actions
+
+### Command line parsing
+
+- Action-specific help - show options per actioni (+ long blurb)
+- Handle `UNNAMED` for actions, also in combination with global `UNNAMED`
+
+### Test
+
+- Multiple actions on command line not allowed
+
+-----
+
 ## Release Notes
 
 ```
