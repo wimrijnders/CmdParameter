@@ -7,7 +7,9 @@ CmdParameters defined_actions {
 
   {{
     "action1",
-    "This is action 1", {{
+    "This is action 1",
+    "Long-winded description of action 1.",
+    {{
       "Unsigned integer param",
       "-unsigned=",
       UNSIGNED_INTEGER,
@@ -15,10 +17,13 @@ CmdParameters defined_actions {
     }}
   }, {
     "action2",   // Has no parameters, should be allowed
-    "This is action 2"
+    "This is action 2",
+    "Long-winded description of action 2.",
   }, {
     "action3",
-    "This is action 3", {{
+    "This is action 3",
+    "Long-winded description of action 3.",
+    {{
       "Another unsigned integer param",  // One same parameter as Action1, should be allowed
       "-unsigned=",
       UNSIGNED_INTEGER,

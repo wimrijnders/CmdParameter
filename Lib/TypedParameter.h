@@ -24,7 +24,8 @@ struct TypedParameter {
 
     void prepare_usage(
       vector<string> &disp_defaults,
-      vector<string> &disp_params);
+      vector<string> &disp_params,
+      bool add_help = true);
 #ifndef LITE
     bool process_unnamed(const char *curarg);
 #endif  // LITE

@@ -12,10 +12,12 @@ TEST_CASE("Test bad action definitions", "[actions]") {
   SECTION("No two actions named the same") {
     DefActions a = {{
       "action1",
-      "This is action 1"
+      "This is action 1",
+      "Long blurb."
     }, {
       "action1",
-      "This is action 2"
+      "This is action 2",
+      "Long blurb."
     }};
     CmdParameters no_actions("blurb", a);
 

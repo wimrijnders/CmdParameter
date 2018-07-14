@@ -1,4 +1,5 @@
 #include "CmdParameters.h"
+#include <cassert>
 #include <iostream>
 #include <sstream>   // ostringstream
 #include <cstring>   // strcmp
@@ -27,7 +28,7 @@ CmdParameters::CmdParameters(const char *in_usage, DefParameters global_params) 
 
 
 /**
- * @brief Create help usage text for all the defined optional param's.
+ * @brief Create help usage text for all the defined global parameters.
  *
  * Output per option has the form:
  *
@@ -106,21 +107,7 @@ bool CmdParameters::handle_commandline_intern(
 #ifndef LITE
 
 			// Actions
-			bool found_action = false;
-			for (auto &action: actions) {
-				if (strcmp(action.name, curarg) == 0) {
-					found_action = true;
-
-					if (m_p_action != nullptr) {
-						errors << "Multiple actions encountered on the command line.\n";
-						break;
-					}
-
-					m_p_action = &action;
-					// WRI DEBUG
-					cout << "Found action '" << m_p_action->name << "'." << endl;
-				}
-			}
+			bool found_action = handle_action(curarg, &errors);
 			if (found_action) continue;
 
 			if (m_p_action != nullptr) {
@@ -285,43 +272,14 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
   have_actions = !actions.empty();
 #endif  // LITE
 
-  vector<string> disp_defaults;
-  vector<string> disp_params;
-
-  parameters.prepare_usage(disp_defaults, disp_params);
-
-  unsigned width = max_width(disp_params);
-
   if (have_actions) {
     cout << "\nGlobal Options:\n\n";
   } else {
     cout << "\nOptions:\n\n";
   }
 
-  auto output_padded = [width] (
-    TypedParameter &param,
-    const string &disp_param,
-    const string &disp_default) {
-    // Ensure line endings have proper indent
-    string usage = param.def_param.usage;
-    string indent("\n");
-    string mt;
-    indent += pad(mt, width + PAD_OFFSET);
-    usage = Strings::implode(Strings::explode(usage, '\n'), indent.c_str());
+ show_just_params(parameters);
 
-    cout << "    " << pad(disp_param, width) << "  " << usage << disp_default << endl;
-  };
-
-  int index = 0;
-  output_padded(help_switch, disp_params[index], disp_defaults[index]);
-  index++;
-
-  for (auto &item: parameters) {
-    TypedParameter &param = *item;
-
-    output_padded(param, disp_params[index], disp_defaults[index]);
-    index++;
-  }
 
   cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n";
   if (have_actions) {
@@ -331,6 +289,39 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
   cout << "\n";
 }
 
+
+void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_help) {
+  vector<string> disp_defaults;
+  vector<string> disp_params;
+
+  parameters.prepare_usage(disp_defaults, disp_params, add_help);
+
+  unsigned width = max_width(disp_params);
+
+  auto output_padded = [width, this] (
+    TypedParameter &param,
+    const string &disp_param,
+    const string &disp_default) {
+    // Ensure line endings have proper indent
+    cout << "    " << pad(disp_param, width)
+         << "  " << this->set_indent(width + PAD_OFFSET, param.def_param.usage)
+         << disp_default << endl;
+  };
+
+  int index = 0;
+
+  if (add_help) {
+    output_padded(help_switch, disp_params[index], disp_defaults[index]);
+    index++;
+  }
+
+  for (auto &item: parameters) {
+    TypedParameter &param = *item;
+
+    output_padded(param, disp_params[index], disp_defaults[index]);
+    index++;
+  }
+}
 
 string CmdParameters::pad(const string &str, unsigned width) {
   string out;
@@ -349,6 +340,7 @@ string CmdParameters::pad(const string &str, unsigned width) {
  * @return true '-h' handled, false otherwise
  */
 bool CmdParameters::handle_help(int argc, const char *argv[]) {
+  bool have_help = false;
   int curindex = 0;
 
 	while (true) {
@@ -358,12 +350,24 @@ bool CmdParameters::handle_help(int argc, const char *argv[]) {
 		const char *curarg = argv[curindex];
 
 		if (string("-h") == curarg) {
-			show_usage();
-			return true;
+			have_help =true;
+			break;
 		}
 	}
 
-	return false;
+	if (have_help) {
+#ifndef LITE
+		if (scan_action(argc, argv)) {
+			show_action_usage();
+		} else {
+			show_usage();
+		}
+#else  // LITE
+		show_usage();
+#endif  // LITE
+	}
+
+	return have_help;
 }
 
 
@@ -375,14 +379,6 @@ bool CmdParameters::process_option(List &parameters, const char *curarg) {
       return true;
     }
   }
-
-/*
-  // No option detected
-  if (Strings::starts_with(curarg, "-")) {
-    // Flag anything else that looks like an option param as an error
-    throw string("Unknown command line option '") + (curarg + 1) + "'";
-  }
-*/
 
   return false;
 }
@@ -403,6 +399,16 @@ unsigned CmdParameters::max_width(const std::vector<std::string> &list) const {
 
   return width;
 }
+
+
+string CmdParameters::set_indent(int indent, const string &str) {
+  string str_indent("\n");
+  string mt;
+  str_indent += pad(mt, indent);
+  return Strings::implode(Strings::explode(str, '\n'), str_indent.c_str());
+}
+
+
 #ifndef LITE
 
 
@@ -434,6 +440,48 @@ bool CmdParameters::init_actions() {
 }
 
 
+bool CmdParameters::handle_action(const char *curarg, ostringstream *errors) {
+	bool found_action = false;
+
+	for (auto &action: actions) {
+		if (strcmp(action.name, curarg) == 0) {
+			found_action = true;
+
+			if (m_p_action != nullptr) {
+				if (errors != nullptr) {
+					*errors << "Multiple actions encountered on the command line.\n";
+				}
+				break;
+			}
+
+			m_p_action = &action;
+			//cout << "Found action '" << m_p_action->name << "'." << endl;  // DEBUG
+		}
+	}
+
+	return found_action;
+}
+
+
+bool CmdParameters::scan_action(int argc, const char *argv[]) {
+	int curindex = 0;
+	m_p_action = nullptr;
+
+	while (true) {
+		curindex++;
+		if (curindex >= argc) break;
+
+		const char *curarg = argv[curindex];
+
+		if (handle_action(curarg)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
 void CmdParameters::show_actions() {
   if (actions.empty()) return;
 
@@ -444,24 +492,29 @@ void CmdParameters::show_actions() {
   }
   unsigned width = max_width(disp_names);
 
-  // Adjusted from `output_padded` in `()`
-  auto output_padded = [width] (
-    const string &label,
-    const string &in_usage) {
-    // Ensure line endings have proper indent
-    string indent("\n");
-    string mt;
-    indent += pad(mt, width + PAD_OFFSET);
-    string usage = Strings::implode(Strings::explode(in_usage, '\n'), indent.c_str());
-
-    cout << "    " << pad(label, width) << "  " << usage << endl;
-  };
-
   cout << "\n\nActions:\n\n";
 
   for (auto &action: actions) {
-    output_padded(action.name, action.usage);
+    cout << "    " << pad(action.name, width)
+         << "  " << set_indent(width + PAD_OFFSET, action.usage) << endl;
   }
+}
+
+
+void CmdParameters::show_action_usage() {
+  assert(m_p_action != nullptr);
+  auto p = m_p_action;
+
+  cout << "\nHelp for action '" << p->name << "'\n\n"
+          "Description:\n\n";
+
+  cout << "  " << set_indent(2, p->usage) << ".\n"
+       << "  " << set_indent(2, p->long_usage) << "\n\n"
+       << "Options:\n\n";
+
+  show_just_params(p->parameters, false);
+
+  cout << "\n";
 }
 
 

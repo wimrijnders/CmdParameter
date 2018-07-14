@@ -36,7 +36,10 @@ struct CmdParameters {
  private:
   bool check_actions_distinct(DefActions &params);
   bool init_actions();
+  bool handle_action(const char *curarg, std::ostringstream *errors = nullptr);
+  bool scan_action(int argc, const char *argv[]);
   void show_actions();
+  void show_action_usage();
 
  public:
 #endif  // LITE
@@ -70,7 +73,9 @@ private:
 
   bool handle_help(int argc, const char *argv[]);
   void show_params(TypedParameter::List &parameters);
+  void show_just_params(TypedParameter::List &parameters, bool add_help = true);
   unsigned max_width(const std::vector<std::string> &list) const;
+  std::string set_indent(int indent, const std::string &str);
 
   static bool process_option(List &parameters, const char *curarg);
   static std::string pad(const std::string &str, unsigned width);

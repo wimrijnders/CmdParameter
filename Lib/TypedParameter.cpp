@@ -65,7 +65,9 @@ TypedParameter *TypedParameter::List::operator[] (const char *key) {
  */
 void TypedParameter::List::prepare_usage(
   vector<string> &disp_defaults,
-  vector<string> &disp_params) {
+  vector<string> &disp_params,
+  bool add_help) {
+
   auto add_param = [&] (
     TypedParameter &param,
     const string &value_indicator,
@@ -87,12 +89,13 @@ void TypedParameter::List::prepare_usage(
   };
 
 
-  // Internal help switch definition
-  string value_indicator;
-  std::ostringstream default_indicator;
+  if (add_help) {
+    // Internal help switch definition
+    string value_indicator;
+    std::ostringstream default_indicator;
 
-  add_param(CmdParameters::help_switch, value_indicator, default_indicator);
-  // end help switch
+    add_param(CmdParameters::help_switch, value_indicator, default_indicator);
+  }
 
 
   for (auto &item : *this) {

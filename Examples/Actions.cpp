@@ -16,6 +16,8 @@ CmdParameters definition = {
 		{
 			"run",
 			"This action does something cool",
+			"This is the long-winded description of action 'run'. Words fail to\n"
+			"describe how cool this action is.",
 			{
 				{
 					"Num Iterations",
@@ -27,6 +29,8 @@ CmdParameters definition = {
 		},{
 			"profile",
 			"Make profile output of whatever the action does",
+			"This action is possibly even cooler than 'run',\n"
+			"by all means give it a try!",
 			{
 				{
 					"Output json",
