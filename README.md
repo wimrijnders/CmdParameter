@@ -12,6 +12,13 @@ Its goals are:
 
  Note that these are very different goals from making this simple.
  The downside is that this code becomes more complex. I think this is a worthwhile tradeoff.
+ 
+To be more specific:
+
+ - **Declarative definitions** - The command line parameters are defined in a structure separate from program code.
+ - **Allow commands** - Headers for groups of command, of the form `app command {options}`.
+ - **Extensive validation and checking of values** - ensure that anything will be correct upon usage, in an extensible way.
+ - **Arbitrarily large help text** - start small, add more as required without limit.
 
 -----
 
@@ -46,7 +53,6 @@ Options:
 Notes:
 
  * Global options can appear in any position on the command line after the program name.
-
 
 > ./Simple -int=hello
 Error(s) on command line:
