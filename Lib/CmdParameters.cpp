@@ -606,12 +606,14 @@ void CmdParameters::show_action_usage() {
   cout << "\nHelp for action '" << p->name << "'\n\n"
           "Description:\n\n";
 
-  cout << "  " << set_indent(2, p->usage) << ".\n"
-       << "  " << set_indent(2, p->long_usage) << "\n\n"
-       << "Options:\n\n";
+  cout << "  " << set_indent(2, p->usage) << ".\n";
 
+  if (p->long_usage != nullptr) {
+    cout << "  " << set_indent(2, p->long_usage) << "\n";
+  }
+
+  cout << "\nOptions:\n\n";
   show_just_params(p->parameters, false);
-
   cout << "\n";
 }
 
