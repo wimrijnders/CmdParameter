@@ -1,7 +1,7 @@
 CmdParameter
 ============
 
-Version 0.1.0.0
+Version 0.1.1
 
 `CmdParameter` is a library for handling command line parameters in C++.
 
@@ -76,3 +76,9 @@ Error(s) on command line:
 switch value: 42
 
 ```
+
+-----
+
+## TODO
+
+- Allow concatenated short options (no parameters), e.g. `-AaBb`
