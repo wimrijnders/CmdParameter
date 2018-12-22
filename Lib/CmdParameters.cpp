@@ -143,7 +143,17 @@ bool CmdParameters::handle_commandline_intern(
 
 		// If actions defined, an action must have been detected
 		if (!actions.empty() && m_p_action == nullptr) {
-			errors << "  Actions defined but none detected on the command line.\n";
+			// Collect all action names
+			std::string names;
+			for (auto & action : actions) {
+				if (!names.empty()) {
+					names += " ";
+				}
+
+				names += action.name;
+			}
+
+			errors << "  Action expected, use one of: " << names << "\n";
 		}
 #endif  // LITE
 	} catch (string &error) {
