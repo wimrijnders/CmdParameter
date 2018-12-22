@@ -22,7 +22,7 @@ CmdParameters definition = {
 				{
 					"Num Iterations",
 					"-num=",
-					INTEGER,
+					UNSIGNED_INTEGER,
 					"The number of iterations to perform in this action"
 				}
 			}

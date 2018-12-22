@@ -86,7 +86,7 @@ void DefParameter::handle_defaults() {
   break;
 
   case POSITIVE_FLOAT:
-    if (isnan(float_default)) {
+    if (std::isnan(float_default)) {
       float_default = 0.0f;
     }
   break;
@@ -110,7 +110,7 @@ bool DefParameter::has_default() const {
     return (int_default != INT_NOT_SET);  // Note: same as INTEGER
 
   case POSITIVE_FLOAT:
-    return (!isnan(float_default));
+    return (!std::isnan(float_default));
 
 #endif  // LITE
   default:
