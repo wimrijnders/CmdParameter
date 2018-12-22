@@ -7,8 +7,9 @@ Version 0.2.0
 
 Its goals are:
 
-  - to make it as simple as feasible to define parameters and use them
-  - to make it easy to add new parameter types
+  - make it as simple as feasible to define parameters and use them
+  - make it easy to add new parameter types
+  - define command definitions (internally called 'actions')
 
  Note that these are very different goals from making this simple.
  The downside is that this code becomes more complex. I think this is a worthwhile tradeoff.
@@ -16,7 +17,7 @@ Its goals are:
 To be more specific:
 
  - **Declarative definitions** - The command line parameters are defined in a structure separate from program code.
- - **Allow commands** - Headers for groups of command, of the form `app command {options}`.
+ - **Allow commands** - Commands of the form `app command {options}` are allowed and handled
  - **Extensive validation and checking of values** - ensure that anything will be correct upon usage, in an extensible way.
  - **Arbitrarily large help text** - start small, add more as required without limit.
 
