@@ -48,7 +48,7 @@ struct TypedParameter {
 
 
 protected:
-	string m_prefix;
+  std::vector<string> m_prefixes;
   bool   m_detected{false};
   int    int_value{-1};
 

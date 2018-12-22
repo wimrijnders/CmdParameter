@@ -24,16 +24,24 @@ struct DefParameter {
   DefParameter(
     const char *in_name,
     const char *in_prefix,
+    const char *in_prefix2,
+    ParamType in_param_type,
+    const char *in_usage
+  );
+
+  DefParameter(
+    const char *in_name,
+    const char *in_prefix,
     ParamType   in_param_type,
     const char *in_usage,
     int default_value
   );
 
-  const char *name;       //> The name or short description of the parameter.
-                          //  This value is used as label and must be unique
-  const char *prefix;
-  ParamType   param_type; //> Parameter type
-  const char *usage;      //> Long description of the parameter, displayed in the help text
+  const char *name;                    //!> The name or short description of the parameter.
+                                       //!>  This value is used as label and must be unique
+  std::vector<const char *> prefixes;
+  ParamType   param_type;              //!> Parameter type
+  const char *usage;                   //!> Long description of the parameter, displayed in the help text
 
   int          int_default{INT_NOT_SET};
 

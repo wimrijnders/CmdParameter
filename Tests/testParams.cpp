@@ -24,12 +24,53 @@ bool single_param(TestParameters &params, const char *in_switch) {
 // The actual unit tests
 //////////////////////////////////////////////////
 
+TEST_CASE("Test parameter definitions", "[params]") {
+
+  SECTION("null values not allowed") {
+    // Reference value; this should succeed
+    DefParameters a0 = {
+      { "action1", "-switch2", NONE, "Long blurb."}
+    };
+    CmdParameters c0("blurb", a0);
+    REQUIRE(c0.init_params());
+
+
+    DefParameters a1 = {
+      { nullptr, "-switch2", NONE, "Long blurb."}
+    };
+    CmdParameters c1("blurb", a1);
+    REQUIRE(!c1.init_params());
+
+
+    DefParameters a2 = {
+      { "action1", nullptr, NONE, "Long blurb."}
+    };
+    CmdParameters c2("blurb", a2);
+    REQUIRE(!c2.init_params());
+
+
+    DefParameters a3 = {
+      { "action1", "-a", NONE, nullptr}
+    };
+    CmdParameters c3("blurb", a3);
+    REQUIRE(!c3.init_params());
+
+
+    DefParameters a4 = {
+      { "action2", "-b", NONE, ""}
+    };
+    CmdParameters c4("blurb", a4);
+    REQUIRE(!c4.init_params());
+  }
+}
+
+
 TEST_CASE("Test Command Line parameters", "[params]") {
 	cout_redirect redirect;
 	TestParameters params;  // NOTE: putting this in global space causes a segfault
 
 
-	SECTION("Check help") {
+	SECTION("Check help short switch") {
 		int argc1 = 2;
 		const char *argv1[] = { PROG, "-h"	};
 		REQUIRE(params.handle_commandline(argc1, argv1, false));
@@ -47,6 +88,36 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 		int argc4 = 11;
 		const char *argv4[] = { PROG, "This", "-h", "should",
 														"-h", "be", "-h", "no", "-h", "problem", "-h"	};
+		REQUIRE(params.handle_commandline(argc4, argv4, false));
+	}
+
+
+	SECTION("Check help long switch") {
+		int argc1 = 2;
+		const char *argv1[] = { PROG, "help"	};
+		REQUIRE(params.handle_commandline(argc1, argv1, false));
+
+		int argc2 = 9;
+		const char *argv2[] = { PROG, "it", "doesn't", "matter",
+														"help", "what", "I", "put", "here"	};
+		REQUIRE(params.handle_commandline(argc2, argv2, false));
+
+		int argc3 = 9;
+		const char *argv3[] = { PROG, "it", "doesn't", "matter",
+														"what", "I", "put", "here", "help"	};
+		REQUIRE(params.handle_commandline(argc3, argv3, false));
+
+		int argc4 = 11;
+		const char *argv4[] = { PROG, "This", "help", "should",
+														"help", "be", "help", "no", "help", "problem", "help"	};
+		REQUIRE(params.handle_commandline(argc4, argv4, false));
+	}
+
+
+	SECTION("Check help both long and short switches") {
+		int argc4 = 11;
+		const char *argv4[] = { PROG, "This", "-h", "should",
+														"help", "be", "-h", "no", "-h", "problem", "help"	};
 		REQUIRE(params.handle_commandline(argc4, argv4, false));
 	}
 
@@ -157,18 +228,36 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 		REQUIRE(single_param(params, "-output=123"));
 	}
 
-	// TODO: test empty prefix
 
 	SECTION("Same names for parameter definitions should not be allowed") {
 		CmdParameters double_params = {
 			"blurb", {  // Usage
-			{	"Name not unique", "", UNNAMED,	"" },
-			{	"Name not unique", "", UNNAMED,	"" }
+			{	"Name not unique", "-a", UNNAMED,	"" },
+			{	"Name not unique", "-b", UNNAMED,	"" }
 		}};
 
 		REQUIRE(!double_params.init_params());
 	}
 
+
+	SECTION("Empty name should not be allowed") {
+		CmdParameters c = {
+			"blurb", {  // Usage
+			{	"", "-a", UNNAMED,	"" },
+		}};
+
+		REQUIRE(!c.init_params());
+	}
+
+
+	SECTION("Empty prefixes should not be allowed") {
+		CmdParameters c = {
+			"blurb", {  // Usage
+			{	"Name", "", UNNAMED,	"" },
+		}};
+
+		REQUIRE(!c.init_params());
+	}
 
 	SECTION("Indexed access of parameter values should return the same as keyed access") {
 		CmdParameters::List &p = params.parameters();

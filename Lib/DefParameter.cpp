@@ -16,9 +16,30 @@ DefParameter::DefParameter(
   ParamType   in_param_type,
   const char *in_usage) :
   name(in_name),
-  prefix(in_prefix),
   param_type(in_param_type),
   usage(in_usage) {
+  if (in_prefix != nullptr) {
+    prefixes.push_back(in_prefix);
+  }
+  handle_defaults();
+}
+
+
+DefParameter::DefParameter(
+  const char *in_name,
+  const char *in_prefix,
+  const char *in_prefix2,
+  ParamType   in_param_type,
+  const char *in_usage) :
+  name(in_name),
+  param_type(in_param_type),
+  usage(in_usage) {
+  if (in_prefix != nullptr) {
+    prefixes.push_back(in_prefix);
+  }
+  if (in_prefix2 != nullptr) {
+    prefixes.push_back(in_prefix2);
+  }
   handle_defaults();
 }
 
@@ -30,10 +51,12 @@ DefParameter::DefParameter(
   const char *in_usage,
   int default_value) :
   name(in_name),
-  prefix(in_prefix),
   param_type(in_param_type),
   usage(in_usage),
   int_default(default_value) {
+  if (in_prefix != nullptr) {
+    prefixes.push_back(in_prefix);
+  }
   handle_defaults();
 }
 

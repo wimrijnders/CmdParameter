@@ -16,11 +16,10 @@ TEST_CASE("Test bad action definitions", "[actions]") {
       "Long blurb."
     }, {
       "action1",
-      "This is action 2",
+      "This is also action 1",
       "Long blurb."
     }};
     CmdParameters no_actions("blurb", a);
-
     REQUIRE(!no_actions.init_params());
   }
 }

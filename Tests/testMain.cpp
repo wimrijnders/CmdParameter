@@ -37,6 +37,8 @@ TEST_CASE("Check correct working Simple app", "[cmdline]") {
 	REQUIRE(0 == system(APP POST));
 	REQUIRE(0 == system(APP "-h" POST));
 	REQUIRE(0 == system(APP "useless -h garbage" POST));
+	REQUIRE(0 == system(APP "help" POST));
+	REQUIRE(0 == system(APP "useless help garbage" POST));
 	REQUIRE(0 != system(APP "-i-dont-exist=foo" POST));
 	REQUIRE(0 != system(APP "-int=foo" POST));
 	REQUIRE(0 != system(APP "-int" POST));

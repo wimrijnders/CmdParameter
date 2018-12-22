@@ -12,7 +12,7 @@ using namespace std;
 // Internal definition of help switch
 DefParameter CmdParameters::help_def(
   "Help switch",
-  "-h",
+  "help", "-h",
   NONE,
   "Show this information. Overrides all other parameters"
 );
@@ -90,7 +90,7 @@ bool CmdParameters::handle_commandline_intern(
 	m_p_action = nullptr;
 #endif  // LITE
 
-	// Prescan for '-h'; this overrides everything
+	// Prescan for help; this overrides everything
 	if (handle_help(argc, argv)) return false;
 
 	int curindex = 0;
@@ -170,7 +170,7 @@ bool CmdParameters::handle_commandline_intern(
 		if (show_help_on_error) {
 			show_usage();
 		} else {
-			cout << "  Use switch '-h' to view options\n"  << endl;
+			cout << "  Use 'help' or '-h' to view options\n"  << endl;
 		}
 
 		m_has_errors = true;
@@ -230,7 +230,11 @@ bool CmdParameters::validate() {
   }
 
 #endif  // LITE
-  if (!check_labels_distinct(global_parameters)) {
+  if (!check_parameters(global_parameters)) {
+    ret = false;
+  }
+
+  if (!check_labels(global_parameters)) {
     ret = false;
   }
 
@@ -239,32 +243,125 @@ bool CmdParameters::validate() {
 }
 
 
-/**
- * @brief Check that the parameters are distinct.
- *
- * @return true if unique, false otherwise
- */
-bool CmdParameters::check_labels_distinct(DefParameters &params) {
+bool CmdParameters::check_labels(DefParameters &params) {
   bool ret = true;
   int length = (int) params.size();
   std::ostringstream msg;
 
+  // No empty names
+  int index = 0;
+  for (auto &p : params) {
+    if (p.name == nullptr) {
+      msg << "Error: name can not be a null pointer "
+          << "for parameter with index " << index << "\n";
+      ret = false;
+      continue; // protect for next check
+    }
+
+    if (p.name[0] == '\0') {
+      msg << "Error: name can not be an empty string "
+          << "for parameter with index " << index << "\n";
+      ret = false;
+    }
+
+    index++;
+  }
+
+
   for (int index1 = 0; index1 < length - 1; ++index1) {
     for (int index2 = index1 + 1; index2 < length; ++index2) {
-      // Labels must be  unique
-      if (params[index1].name == params[index2].name) {
-        msg << "Error: Multiple parameter definitions with name '" << params[index1].name << "'; "
+      auto &p1 = params[index1];
+      auto &p2 = params[index2];
+
+      // Labels must be unique
+      if (!strcmp(p1.name, p2.name)) {
+        msg << "Error: Multiple parameter definitions with name '" << p1.name << "'; "
             << "names should be unique\n";
         ret = false;
       }
 
       // prefixes must be unique
-      if (params[index1].prefix == params[index2].prefix) {
-        msg << "Error: Multiple parameter definitions with same prefix '" << params[index1].prefix << "': "
-            << params[index1].name << " and " << params[index2].name << "\n";
-        ret = false;
+      for (auto &pr1 : p1.prefixes) {
+        for (auto &pr2 : p2.prefixes) {
+          // Skip empties, these have been tested
+          // beforehand in check_parameters()
+          if (pr1[0] == '\0') continue;
+          if (pr2[0] == '\0') continue;
+
+          if (!strcmp(pr1, pr2)) {
+            msg << "Error: Multiple parameter definitions with same prefix '" << pr1 << "' "
+                << "for " << p1.name << " and " << p2.name << "\n";
+            ret = false;
+          }
+        }
       }
     }
+  }
+
+  if (!ret) {
+    std::cout << msg.str() << std::endl;
+  }
+
+  return ret;
+}
+
+
+bool CmdParameters::check_parameters(DefParameters &params) {
+  bool ret = true;
+
+  for (auto &p : params) {
+    if (!check_parameter(p)) {
+        ret = false;
+    }
+  }
+
+
+  return ret;
+}
+
+
+bool CmdParameters::check_parameter(DefParameter &param) {
+  auto &p = param;  // Local aliase
+  bool ret = true;
+  std::ostringstream msg;
+
+  // At least one prefix present
+  if (p.prefixes.empty()) {
+    msg << "Error: At least one prefix must be defined "
+        << "in parameter " << p.name << "\n";
+    ret = false;
+  }
+
+  // no empty prefix strings
+  for (auto &pr : p.prefixes) {
+    if (pr[0] == '\0') {
+      msg << "Error: prefixes can not be an empty string "
+          << "in parameter " << p.name << "\n";
+      ret = false;
+    }
+  }
+
+  // prefixes must be unique
+  if (p.prefixes.size() >= 2) {
+    for (int i = 0; i < (int) p.prefixes.size() -1; ++i) {
+      for (int j = i + 1; j < (int) p.prefixes.size(); ++j) {
+        auto &pr1 = p.prefixes[i];
+        auto &pr2 = p.prefixes[j];
+
+        if (strcmp(pr1, pr2)) {
+          msg << "Error: Duplicate prefixes '" << pr1 << "' "
+              << "for " << p.name << "\n";
+          ret = false;
+        }
+      }
+    }
+  }
+
+  // Long text must be present
+  if (p.usage == nullptr || p.usage[0] == '\0') {
+    msg << "Error: Empty long text passed "
+        << "in parameter '" << p.name << "'; this field is required\n";
+    ret = false;
   }
 
   if (!ret) {
@@ -291,7 +388,7 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
 
   cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n";
   if (have_actions) {
-    cout << " * '-h' combined with an action show the help for that action.\n";
+    cout << " * 'help' combined with an action shows the help for that action.\n";
     cout << " * Actions-specific options must come *after* the action on the commandline.\n";
   }
   cout << "\n";
@@ -343,9 +440,12 @@ string CmdParameters::pad(const string &str, unsigned width) {
 
 
 /**
- * @brief Scan for '-h' and handle if present.
+ * @brief Scan for help and handle if present.
  *
- * @return true '-h' handled, false otherwise
+ * NOTE: Would have been nicer if the CmdParameter for help
+ *       could handle this autonomously.
+ *
+ * @return true if help handled, false otherwise
  */
 bool CmdParameters::handle_help(int argc, const char *argv[]) {
   bool have_help = false;
@@ -357,7 +457,7 @@ bool CmdParameters::handle_help(int argc, const char *argv[]) {
 
 		const char *curarg = argv[curindex];
 
-		if (string("-h") == curarg) {
+		if (string("help") == curarg || string("-h") == curarg) {
 			have_help =true;
 			break;
 		}

@@ -64,7 +64,9 @@ private:
   bool m_validated{false};
   static DefParameter help_def;
 
-  bool check_labels_distinct(DefParameters &params);
+  bool check_labels(DefParameters &params);
+  bool check_parameters(DefParameters &params);
+  bool check_parameter(DefParameter &param);
 
 	bool handle_commandline_intern(
 		int argc,

@@ -70,12 +70,21 @@ void TypedParameter::List::prepare_usage(
     TypedParameter &param,
     const string &value_indicator,
     std::ostringstream &default_indicator) {
+
     string tmp;
-    if (param.def_param.prefix != nullptr) {
-      tmp = param.def_param.prefix;
+    for (auto &p : param.def_param.prefixes) {
+      assert(p != nullptr);
+
+      if (!tmp.empty()) {
+        tmp += ", ";
+      }
+
+      tmp += p;
+      tmp += value_indicator;
     }
-    tmp += value_indicator;
+
     disp_params.push_back(tmp);
+
 
     if (default_indicator.str().empty()) {
       disp_defaults.push_back(".");
@@ -134,11 +143,13 @@ TypedParameter::TypedParameter(DefParameter &var) :
   m_detected(false) {
 
 	// Remove '=' from the field prefix
-	auto tmp = Strings::explode(var.prefix, '=');
-	if (!tmp.empty()) {
-		m_prefix = tmp[0];
+	// NOTE: var.prefixes may be empty! (incorrect but possible, checks should catch this)
+	for (auto &p : var.prefixes) {
+		auto tmp = Strings::explode(p, '=');
+		if (!tmp.empty()) {
+			m_prefixes.push_back(tmp[0]);
+		}
 	}
-	assert(!m_prefix.empty());
 
   set_default();
 }
@@ -147,13 +158,22 @@ TypedParameter::TypedParameter(DefParameter &var) :
 void TypedParameter::error(const string &msg) const {
 	string pre("Parameter '");
 	pre += def_param.name;
-	pre += "' (" + m_prefix + ") ";
+	pre += "' (" + m_prefixes[0] + ") ";  // NOTE: uses just first prefix definition
 	throw string(pre + msg);
 }
 
 
 bool TypedParameter::parse_param(const char *curarg) {
-  if (!Strings::starts_with(curarg, m_prefix)) return false;
+	bool found_prefix = false;
+	for (auto &p : m_prefixes) {
+		if (Strings::starts_with(curarg, p)) {
+			found_prefix = true;
+			break;
+		}
+	}
+	if (!found_prefix) {
+		return false;
+	}
 
   string value = get_param(curarg);
 
