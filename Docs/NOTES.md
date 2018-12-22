@@ -28,10 +28,14 @@
 ## Release Notes
 
 ```
+
+2018/12/21  v0.2.0  Enabled usage of multiple switches for a parameter
+                    Used to define '-h' and 'help' to do the same thing.
+
 2018/12/21  v0.1.1  Fix compile error is `isnan`.
                     Small changes in examples.
-					Update docs.
-					Actions displayed if expected and none passed.
+                    Update docs.
+                    Actions displayed if expected and none passed.
 
 2018/07/14  v0.1.0  Split typed parameter handling and defined parameters into classes`TypedParameter`
                     and `CmdParameters`.
