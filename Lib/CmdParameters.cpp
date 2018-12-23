@@ -21,7 +21,7 @@ DefParameter CmdParameters::help_def(
 NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
 
-CmdParameters::CmdParameters(const char *in_usage, DefParameters global_params) :
+CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params) :
   usage(in_usage),
   global_parameters(global_params)
 {}
@@ -54,16 +54,12 @@ void CmdParameters::show_usage() {
  */
 CmdParameters::ExitCode CmdParameters::handle_commandline(
   int argc,
-  const char* argv[],
+  char const *argv[],
   bool show_help_on_error) {
   if (!init_params()) return EXIT_ERROR;
 
   if (!handle_commandline_intern(argc, argv, show_help_on_error)) {
-    if(has_errors()) {
-      return EXIT_ERROR;
-    } else {
-      return EXIT_NO_ERROR;
-    }
+    return (has_errors())? EXIT_ERROR: EXIT_NO_ERROR;
   }
 
   return ALL_IS_WELL;
@@ -81,9 +77,9 @@ CmdParameters::ExitCode CmdParameters::handle_commandline(
  */
 bool CmdParameters::handle_commandline_intern(
 	int argc,
-	const char *argv[],
+	char const *argv[],
 	bool show_help_on_error) {
-	ostringstream errors;
+	Buf errors;
 
 	m_has_errors = false;
 #ifndef LITE
@@ -123,7 +119,7 @@ bool CmdParameters::handle_commandline_intern(
 			// It's not one an option or an action, so it must be unnamed input
 			// NOTE: this implementation check UNNAMED on global options only!
 			if (!m_parameters.process_unnamed(curarg)) {
-				errors << "  Too many unnamed parameters on command line, '" << curarg << " unexpected.\n";
+				errors << "  Too many unnamed parameters on command line, '" << curarg << "' unexpected.\n";
 			}
 #else  // LITE
 			errors << "  Unknown parameter '" << curarg << "'.\n";
@@ -207,61 +203,58 @@ bool CmdParameters::init_params() {
 
 bool CmdParameters::validate() {
   if (m_validated) return true;
-  bool ret = true;
 
   if (usage == nullptr) {
-    cout << "ERROR: No usage passed" << endl;
-    ret = false;
+    Buf buf;
+    buf << "No usage passed";
+    add_error(buf);
   }
 
 #ifndef LITE
   if (global_parameters.empty() && actions.empty()) {
-    cout << "WARNING: No global parameters or actions defined. This definition does nothing" << endl;
+    Buf buf;
+    buf << "WARNING: No global parameters or actions defined. This definition does nothing" << endl;
+    add_warning(buf);
   }
 
-  if (!check_actions_distinct(actions)) {
-    ret = false;
-  }
+  check_actions_distinct(actions);
 
   // TODO: do this for all actions; also over global and actions as well
 #else  // LITE
   if (global_parameters.empty()) {
-    cout << "WARNING: No global parameters defined. This definition does nothing" << endl;
+    Buf buf;
+    buf << "WARNING: No global parameters defined. This definition does nothing" << endl;
+    add_warning(buf);
   }
 
 #endif  // LITE
-  if (!check_parameters(global_parameters)) {
-    ret = false;
-  }
+  check_parameters(global_parameters);
+  check_labels(global_parameters);
 
-  if (!check_labels(global_parameters)) {
-    ret = false;
-  }
-
-  m_validated = ret;
-  return ret;
+  m_validated = output_messages();
+  return m_validated;
 }
 
 
-bool CmdParameters::check_labels(DefParameters &params) {
-  bool ret = true;
+void CmdParameters::check_labels(DefParameters &params) {
   int length = (int) params.size();
-  std::ostringstream msg;
 
   // No empty names
   int index = 0;
   for (auto &p : params) {
     if (p.name == nullptr) {
-      msg << "Error: name can not be a null pointer "
-          << "for parameter with index " << index << "\n";
-      ret = false;
+      Buf msg;
+      msg << "name can not be a null pointer "
+          << "for parameter with index " << index;
+      add_error(msg);
       continue; // protect for next check
     }
 
     if (p.name[0] == '\0') {
-      msg << "Error: name can not be an empty string "
-          << "for parameter with index " << index << "\n";
-      ret = false;
+      Buf msg;
+      msg << "name can not be an empty string "
+          << "for parameter with index " << index;
+      add_error(msg);
     }
 
     index++;
@@ -275,9 +268,10 @@ bool CmdParameters::check_labels(DefParameters &params) {
 
       // Labels must be unique
       if (!strcmp(p1.name, p2.name)) {
-        msg << "Error: Multiple parameter definitions with name '" << p1.name << "'; "
-            << "names should be unique\n";
-        ret = false;
+        Buf msg;
+        msg << "Multiple parameter definitions with name '" << p1.name << "'; "
+            << "names should be unique";
+        add_error(msg);
       }
 
       // prefixes must be unique
@@ -289,55 +283,43 @@ bool CmdParameters::check_labels(DefParameters &params) {
           if (pr2[0] == '\0') continue;
 
           if (!strcmp(pr1, pr2)) {
-            msg << "Error: Multiple parameter definitions with same prefix '" << pr1 << "' "
-                << "for " << p1.name << " and " << p2.name << "\n";
-            ret = false;
+            Buf msg;
+            msg << "Multiple parameter definitions with same prefix '" << pr1 << "' "
+                << "for " << p1.name << " and " << p2.name;
+            add_error(msg);
           }
         }
       }
     }
   }
-
-  if (!ret) {
-    std::cout << msg.str() << std::endl;
-  }
-
-  return ret;
 }
 
 
-bool CmdParameters::check_parameters(DefParameters &params) {
-  bool ret = true;
-
+void CmdParameters::check_parameters(DefParameters &params) {
   for (auto &p : params) {
-    if (!check_parameter(p)) {
-        ret = false;
-    }
+    check_parameter(p);
   }
-
-
-  return ret;
 }
 
 
-bool CmdParameters::check_parameter(DefParameter &param) {
+void CmdParameters::check_parameter(DefParameter &param) {
   auto &p = param;  // Local aliase
-  bool ret = true;
-  std::ostringstream msg;
 
   // At least one prefix present
   if (p.prefixes.empty()) {
-    msg << "Error: At least one prefix must be defined "
-        << "in parameter " << p.name << "\n";
-    ret = false;
+    Buf msg;
+    msg << "At least one prefix must be defined "
+        << "in parameter " << p.name;
+    add_error(msg);
   }
 
   // no empty prefix strings
   for (auto &pr : p.prefixes) {
     if (pr[0] == '\0') {
-      msg << "Error: prefixes can not be an empty string "
-          << "in parameter " << p.name << "\n";
-      ret = false;
+      Buf msg;
+      msg << "prefixes can not be an empty string "
+          << "in parameter " << p.name;
+      add_error(msg);
     }
   }
 
@@ -349,9 +331,10 @@ bool CmdParameters::check_parameter(DefParameter &param) {
         auto &pr2 = p.prefixes[j];
 
         if (strcmp(pr1, pr2)) {
-          msg << "Error: Duplicate prefixes '" << pr1 << "' "
-              << "for " << p.name << "\n";
-          ret = false;
+          Buf msg;
+          msg << "Duplicate prefixes '" << pr1 << "' "
+              << "for " << p.name;
+          add_error(msg);
         }
       }
     }
@@ -359,16 +342,11 @@ bool CmdParameters::check_parameter(DefParameter &param) {
 
   // Long text must be present
   if (p.usage == nullptr || p.usage[0] == '\0') {
-    msg << "Error: Empty long text passed "
-        << "in parameter '" << p.name << "'; this field is required\n";
-    ret = false;
+    Buf msg;
+    msg << "Empty long text passed "
+        << "in parameter '" << p.name << "'; this field is required";
+    add_error(msg);
   }
-
-  if (!ret) {
-    std::cout << msg.str() << std::endl;
-  }
-
-  return ret;
 }
 
 
@@ -396,8 +374,8 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
 
 
 void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_help) {
-  vector<string> disp_defaults;
-  vector<string> disp_params;
+  StrList disp_defaults;
+  StrList disp_params;
 
   parameters.prepare_usage(disp_defaults, disp_params, add_help);
   unsigned width = max_width(disp_params);
@@ -407,7 +385,7 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
     const string &disp_param,
     const string &disp_default) {
     // Ensure line endings have proper indent
-    cout << "    " << pad(disp_param, width)
+    cout << "    " << pad(width, disp_param)
          << "  " << this->set_indent(width + PAD_OFFSET, param.def_param.usage)
          << disp_default << endl;
   };
@@ -428,7 +406,7 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
 }
 
 
-string CmdParameters::pad(const string &str, unsigned width) {
+string CmdParameters::pad(unsigned width, string const &str) {
   string out;
 
   for (auto i = str.length(); i < width; ++ i) {
@@ -447,7 +425,7 @@ string CmdParameters::pad(const string &str, unsigned width) {
  *
  * @return true if help handled, false otherwise
  */
-bool CmdParameters::handle_help(int argc, const char *argv[]) {
+bool CmdParameters::handle_help(int argc, char const *argv[]) {
   bool have_help = false;
   int curindex = 0;
 
@@ -479,7 +457,7 @@ bool CmdParameters::handle_help(int argc, const char *argv[]) {
 }
 
 
-bool CmdParameters::process_option(List &parameters, const char *curarg) {
+bool CmdParameters::process_option(List &parameters, char const *curarg) {
   for (auto &item: parameters) {
     TypedParameter &param = *item;
     if (param.parse_param(curarg)) return true;
@@ -492,7 +470,7 @@ bool CmdParameters::process_option(List &parameters, const char *curarg) {
 /**
  * @brief determine longest string length in string vector.
  */
-unsigned CmdParameters::max_width(const std::vector<std::string> &list) const {
+unsigned CmdParameters::max_width(StrList const &list) const {
   // Determine max width of displayed param's
   unsigned width = 0;
   for (const string &str : list) {
@@ -506,10 +484,9 @@ unsigned CmdParameters::max_width(const std::vector<std::string> &list) const {
 }
 
 
-string CmdParameters::set_indent(int indent, const string &str) {
+string CmdParameters::set_indent(int indent, string const &str) {
   string str_indent("\n");
-  string mt;
-  str_indent += pad(mt, indent);
+  str_indent += pad(indent);
   return Strings::implode(Strings::explode(str, '\n'), str_indent.c_str());
 }
 #ifndef LITE
@@ -519,13 +496,13 @@ string CmdParameters::set_indent(int indent, const string &str) {
 // Action handling
 ////////////////////////
 
-CmdParameters::CmdParameters(const char *in_usage, DefActions in_actions) :
+CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions) :
   usage(in_usage),
   actions(in_actions)
 {}
 
 
-CmdParameters::CmdParameters(const char *in_usage, DefActions in_actions, DefParameters global_params) :
+CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, DefParameters global_params) :
   usage(in_usage),
   global_parameters(global_params),
   actions(in_actions)
@@ -541,7 +518,7 @@ bool CmdParameters::init_actions() {
 }
 
 
-bool CmdParameters::handle_action(const char *curarg, ostringstream *errors) {
+bool CmdParameters::handle_action(char const *curarg, Buf *errors) {
 	bool found_action = false;
 
 	for (auto &action: actions) {
@@ -564,7 +541,7 @@ bool CmdParameters::handle_action(const char *curarg, ostringstream *errors) {
 }
 
 
-bool CmdParameters::scan_action(int argc, const char *argv[]) {
+bool CmdParameters::scan_action(int argc, char const *argv[]) {
 	int curindex = 0;
 	m_p_action = nullptr;
 
@@ -584,7 +561,7 @@ void CmdParameters::show_actions() {
   if (actions.empty()) return;
 
   // Determine max width
-  vector<string> disp_names;
+  StrList disp_names;
   for (auto &action: actions) {
     disp_names.push_back(action.name);
   }
@@ -593,7 +570,7 @@ void CmdParameters::show_actions() {
   cout << "\n\nActions:\n\n";
 
   for (auto &action: actions) {
-    cout << "    " << pad(action.name, width)
+    cout << "    " << pad(width, action.name)
          << "  " << set_indent(width + PAD_OFFSET, action.usage) << endl;
   }
 }
@@ -623,26 +600,53 @@ void CmdParameters::show_action_usage() {
  *
  * @return true if unique, false otherwise
  */
-bool CmdParameters::check_actions_distinct(DefActions &actions) {
-  bool ret = true;
+void CmdParameters::check_actions_distinct(DefActions &actions) {
   int length = (int) actions.size();
-  std::ostringstream msg;
 
   for (int index1 = 0; index1 < length - 1; ++index1) {
     for (int index2 = index1 + 1; index2 < length; ++index2) {
       // Labels must be  unique
       if (actions[index1].name == actions[index2].name) {
-        msg << "Error: Multiple actions definitions with name '" << actions[index1].name << "'; "
-            << "labels should be unique\n";
-        ret = false;
+        Buf msg;
+        msg << "Multiple actions definitions with name '" << actions[index1].name << "'; "
+            << "labels should be unique";
+        add_error(msg);
       }
     }
   }
-
-  if (!ret) {
-    std::cout << msg.str() << std::endl;
-  }
-
-  return ret;
 }
 #endif  // LITE
+
+
+namespace {
+  string const ERROR_PREFIX = "ERROR: ";
+  string const WARN_PREFIX  = "WARNING: ";
+}
+
+void CmdParameters::add_error(const std::string &msg) {
+  m_messages.push_back(ERROR_PREFIX + msg);
+  m_added_errors = true;
+}
+
+
+void CmdParameters::add_warning(const std::string &msg) {
+  m_messages.push_back(WARN_PREFIX + msg);
+  m_added_warnings = true;
+}
+
+
+bool CmdParameters::output_messages() {
+  assert((m_added_errors || m_added_warnings) == !m_messages.empty());
+
+  if (!m_messages.empty()) {
+    cout << "Messages during validation:\n";
+
+    for (auto const &msg :m_messages) {
+      cout << pad(2) << msg << "\n";
+    }
+
+    cout << endl;
+  }
+
+  return !m_added_errors;
+}

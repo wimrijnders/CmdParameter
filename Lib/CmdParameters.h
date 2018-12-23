@@ -11,6 +11,8 @@
 
 struct CmdParameters {
 	using List = TypedParameter::List;
+	using StrList = std::vector<std::string>;
+	using Buf = std::ostringstream;  // because it looks ugly in var declarations
 
 	enum ExitCode {
 		ALL_IS_WELL   = -2,
@@ -18,7 +20,7 @@ struct CmdParameters {
 		EXIT_ERROR    =  1
 	};
 
-	CmdParameters(const char *in_usage, DefParameters global_params);
+	CmdParameters(char const *in_usage, DefParameters global_params);
 
   const char   *usage{nullptr};
   DefParameters global_parameters;
@@ -27,17 +29,17 @@ struct CmdParameters {
 
 #ifndef LITE
   // Action handling
-  CmdParameters(const char *in_usage, DefActions in_actions);
-  CmdParameters(const char *in_usage, DefActions in_actions, DefParameters global_params);
+  CmdParameters(char const *in_usage, DefActions in_actions);
+  CmdParameters(char const *in_usage, DefActions in_actions, DefParameters global_params);
 
   DefActions actions;
   DefAction *m_p_action{nullptr};
 
  private:
-  bool check_actions_distinct(DefActions &params);
+  void check_actions_distinct(DefActions &params);
   bool init_actions();
-  bool handle_action(const char *curarg, std::ostringstream *errors = nullptr);
-  bool scan_action(int argc, const char *argv[]);
+  bool handle_action(char const *curarg, Buf *errors = nullptr);
+  bool scan_action(int argc, char const *argv[]);
   void show_actions();
   void show_action_usage();
 
@@ -49,10 +51,7 @@ struct CmdParameters {
   bool has_errors() const { return m_has_errors; }
   TypedParameter::List &parameters() { return m_parameters; }
 
-  ExitCode handle_commandline(
-    int argc,
-    const char *argv[],
-    bool show_help_on_error = true);
+  ExitCode handle_commandline(int argc, char const *argv[], bool show_help_on_error = true);
 
 private:
   enum {
@@ -64,23 +63,37 @@ private:
   bool m_validated{false};
   static DefParameter help_def;
 
-  bool check_labels(DefParameters &params);
-  bool check_parameters(DefParameters &params);
-  bool check_parameter(DefParameter &param);
+  //
+  // Output messages
+  //
+  StrList m_messages;
+  bool m_added_errors{false};
+  bool m_added_warnings{false};
+  void add_error(std::string const &msg);
+  void add_warning(std::string const &msg);
+  bool output_messages();
+  //
+  // End output messages
+  //
 
-	bool handle_commandline_intern(
-		int argc,
-		const char *argv[],
-		bool show_help_on_error);
+  // Convenience overloads
+  void add_error(Buf const &buf) { add_error(buf.str()); }
+  void add_warning(Buf const &buf) { add_warning(buf.str()); }
 
-  bool handle_help(int argc, const char *argv[]);
+  void check_labels(DefParameters &params);
+  void check_parameters(DefParameters &params);
+  void check_parameter(DefParameter &param);
+
+  bool handle_commandline_intern(int argc, char const *argv[], bool show_help_on_error);
+
+  bool handle_help(int argc, char const *argv[]);
   void show_params(TypedParameter::List &parameters);
   void show_just_params(TypedParameter::List &parameters, bool add_help = true);
-  unsigned max_width(const std::vector<std::string> &list) const;
-  std::string set_indent(int indent, const std::string &str);
+  unsigned max_width(StrList const &list) const;
+  std::string set_indent(int indent, std::string const &str);
 
-  static bool process_option(List &parameters, const char *curarg);
-  static std::string pad(const std::string &str, unsigned width);
+  static bool process_option(List &parameters, char const *curarg);
+  static std::string pad(unsigned width, std::string const &str = "");
 };
 
 #endif  // CMDPARAMETERS_H
