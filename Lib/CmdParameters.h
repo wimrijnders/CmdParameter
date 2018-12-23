@@ -9,7 +9,22 @@
 #include "Types/NoneParameter.h"
 
 
+class MsgBuffer : public std::ostringstream {
+public:
+	MsgBuffer() = delete;
+	MsgBuffer(MsgBuffer const &rhs) : m_caller(rhs.m_caller), m_error(rhs.m_error) {}
+	MsgBuffer(CmdParameters &caller, bool error) : m_caller(caller), m_error(error) {}
+	~MsgBuffer();
+
+private:
+	CmdParameters &m_caller;
+	const bool m_error;
+};
+
+
 struct CmdParameters {
+	friend class MsgBuffer;
+
 	using List = TypedParameter::List;
 	using StrList = std::vector<std::string>;
 	using Buf = std::ostringstream;  // because it looks ugly in var declarations
@@ -71,6 +86,8 @@ private:
   bool m_added_warnings{false};
   void add_error(std::string const &msg);
   void add_warning(std::string const &msg);
+  MsgBuffer add_error() { return MsgBuffer(*this, true); }
+  MsgBuffer add_warning() { return MsgBuffer(*this, true); }
   bool output_messages();
   //
   // End output messages

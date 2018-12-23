@@ -8,6 +8,20 @@
 
 using namespace std;
 
+MsgBuffer::~MsgBuffer() {
+  auto output = str();
+  if (output.empty()) return;
+
+  if (m_error) {
+    m_caller.add_error(output);
+  } else {
+    m_caller.add_warning(output);
+  }
+}
+
+
+//////////////////////////////////////////////////////////////
+
 
 // Internal definition of help switch
 DefParameter CmdParameters::help_def(
@@ -205,16 +219,12 @@ bool CmdParameters::validate() {
   if (m_validated) return true;
 
   if (usage == nullptr) {
-    Buf buf;
-    buf << "No usage passed";
-    add_error(buf);
+    add_error("No usage passed");
   }
 
 #ifndef LITE
   if (global_parameters.empty() && actions.empty()) {
-    Buf buf;
-    buf << "WARNING: No global parameters or actions defined. This definition does nothing" << endl;
-    add_warning(buf);
+    add_warning("WARNING: No global parameters or actions defined. This definition does nothing");
   }
 
   check_actions_distinct(actions);
@@ -222,9 +232,7 @@ bool CmdParameters::validate() {
   // TODO: do this for all actions; also over global and actions as well
 #else  // LITE
   if (global_parameters.empty()) {
-    Buf buf;
-    buf << "WARNING: No global parameters defined. This definition does nothing" << endl;
-    add_warning(buf);
+    add_warning("WARNING: No global parameters or actions defined. This definition does nothing");
   }
 
 #endif  // LITE
@@ -243,18 +251,14 @@ void CmdParameters::check_labels(DefParameters &params) {
   int index = 0;
   for (auto &p : params) {
     if (p.name == nullptr) {
-      Buf msg;
-      msg << "name can not be a null pointer "
+      add_error() << "namecan not be a null pointer "
           << "for parameter with index " << index;
-      add_error(msg);
       continue; // protect for next check
     }
 
     if (p.name[0] == '\0') {
-      Buf msg;
-      msg << "name can not be an empty string "
-          << "for parameter with index " << index;
-      add_error(msg);
+      add_error() << "name can not be an empty string "
+                  << "for parameter with index " << index;
     }
 
     index++;
@@ -268,10 +272,8 @@ void CmdParameters::check_labels(DefParameters &params) {
 
       // Labels must be unique
       if (!strcmp(p1.name, p2.name)) {
-        Buf msg;
-        msg << "Multiple parameter definitions with name '" << p1.name << "'; "
-            << "names should be unique";
-        add_error(msg);
+        add_error() << "Multiple parameter definitions with name '" << p1.name << "'; "
+                    << "names should be unique";
       }
 
       // prefixes must be unique
@@ -283,10 +285,8 @@ void CmdParameters::check_labels(DefParameters &params) {
           if (pr2[0] == '\0') continue;
 
           if (!strcmp(pr1, pr2)) {
-            Buf msg;
-            msg << "Multiple parameter definitions with same prefix '" << pr1 << "' "
-                << "for " << p1.name << " and " << p2.name;
-            add_error(msg);
+            add_error() << "Multiple parameter definitions with same prefix '" << pr1 << "' "
+                        << "for " << p1.name << " and " << p2.name;
           }
         }
       }
@@ -307,19 +307,15 @@ void CmdParameters::check_parameter(DefParameter &param) {
 
   // At least one prefix present
   if (p.prefixes.empty()) {
-    Buf msg;
-    msg << "At least one prefix must be defined "
-        << "in parameter " << p.name;
-    add_error(msg);
+    add_error() << "At least one prefix must be defined "
+                << "in parameter " << p.name;
   }
 
   // no empty prefix strings
   for (auto &pr : p.prefixes) {
     if (pr[0] == '\0') {
-      Buf msg;
-      msg << "prefixes can not be an empty string "
-          << "in parameter " << p.name;
-      add_error(msg);
+      add_error() << "prefixes can not be an empty string "
+                  << "in parameter " << p.name;
     }
   }
 
@@ -331,10 +327,8 @@ void CmdParameters::check_parameter(DefParameter &param) {
         auto &pr2 = p.prefixes[j];
 
         if (strcmp(pr1, pr2)) {
-          Buf msg;
-          msg << "Duplicate prefixes '" << pr1 << "' "
-              << "for " << p.name;
-          add_error(msg);
+          add_error() << "Duplicate prefixes '" << pr1 << "' "
+                      << "for " << p.name;
         }
       }
     }
@@ -342,10 +336,8 @@ void CmdParameters::check_parameter(DefParameter &param) {
 
   // Long text must be present
   if (p.usage == nullptr || p.usage[0] == '\0') {
-    Buf msg;
-    msg << "Empty long text passed "
-        << "in parameter '" << p.name << "'; this field is required";
-    add_error(msg);
+    add_error() << "Empty long text passed "
+                << "in parameter '" << p.name << "'; this field is required";
   }
 }
 
@@ -607,10 +599,8 @@ void CmdParameters::check_actions_distinct(DefActions &actions) {
     for (int index2 = index1 + 1; index2 < length; ++index2) {
       // Labels must be  unique
       if (actions[index1].name == actions[index2].name) {
-        Buf msg;
-        msg << "Multiple actions definitions with name '" << actions[index1].name << "'; "
-            << "labels should be unique";
-        add_error(msg);
+        add_error() << "Multiple actions definitions with name '" << actions[index1].name << "'; "
+                    << "labels should be unique";
       }
     }
   }
