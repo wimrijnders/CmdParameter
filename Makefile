@@ -66,7 +66,8 @@ LIB_OBJ := \
 	Lib/Types/PositiveFloatParameter.o \
 	Lib/DefAction.o \
 	Lib/CmdParameters.o \
-	Lib/DefParameter.o
+	Lib/DefParameter.o \
+	Lib/CmdValidation.o \
 
 LIB_OBJ := $(patsubst %,$(OBJ_DIR)/%,$(LIB_OBJ))
 #$(info LIB_OBJ: $(LIB_OBJ))
