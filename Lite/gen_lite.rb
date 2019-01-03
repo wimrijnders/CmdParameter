@@ -15,8 +15,8 @@ skip_else = "#else  // LITE\n"
 skip_end = "#endif  // LITE\n"
 
 HeaderComment = "/*
- * CmdParameter Lite v0.2.0
- * Copyright (c) 2018 Wim Rijnders
+ * CmdParameter Lite v0.2.1
+ * Copyright (c) 2018, 2019 Wim Rijnders
  *
  * Distributed under the MIT License,
  * see https://github.com/wimrijnders/CmdParameter/blob/master/LICENSE

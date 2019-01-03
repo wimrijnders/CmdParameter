@@ -33,17 +33,24 @@
 
 ```
 
-2018/12/21  v0.2.0  Enabled usage of multiple switches for a parameter
-                    Used to define '-h' and 'help' to do the same thing.
+20190103  v0.2.1
+    fix(static lib) : Hide symbols in static library
+    fix(validation) : Moved definition validations to separate class
+    fix(validation) : Return stream buffer from `add_error/add_warning`
+    fix(validation) : Error messages are collected in a list, rather than output directly to stdout
 
-2018/12/21  v0.1.1  Fix compile error is `isnan`.
-                    Small changes in examples.
-                    Update docs.
-                    Actions displayed if expected and none passed.
 
-2018/07/14  v0.1.0  Split typed parameter handling and defined parameters into classes`TypedParameter`
-                    and `CmdParameters`.
-                    First tentative version of actions.
+20181222  v0.2.0  Enabled usage of multiple switches for a parameter
+                  Used to define '-h' and 'help' to do the same thing.
+
+20181222  v0.1.1  Fix compile error with `isnan`.
+                  Small changes in examples.
+                  Update docs.
+                  Actions displayed if expected and none passed.
+
+20180714  v0.1.0  Split typed parameter handling and defined parameters into classes`TypedParameter`
+                  and `CmdParameters`.
+                  First tentative version of actions.
                       
-2018/07/11  v0.0.1  Initial revision
+20180711  v0.0.1  Initial revision
 ```
