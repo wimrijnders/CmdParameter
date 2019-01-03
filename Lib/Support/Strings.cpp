@@ -4,12 +4,6 @@
  *  Created on: May 26, 2014
  *      Author: wim
  */
-#include <algorithm>
-#include <iterator>
-#include <iomanip>
-#include <vector>
-#include <string>
-#include <sstream>
 #include "Strings.h"
 
 using namespace std;

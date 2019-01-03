@@ -20,9 +20,9 @@
 #include <iostream>
 #include <vector>
 #include <cstring>   // strcmp
-#include "Support/Strings.h"
 #include "DefParameter.h"
 #include "CmdParameters.h"
+#include "lib_local.h"
 
 using namespace std;
 

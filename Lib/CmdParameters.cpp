@@ -2,8 +2,8 @@
 #include <cassert>
 #include <iostream>
 #include <cstring>   // strcmp
-#include "Support/Strings.h"
 #include "Types/Types.h"
+#include "lib_local.h"
 
 using namespace std;
 

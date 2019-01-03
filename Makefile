@@ -52,24 +52,35 @@ else
   CXX_FLAGS += -DNDEBUG -O3
 endif
 
+#
 # Object files
-LIB_OBJ := \
-	Lib/Support/Strings.o \
-	Lib/TypedParameter.o \
-	Lib/Types/Types.o \
-	Lib/Types/NoneParameter.o \
-	Lib/Types/IntParameter.o \
-	Lib/Types/StringParameter.o \
-	Lib/Types/UnnamedParameter.o \
-	Lib/Types/UnsignedIntParameter.o \
-	Lib/Types/PositiveIntParameter.o \
-	Lib/Types/PositiveFloatParameter.o \
-	Lib/DefAction.o \
-	Lib/CmdParameters.o \
-	Lib/DefParameter.o \
-	Lib/CmdValidation.o \
+#
 
-LIB_OBJ := $(patsubst %,$(OBJ_DIR)/%,$(LIB_OBJ))
+#
+# Following are included directly in the compile units;
+# they should not be compiled to object files.
+#
+# List kept here as reference
+#
+# HIDDEN_OBJ := \
+# 	Support/Strings
+
+EXPORT_OBJ := \
+	TypedParameter \
+	Types/Types \
+	Types/NoneParameter \
+	Types/IntParameter \
+	Types/StringParameter \
+	Types/UnnamedParameter \
+	Types/UnsignedIntParameter \
+	Types/PositiveIntParameter \
+	Types/PositiveFloatParameter \
+	DefAction \
+	CmdParameters \
+	DefParameter \
+	CmdValidation \
+
+LIB_OBJ := $(patsubst %,$(OBJ_DIR)/Lib/%.o,$(EXPORT_OBJ))
 #$(info LIB_OBJ: $(LIB_OBJ))
 
 # Dependencies from list of object files
@@ -85,6 +96,8 @@ DEPS := $(LIB_OBJ:.o=.d)
 # Otherwise, deletion happens for targets of the form '%.o'
 .PRECIOUS: $(OBJ_DIR)/%.o
 
+HIDDEN_TARGET=$(OBJ_DIR)/libHidden.a
+EXPORT_TARGET=$(OBJ_DIR)/libExport.a
 TARGET=$(OBJ_DIR)/libCmdParameter.a
 #$(info TARGET: $(TARGET))
 
@@ -108,11 +121,11 @@ $(OBJ_DIR):
 
 $(TARGET): $(LIB_OBJ)
 	@echo Creating $@
-	@ar rcs $@ $^
+	@ar qcsT $@ $(LIB_OBJ)  # T - 'thin archives', allows merging of archives
 
 $(OBJ_DIR)/Lib/%.o: $(ROOT)/%.cpp | $(OBJ_DIR)
 	@echo Compiling $<
-	@$(CXX) -c -o $@ $< $(CXX_FLAGS)
+	@$(CXX) -fPIC -c -o $@ $< $(CXX_FLAGS)
 
 
 #
@@ -142,6 +155,11 @@ $(OBJ_DIR)/bin/runTests: $(UNIT_TESTS) $(TARGET)
 
 make_test: $(OBJ_DIR)/bin/runTests | Simple
 
+#
+# NOTE: tests are failing for the case of compiling without debug info,
+#       notably for the 'Simple' tool. I don't care, I'm want to be rid
+#       of the 'Simple' compilation anyway (in its current form).
+#
 test : $(OBJ_DIR)/bin/runTests
 	@echo Running unit tests with '$(RUN_TESTS)'
 	@$(RUN_TESTS)
