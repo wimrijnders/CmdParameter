@@ -52,7 +52,7 @@ struct CmdParameters {
 
 private:
   enum {
-    PAD_OFFSET = 7
+    PAD_OFFSET = 5
   };
 
   TypedParameter::List m_parameters;

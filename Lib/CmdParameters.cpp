@@ -218,10 +218,10 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
 
  show_just_params(parameters);
 
-  cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n";
   if (have_actions) {
-    cout << " * 'help' combined with an action shows the help for that action.\n";
-    cout << " * Actions-specific options must come *after* the action on the commandline.\n";
+  	cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n"
+         << " * 'help' combined with an action shows the help for that action.\n"
+         << " * Actions-specific options must come *after* the action on the commandline.\n";
   }
   cout << "\n";
 }
@@ -239,7 +239,7 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
     const string &disp_param,
     const string &disp_default) {
     // Ensure line endings have proper indent
-    cout << "    " << pad(width, disp_param)
+    cout << "   " << pad(width, disp_param)
          << "  " << this->set_indent(width + PAD_OFFSET, param.usage())
          << disp_default << endl;
   };
@@ -420,7 +420,7 @@ void CmdParameters::show_actions() {
 
   for (auto &action: actions) {
     cout << "    " << pad(width, action.name)
-         << "  " << set_indent(width + PAD_OFFSET, action.usage) << endl;
+         << "   " << set_indent(width + PAD_OFFSET, action.usage) << endl;
   }
 }
 
