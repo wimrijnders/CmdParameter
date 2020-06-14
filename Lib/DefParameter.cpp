@@ -2,6 +2,7 @@
 #include <cassert>
 #include <limits>
 #include <cmath>
+//#include <iostream>
 
 
 const int   DefParameter::INT_NOT_SET   = std::numeric_limits<int>::min();
@@ -64,13 +65,15 @@ DefParameter::DefParameter(
 DefParameter::DefParameter(
   const char *in_name,
   const char *in_prefix,
-	Options const &options,  // implies type integer
+	Options const &options,
   const char *in_usage) :
   name(in_name),
-  param_type(INTEGER),
+  param_type(OPTION),
   usage(in_usage),
-  int_default(options.begin()->first),
-	m_intoptions(&options) {
+  int_default(0),
+	m_options(options) {   // NOTE: need to copy here, passed options can go out of context
+	// std::cout << "DefParameter ctor() options size: " << m_options.size() << std::endl;
+
   if (in_prefix != nullptr) {
     prefixes.push_back(in_prefix);
   }

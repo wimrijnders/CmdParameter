@@ -1,0 +1,6 @@
+blurb: Simple test with single integer command line parameters
+option:
+  key: An integer value
+  prefix: -int=
+  type: INTEGER
+  usage: This value can be any integer

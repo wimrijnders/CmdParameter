@@ -1,0 +1,41 @@
+blurb: |
+Example with usage of actions
+
+Usage:
+
+    > Actions <action> {options}
+
+action:
+  key: run
+  usage: This action does something cool
+  long_usage: >
+			This is the long-winded description of action 'run'. Words fail to
+
+			describe how cool this action is.
+  option:
+    key: Num Iterations
+    prefix: -num=
+    type: UNSIGNED_INTEGER,
+    usage: The number of iterations to perform in this action
+
+action:
+  key: profile
+  usage: Make profile output of whatever the action does
+  long_usage: >
+			This action is possibly even cooler than 'run',
+
+			by all means give it a try!
+  option:
+    key: Output json
+    prefix: -json
+    type: NONE
+    usage : Output the profile info in json format
+
+#
+# Global options
+#
+option:
+  key: "Quiet mode",
+  prefix: -quiet
+  type: NONE
+  usage: Don't show any extra output while running

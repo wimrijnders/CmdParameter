@@ -5,6 +5,7 @@
 #include "../DefParameter.h"
 #include "NoneParameter.h"
 #include "IntParameter.h"
+#include "OptionParameter.h"
 #ifndef LITE
 #include "UnsignedIntParameter.h"
 #include "PositiveIntParameter.h"
@@ -20,6 +21,7 @@ TypedParameter *DefParameter_factory(DefParameter &item) {
   switch (item.param_type) {
   case NONE:             p = new NoneParameter(item);          break;
   case INTEGER:          p = new IntParameter(item);           break;
+  case OPTION:           p = new OptionParameter(item);        break;
 #ifndef LITE
   case UNSIGNED_INTEGER: p = new UnsignedIntParameter(item);   break;
   case POSITIVE_INTEGER: p = new PositiveIntParameter(item);   break;

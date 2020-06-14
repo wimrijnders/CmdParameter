@@ -45,7 +45,7 @@ struct TypedParameter {
 #endif  // LITE
   bool detected() const { return m_detected; }
   bool parse_param(const char *curarg);
-
+  virtual string usage();
 
 protected:
   std::vector<string> m_prefixes;
@@ -73,7 +73,7 @@ protected:
   string get_param(const char *curarg);
 
 private:
-  bool set_default();
+  virtual bool set_default();
 
   virtual bool parse_param_internal(const string &in_value) = 0;
   virtual const char *value_indicator() const = 0;

@@ -3,14 +3,13 @@
 #include "Types/ParamType.h"
 #include <string>
 #include <vector>
-#include <map>
 
 
 /**
  * @brief Structure for the definitions of the parameters
  */
 struct DefParameter {
-	using Options = std::map<int, const char *>;
+	using Options = std::vector<char const *>;
 
   static const int   INT_NOT_SET;
 #ifndef LITE
@@ -61,6 +60,7 @@ struct DefParameter {
   bool         bool_default{false};
   float        float_default{FLOAT_NOT_SET};
   std::string  string_default;
+	Options const *options() { return &m_options; }
 
   bool is_float_type() const;
 
@@ -70,7 +70,7 @@ struct DefParameter {
 private:
   void handle_defaults();
 
-	Options const *m_intoptions = nullptr;
+	Options const m_options;
 };
 
 

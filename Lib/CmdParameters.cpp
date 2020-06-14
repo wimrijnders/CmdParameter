@@ -78,6 +78,8 @@ bool CmdParameters::handle_commandline_intern(
 	bool show_help_on_error) {
 	Buf errors;
 
+	//std::cout << "entered handle_commandline_intern()" << std::endl;
+
 	m_has_errors = false;
 	m_p_action = nullptr;
 
@@ -92,6 +94,8 @@ bool CmdParameters::handle_commandline_intern(
 			if (curindex >= argc) break;
 
 			const char *curarg = argv[curindex];
+
+			//cout << "option: " << curarg << endl;
 
 			// Global options first
 			if (process_option(m_parameters, curarg)) continue;
@@ -180,6 +184,8 @@ bool CmdParameters::init_params() {
 
   for(auto &item : global_parameters) {
     TypedParameter *p = DefParameter_factory(item);
+		if (p == nullptr) return false;
+
     m_parameters.emplace_back(p);
  }
  
@@ -222,7 +228,7 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
 
 
 void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_help) {
-  StrList disp_defaults;
+  StrList disp_defaults;  // TODO: Bring this under TypedParameter::usage()
   StrList disp_params;
 
   parameters.prepare_usage(disp_defaults, disp_params, add_help);
@@ -234,7 +240,7 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
     const string &disp_default) {
     // Ensure line endings have proper indent
     cout << "    " << pad(width, disp_param)
-         << "  " << this->set_indent(width + PAD_OFFSET, param.def_param.usage)
+         << "  " << this->set_indent(width + PAD_OFFSET, param.usage())
          << disp_default << endl;
   };
 

@@ -271,9 +271,12 @@ float TypedParameter::get_float_value(const string &param) {
 
   return value;
 }
-
-
 #endif  // LITE
+
+
+/**
+ * **TODO:** Split this out per type
+ */
 bool TypedParameter::set_default() {
   if (def_param.is_int_type()) {
     if (def_param.int_default != DefParameter::INT_NOT_SET) {
@@ -290,7 +293,7 @@ bool TypedParameter::set_default() {
     }
 #endif  // LITE
   } else {
-    // All other cases for now: not handled
+    // All other cases for now: not handled or overriden
     // TODO: see if explicit default settings is needed for these types
     return false;
   }
@@ -298,3 +301,5 @@ bool TypedParameter::set_default() {
   return false;
 }
 
+
+string TypedParameter::usage() { return def_param.usage; }

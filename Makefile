@@ -70,6 +70,7 @@ EXPORT_OBJ := \
 	Types/Types \
 	Types/NoneParameter \
 	Types/IntParameter \
+	Types/OptionParameter \
 	Types/StringParameter \
 	Types/UnnamedParameter \
 	Types/UnsignedIntParameter \
@@ -78,7 +79,7 @@ EXPORT_OBJ := \
 	DefAction \
 	CmdParameters \
 	DefParameter \
-	CmdValidation \
+	CmdValidation
 
 LIB_OBJ := $(patsubst %,$(OBJ_DIR)/Lib/%.o,$(EXPORT_OBJ))
 #$(info LIB_OBJ: $(LIB_OBJ))
@@ -152,7 +153,7 @@ UNIT_TESTS = \
 #
 $(OBJ_DIR)/bin/runTests: $(UNIT_TESTS) $(TARGET)
 	@echo Compiling unit tests
-	@$(CXX) $(CXX_FLAGS) -Wno-psabi $^ -L$(OBJ_DIR) -lCmdParameter -o $@
+	@$(CXX) $(CXX_FLAGS) -DDEBUG -Wno-psabi $^ -L$(OBJ_DIR) -lCmdParameter -o $@
 
 make_test: $(OBJ_DIR)/bin/runTests | Simple
 
