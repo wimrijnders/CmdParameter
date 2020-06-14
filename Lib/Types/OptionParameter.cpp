@@ -39,7 +39,9 @@ OptionParameter::OptionParameter(DefParameter &var) :
 	//std::cout << "entered OptionParameter ctor" << std::endl;
 	//std::cout << "ctor() options size: " << m_options->size() << std::endl;
 
-	int_value = 0;   // TODO: This is temporary, allow an assigned default value
+	// TODO: This is temporary, allow an assigned default value
+	int_value = 0;
+	string_value = (*m_options)[0];
 }
 
 
