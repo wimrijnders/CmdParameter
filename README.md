@@ -82,6 +82,7 @@ switch value: 42
 
 ## TODO
 
-- Make an example which contains **ALL* options types and combinations with actions
+- Make an example which contains **ALL** options types and combinations with actions
   Put the struct and the help output in this README.
 - Allow concatenated short options (no parameters), e.g. `-AaBb`
+- `make test` should build DEBUG version of code
