@@ -139,6 +139,7 @@ UNIT_TESTS = \
 	Tests/testMain.cpp                \
 	Tests/testParams.cpp              \
 	Tests/testActions.cpp             \
+	Tests/testOptions.cpp             \
 	Tests/Support/cout_redirect.cpp   \
 	Tests/TestData/TestParameters.cpp \
 	Tests/TestData/TestActions.cpp

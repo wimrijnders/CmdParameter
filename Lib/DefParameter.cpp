@@ -61,6 +61,24 @@ DefParameter::DefParameter(
 }
 
 
+DefParameter::DefParameter(
+  const char *in_name,
+  const char *in_prefix,
+	Options const &options,  // implies type integer
+  const char *in_usage) :
+  name(in_name),
+  param_type(INTEGER),
+  usage(in_usage),
+  int_default(options.begin()->first),
+	m_intoptions(&options) {
+  if (in_prefix != nullptr) {
+    prefixes.push_back(in_prefix);
+  }
+  //handle_defaults(); No need to call this
+  //                   TODO: check if better to call
+}
+
+
 bool DefParameter::is_int_type() const {
   switch(param_type) {
   case INTEGER:

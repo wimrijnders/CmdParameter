@@ -3,12 +3,15 @@
 #include "Types/ParamType.h"
 #include <string>
 #include <vector>
+#include <map>
 
 
 /**
  * @brief Structure for the definitions of the parameters
  */
 struct DefParameter {
+	using Options = std::map<int, const char *>;
+
   static const int   INT_NOT_SET;
 #ifndef LITE
   static const float FLOAT_NOT_SET;
@@ -37,6 +40,13 @@ struct DefParameter {
     int default_value
   );
 
+  DefParameter(
+    const char *in_name,
+    const char *in_prefix,
+		Options const &options,  // implies type integer
+    const char *in_usage
+  );
+
   const char *name;                    //!> The name or short description of the parameter.
                                        //!>  This value is used as label and must be unique
   std::vector<const char *> prefixes;
@@ -59,6 +69,8 @@ struct DefParameter {
 
 private:
   void handle_defaults();
+
+	Options const *m_intoptions = nullptr;
 };
 
 

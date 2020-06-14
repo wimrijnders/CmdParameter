@@ -28,7 +28,7 @@ To be more specific:
 This definition, taken from the `Simple` example program:
 
 ```c++
-CmdParameters parames = {
+CmdParameters params = {
   "Simple test with single integer command line parameters\n",
   {{
     "An integer value",

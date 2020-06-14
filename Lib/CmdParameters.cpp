@@ -181,9 +181,9 @@ bool CmdParameters::init_params() {
   for(auto &item : global_parameters) {
     TypedParameter *p = DefParameter_factory(item);
     m_parameters.emplace_back(p);
-  }
-
-  if (!init_actions()) return false;
+ }
+ 
+	if (!init_actions()) return false;
   return true;
 }
 

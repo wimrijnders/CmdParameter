@@ -75,13 +75,13 @@ void CmdValidation::check_labels(DefParameters &params) {
   int index = 0;
   for (auto &p : params) {
     if (p.name == nullptr) {
-      add_error() << "namecan not be a null pointer "
+      add_error() << "Name can not be a null pointer "
           << "for parameter with index " << index;
       continue; // protect for next check
     }
 
     if (p.name[0] == '\0') {
-      add_error() << "name can not be an empty string "
+      add_error() << "Name can not be an empty string "
                   << "for parameter with index " << index;
     }
 
