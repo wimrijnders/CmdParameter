@@ -39,7 +39,15 @@ ROOT = Lib
 
 # Compiler and default flags
 CXX = g++
-CXX_FLAGS = -Wconversion -std=c++11 -I $(ROOT) -MMD -MP -MF"$(@:%.o=%.d)"
+
+# Flag `-Wno-psabi` is to surpress a superfluous warning when compiling with GCC 6.3.0
+CXX_FLAGS = \
+ -fPIC \
+ -Wconversion \
+ -std=c++11 \
+ -Wno-psabi \
+ -I $(ROOT) \
+ -MMD -MP -MF"$(@:%.o=%.d)"
 
 # Object directory
 OBJ_DIR = obj
@@ -108,35 +116,31 @@ all: $(OBJ_DIR) $(TARGET) $(EXAMPLE_TARGETS)
 clean:
 	rm -rf obj obj-debug generated
 
-# init directories
-$(OBJ_DIR):
-	@mkdir -p $(OBJ_DIR)/bin
-	@mkdir -p $(OBJ_DIR)/Lib/Types
-	@mkdir -p $(OBJ_DIR)/Lib/Support
-	@mkdir -p $(OBJ_DIR)/Examples
-
-
 #
 # Targets for the static library
 #
 
 $(TARGET): $(LIB_OBJ)
 	@echo Creating $@
+	@mkdir -p $(@D)
 	@ar qcsT $@ $(LIB_OBJ)  # T - 'thin archives', allows merging of archives
 
-$(OBJ_DIR)/Lib/%.o: $(ROOT)/%.cpp | $(OBJ_DIR)
+
+# General compilation of cpp files
+# The % will take into account subdirectories under OBJ_DIR.
+$(OBJ_DIR)/%.o: %.cpp
 	@echo Compiling $<
-	@$(CXX) -fPIC -c -o $@ $< $(CXX_FLAGS)
+	@mkdir -p $(@D)
+	@$(CXX) -c $(CXX_FLAGS) -o $@ $<
 
 
 #
 # Targets for Unit Tests
 #
-
-RUN_TESTS := $(OBJ_DIR)/bin/runTests
+UNIT_TESTS := $(OBJ_DIR)/bin/runTests
 
 # Source files for unit tests to include in compilation
-UNIT_TESTS = \
+UNITTEST_FILES = \
 	Tests/testMain.cpp                \
 	Tests/testCmdLine.cpp                \
 	Tests/testParams.cpp              \
@@ -146,26 +150,25 @@ UNIT_TESTS = \
 	Tests/TestData/TestParameters.cpp \
 	Tests/TestData/TestActions.cpp
 
-#
-# For some reason, doing an interim step to .o results in linkage errors (undefined references).
-# So this target compiles the source files directly to the executable.
-#
-# Flag `-Wno-psabi` is to surpress a superfluous warning when compiling with GCC 6.3.0
-#
-$(OBJ_DIR)/bin/runTests: $(UNIT_TESTS) $(TARGET)
-	@echo Compiling unit tests
-	@$(CXX) $(CXX_FLAGS) -DDEBUG -Wno-psabi $^ -L$(OBJ_DIR) -lCmdParameter -o $@
+TESTS_OBJ = $(patsubst %cpp,$(OBJ_DIR)/%o,$(UNITTEST_FILES))
+#$(info $(TESTS_OBJ))
 
-make_test: $(OBJ_DIR)/bin/runTests | Simple
+
+$(UNIT_TESTS): $(TESTS_OBJ) $(TARGET)
+	@echo Linking unit tests
+	@mkdir -p $(@D)
+	@$(CXX) $(CXX_FLAGS) -DDEBUG $(TESTS_OBJ) -L$(OBJ_DIR) -lCmdParameter -o $@
+
+make_test: $(UNIT_TESTS)
 
 #
 # NOTE: tests are failing for the case of compiling without debug info,
 #       notably for the 'Simple' tool. I don't care, I'm want to be rid
 #       of the 'Simple' compilation anyway (in its current form).
 #
-test : $(OBJ_DIR)/bin/runTests
-	@echo Running unit tests with '$(RUN_TESTS)'
-	@$(RUN_TESTS)
+test : $(UNIT_TESTS) | $(OBJ_DIR)/bin/Simple
+	@echo Running unit tests with '$(UNIT_TESTS)'
+	@$(UNIT_TESTS)
 
 #
 # Targets for Examples
@@ -176,9 +179,3 @@ $(OBJ_DIR)/bin/%: $(OBJ_DIR)/Examples/%.o $(TARGET)
 	@$(CXX) $(CXX_FLAGS) $^ $(LIBS) -o $@
 
 $(EXAMPLES) :% :$(OBJ_DIR)/bin/%
-
-# General compilation of cpp files
-# Keep in mind that the % will take into account subdirectories under OBJ_DIR.
-$(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
-	@echo Compiling $<
-	@$(CXX) -c $(CXX_FLAGS) -o $@ $<
