@@ -9,6 +9,10 @@ using namespace std;
 
 namespace {
 
+enum {
+	PAD_OFFSET = 5
+};
+
 using List = TypedParameter::List;
 
 string pad(unsigned width, std::string const &str = "") {
@@ -31,6 +35,13 @@ bool process_option(List &parameters, char const *curarg) {
   return false;
 }
 
+
+string set_indent(int indent, string const &str) {
+  string str_indent("\n");
+  str_indent += pad(indent);
+  return Strings::implode(Strings::explode(str, '\n'), str_indent.c_str());
+}
+
 }  // anon namespace
 
 
@@ -46,9 +57,29 @@ DefParameter CmdParameters::help_def(
 NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
 
-CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params) :
+CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent) :
   usage(in_usage),
-  global_parameters(global_params)
+  global_parameters(global_params),
+	m_parent(parent)
+{}
+
+
+CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent) :
+  usage(in_usage),
+  actions(in_actions),
+	m_parent(parent)
+{}
+
+
+CmdParameters::CmdParameters(
+	char const *in_usage,
+	DefActions in_actions,
+	DefParameters global_params,
+	CmdParameters *parent) :
+  usage(in_usage),
+  global_parameters(global_params),
+  actions(in_actions),
+	m_parent(parent)
 {}
 
 
@@ -213,7 +244,18 @@ bool CmdParameters::init_params() {
 		if (p == nullptr) return false;
 
     m_parameters.emplace_back(p);
- }
+ 	}
+
+	if (m_parent != nullptr) {
+		// Add the param's of the parent to local list as well
+
+  	for(auto &item : m_parent->global_parameters) {
+	    TypedParameter *p = DefParameter_factory(item);
+			if (p == nullptr) return false;
+
+	    m_parameters.emplace_back(p);
+	 	}
+	}
  
 	if (!init_actions()) return false;
   return true;
@@ -266,7 +308,7 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
     const string &disp_default) {
     // Ensure line endings have proper indent
     cout << "   " << pad(width, disp_param)
-         << "  " << this->set_indent(width + PAD_OFFSET, param.usage())
+         << "  " << set_indent(width + PAD_OFFSET, param.usage())
          << disp_default << endl;
   };
 
@@ -339,31 +381,20 @@ unsigned CmdParameters::max_width(StrList const &list) const {
 }
 
 
-string CmdParameters::set_indent(int indent, string const &str) {
-  string str_indent("\n");
-  str_indent += pad(indent);
-  return Strings::implode(Strings::explode(str, '\n'), str_indent.c_str());
-}
-
-
 ////////////////////////
 // Action handling
 ////////////////////////
 
-CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions) :
-  usage(in_usage),
-  actions(in_actions)
-{}
-
-
-CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, DefParameters global_params) :
-  usage(in_usage),
-  global_parameters(global_params),
-  actions(in_actions)
-{}
 
 
 bool CmdParameters::init_actions() {
+	if (m_parent != nullptr) {
+		// Add parent actions to list of this instance
+  	for(auto &action : m_parent->actions) {
+			actions.push_back(action);
+		}
+	}
+
   for(auto &action : actions) {
     if (!action.init_params()) return false;
   }
@@ -375,7 +406,7 @@ bool CmdParameters::init_actions() {
 bool CmdParameters::handle_action(char const *curarg, Buf *errors) {
 	bool found_action = false;
 
-	for (auto &action: actions) {
+	for (auto &action : actions) {
 		if (strcmp(action.name, curarg) == 0) {
 			found_action = true;
 

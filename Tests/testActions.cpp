@@ -40,6 +40,43 @@ TEST_CASE("Test good action command lines", "[actions]") {
 }
 
 
+TEST_CASE("Test chained action definitions", "[actions]") {
+	SECTION("Chained actions should work") {
+    DefActions a = {{
+      "parent_action",
+      "This is the action in the parent",
+      "Long blurb."
+    }};
+
+    CmdParameters parent_actions("blurb", a);
+
+    DefActions b = {{
+      "child_action",
+      "This is the action in the child",
+      "Long blurb."
+    }};
+
+    CmdParameters child_actions("blurb", b, &parent_actions);
+    REQUIRE(child_actions.init_params());
+
+		child_actions.show_usage();
+
+		// Both options should be available
+		int argc1 = 2;
+		const char *argv1[] = { "PROG", "child_action"};
+		REQUIRE(child_actions.handle_commandline(argc1, argv1, false) == CmdParameters::ALL_IS_WELL);
+
+		int argc2 = 2;
+		const char *argv2[] = { "PROG", "parent_action"};
+		REQUIRE(child_actions.handle_commandline(argc2, argv2, false) == CmdParameters::ALL_IS_WELL);
+
+		int argc3 = 2;
+		const char *argv3[] = { "PROG", "unknown_action"};
+		REQUIRE(child_actions.handle_commandline(argc3, argv3, false) != CmdParameters::ALL_IS_WELL);
+	}
+}
+
+
 TEST_CASE("Test bad action command lines", "[actions]") {
   // An action *must* be present
   int argc1 = 1;

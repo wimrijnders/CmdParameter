@@ -65,29 +65,48 @@ TEST_CASE("Test parameter definitions", "[params]") {
 }
 
 
+TEST_CASE("Test chained parameter definitions", "[params]") {
+	SECTION("Chained global parameters should work") {
+    DefParameters a0 = {
+      { "Parent definition", "-1", NONE, "This switch is in the parent."}
+    };
+    CmdParameters c0("Test chaining - parent", a0);
+
+    DefParameters a1 = {
+      { "Child definition", "-2", NONE, "This switch is in the child."}
+    };
+    CmdParameters c1("Test chaining - child", a1, &c0);
+    REQUIRE(c1.init_params());
+
+		//c1.show_usage();
+
+		// Both options should be available
+		int argc1 = 3;
+		const char *argv1[] = { PROG, "-1", "-2"};
+		REQUIRE(c1.handle_commandline(argc1, argv1, false));
+	}
+}
+
+
 TEST_CASE("Test Command Line parameters", "[params]") {
 	cout_redirect redirect;
 	TestParameters params;  // NOTE: putting this in global space causes a segfault
 
-
 	SECTION("Check help short switch") {
 		int argc1 = 2;
-		const char *argv1[] = { PROG, "-h"	};
+		const char *argv1[] = { PROG, "-h"};
 		REQUIRE(params.handle_commandline(argc1, argv1, false));
 
 		int argc2 = 9;
-		const char *argv2[] = { PROG, "it", "doesn't", "matter",
-														"-h", "what", "I", "put", "here"	};
+		const char *argv2[] = { PROG, "it", "doesn't", "matter", "-h", "what", "I", "put", "here"};
 		REQUIRE(params.handle_commandline(argc2, argv2, false));
 
 		int argc3 = 9;
-		const char *argv3[] = { PROG, "it", "doesn't", "matter",
-														"what", "I", "put", "here", "-h"	};
+		const char *argv3[] = { PROG, "it", "doesn't", "matter", "what", "I", "put", "here", "-h"};
 		REQUIRE(params.handle_commandline(argc3, argv3, false));
 
 		int argc4 = 11;
-		const char *argv4[] = { PROG, "This", "-h", "should",
-														"-h", "be", "-h", "no", "-h", "problem", "-h"	};
+		const char *argv4[] = { PROG, "This", "-h", "should", "-h", "be", "-h", "no", "-h", "problem", "-h"};
 		REQUIRE(params.handle_commandline(argc4, argv4, false));
 	}
 
