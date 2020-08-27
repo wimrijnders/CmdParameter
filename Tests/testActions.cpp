@@ -1,7 +1,11 @@
 #include "catch.hpp"
+#include <signal.h>  // raise(SIGTRAP)
 #include "TestData/TestActions.h"
 #include "../Lib/CmdParameters.h"
 #include "../Lib/TypedParameter.h"
+
+#define breakpoint raise(SIGTRAP);
+
 
 //
 // TODO: something similar for parameters
@@ -20,7 +24,7 @@ TEST_CASE("Test bad action definitions", "[actions]") {
       "Long blurb."
     }};
     CmdParameters no_actions("blurb", a);
-    REQUIRE(!no_actions.init_params());
+    REQUIRE(!no_actions.init());
   }
 }
 
@@ -28,6 +32,7 @@ TEST_CASE("Test bad action definitions", "[actions]") {
 TEST_CASE("Test good action command lines", "[actions]") {
   int argc1 = 3;
   const char *argv1[] = { "Test", "action1", "-unsigned=51" };
+	//breakpoint;
   REQUIRE(CmdParameters::ALL_IS_WELL == defined_actions.handle_commandline(argc1, argv1, false));
 
   int argc2 = 2;
@@ -57,7 +62,7 @@ TEST_CASE("Test chained action definitions", "[actions]") {
     }};
 
     CmdParameters child_actions("blurb", b, &parent_actions);
-    REQUIRE(child_actions.init_params());
+    REQUIRE(child_actions.init());
 
 		child_actions.show_usage();
 
@@ -68,6 +73,7 @@ TEST_CASE("Test chained action definitions", "[actions]") {
 
 		int argc2 = 2;
 		const char *argv2[] = { "PROG", "parent_action"};
+//breakpoint
 		REQUIRE(child_actions.handle_commandline(argc2, argv2, false) == CmdParameters::ALL_IS_WELL);
 
 		int argc3 = 2;

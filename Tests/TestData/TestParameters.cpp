@@ -1,6 +1,7 @@
 #include "TestParameters.h"
 //#include "../../Lib/CmdParameter.h"
 
+namespace {
 
 CmdParameters definition = {
   // Usage
@@ -51,6 +52,8 @@ CmdParameters definition = {
   }}
 };
 
+}  // anon namespace
+
 
 //////////////////////////////////////////////////
 // Class TestParameters
@@ -74,9 +77,8 @@ bool TestParameters::handle_commandline(
 }
 
 
-CmdParameters::List &TestParameters::parameters() {
-	return definition.parameters();
-}
+CmdParameters::List &TestParameters::parameters() { return definition.parameters(); }
+std::string TestParameters::get_errors() const    { return  definition.get_errors(); }
 
 
 void TestParameters::pass_params() {

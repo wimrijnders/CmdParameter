@@ -30,30 +30,31 @@ struct CmdParameters {
 		DefParameters global_params,
 		CmdParameters *parent = nullptr);
 
-
-  bool init_params();
+	bool init();
   bool validate();
   void show_usage();
+	std::string get_errors() const { return errors.str(); }
   bool has_errors() const { return m_has_errors; }
   TypedParameter::List &parameters() { return m_parameters; }
   ExitCode handle_commandline(int argc, char const *argv[], bool show_help_on_error = true);
 
-
 private:
-  const char   *usage{nullptr};
-  DefParameters global_parameters;
+  const char          *usage          = nullptr;
+  DefParameters        global_parameters;
   TypedParameter::List m_parameters;
-  bool m_has_errors{false};
-  bool m_validated{false};
-  CmdValidation m_validation;
-  DefActions actions;
-	CmdParameters *m_parent = nullptr;
-  DefAction *m_p_action{nullptr};
+  bool                 m_has_errors   = false;
+  bool                 m_done_init    = false;
+  bool                 m_init_result  = false;
+  CmdValidation        m_validation;
+  bool                 m_validated    = false;
+  DefActions           actions;
+	CmdParameters       *m_parent       = nullptr;
+  DefAction           *m_p_action     = nullptr;
+	Buf                  errors;
 
   static DefParameter help_def;
 
-
-  void check_actions_distinct(DefActions &params);
+  bool init_params();
   bool init_actions();
   bool handle_action(char const *curarg, Buf *errors = nullptr);
   bool scan_action(int argc, char const *argv[]);
@@ -65,6 +66,7 @@ private:
   void show_params(TypedParameter::List &parameters);
   void show_just_params(TypedParameter::List &parameters, bool add_help = true);
   unsigned max_width(StrList const &list) const;
+  void check_actions_distinct(DefActions &params);
 };
 
 #endif  // CMDPARAMETERS_H

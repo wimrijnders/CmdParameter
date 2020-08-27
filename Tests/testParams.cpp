@@ -32,35 +32,35 @@ TEST_CASE("Test parameter definitions", "[params]") {
       { "action1", "-switch2", NONE, "Long blurb."}
     };
     CmdParameters c0("blurb", a0);
-    REQUIRE(c0.init_params());
+    REQUIRE(c0.init());
 
 
     DefParameters a1 = {
       { nullptr, "-switch2", NONE, "Long blurb."}
     };
     CmdParameters c1("blurb", a1);
-    REQUIRE(!c1.init_params());
+    REQUIRE(!c1.init());
 
 
     DefParameters a2 = {
       { "action1", nullptr, NONE, "Long blurb."}
     };
     CmdParameters c2("blurb", a2);
-    REQUIRE(!c2.init_params());
+    REQUIRE(!c2.init());
 
 
     DefParameters a3 = {
       { "action1", "-a", NONE, nullptr}
     };
     CmdParameters c3("blurb", a3);
-    REQUIRE(!c3.init_params());
+    REQUIRE(!c3.init());
 
 
     DefParameters a4 = {
       { "action2", "-b", NONE, ""}
     };
     CmdParameters c4("blurb", a4);
-    REQUIRE(!c4.init_params());
+    REQUIRE(!c4.init());
   }
 }
 
@@ -76,14 +76,23 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
       { "Child definition", "-2", NONE, "This switch is in the child."}
     };
     CmdParameters c1("Test chaining - child", a1, &c0);
-    REQUIRE(c1.init_params());
+    REQUIRE(c1.init());
 
 		//c1.show_usage();
 
+		int argc1 = 2;
+		const char *argv1[] = { PROG, "-1"};
+		REQUIRE(c0.handle_commandline(argc1, argv1, false) == CmdParameters::ALL_IS_WELL);
+
+		// Option -2 shouldi not be available in parent
+		int argc2 = 2;
+		const char *argv2[] = { PROG, "-2"};
+		REQUIRE(c0.handle_commandline(argc2, argv2, false) != CmdParameters::ALL_IS_WELL);
+
 		// Both options should be available
-		int argc1 = 3;
-		const char *argv1[] = { PROG, "-1", "-2"};
-		REQUIRE(c1.handle_commandline(argc1, argv1, false));
+		int argc3 = 3;
+		const char *argv3[] = { PROG, "-1", "-2"};
+		REQUIRE(c1.handle_commandline(argc3, argv3, false));
 	}
 }
 
@@ -184,7 +193,10 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 			"-bool"
 		};
 
-		REQUIRE(params.handle_commandline(argc1, argv1, false));
+		if (!params.handle_commandline(argc1, argv1, false)) {
+			INFO(params.get_errors());
+			REQUIRE(false);
+		}
 
 		REQUIRE(params.m_positive  == 123);
 		REQUIRE(params.m_unsigned  == 42);
@@ -255,7 +267,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 			{	"Name not unique", "-b", UNNAMED,	"" }
 		}};
 
-		REQUIRE(!double_params.init_params());
+		REQUIRE(!double_params.init());
 	}
 
 
@@ -265,7 +277,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 			{	"", "-a", UNNAMED,	"" },
 		}};
 
-		REQUIRE(!c.init_params());
+		REQUIRE(!c.init());
 	}
 
 
@@ -275,7 +287,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 			{	"Name", "", UNNAMED,	"" },
 		}};
 
-		REQUIRE(!c.init_params());
+		REQUIRE(!c.init());
 	}
 
 	SECTION("Indexed access of parameter values should return the same as keyed access") {

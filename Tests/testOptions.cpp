@@ -15,7 +15,7 @@ TEST_CASE("Fixed options for param", "[options]") {
       "Option blurb."
     }};
     CmdParameters no_actions("blurb", a);
-    REQUIRE(no_actions.init_params());
+    REQUIRE(no_actions.init());
 
 		// Test missing option
 		int argc1 = 1;

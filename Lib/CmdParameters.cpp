@@ -100,7 +100,7 @@ void CmdParameters::show_usage() {
 
 
 /**
- * @brief Override of `handle_commandline()` which also does `init_params()`.
+ * @brief Override of `handle_commandline()` which also does `init()`.
  *
  * @return ALL_IS_WELL   if all is well,
  *         EXIT_NO_ERROR if should stop without errors,
@@ -110,7 +110,7 @@ CmdParameters::ExitCode CmdParameters::handle_commandline(
   int argc,
   char const *argv[],
   bool show_help_on_error) {
-  if (!init_params()) return EXIT_ERROR;
+  if (!init()) return EXIT_ERROR;
 
   if (!handle_commandline_intern(argc, argv, show_help_on_error)) {
     return (has_errors())? EXIT_ERROR: EXIT_NO_ERROR;
@@ -133,7 +133,6 @@ bool CmdParameters::handle_commandline_intern(
 	int argc,
 	char const *argv[],
 	bool show_help_on_error) {
-	Buf errors;
 
 	//std::cout << "entered handle_commandline_intern()" << std::endl;
 
@@ -226,6 +225,42 @@ bool CmdParameters::handle_commandline_intern(
 }
 
 
+bool CmdParameters::init() {
+	if (m_done_init) {
+		return m_init_result;  // already initialized 
+	}
+	m_done_init = true;  // Having run init() does not mean that it was successful!
+
+	if (m_parent != nullptr) {
+		if (!m_parent->init()) {
+    	m_validation.add_error("parent instance has errors on init()");
+			// Perhaps TODO: add parent errors to this instance
+			return false;
+		}
+
+		// Add the global param's of the parent to the local list.
+		// This means that some double work is done. I don't care
+  	for(auto &item : m_parent->global_parameters) {
+	    global_parameters.push_back(item);
+	 	}
+
+		// Add parent actions to list of this instance
+		// Init on these has already been called
+		// TODO: check if this is an issue
+  	for(auto &action : m_parent->actions) {
+			actions.push_back(action);
+		}
+	}
+
+
+  m_init_result = validate()
+	             && init_params()
+	             && init_actions();
+
+	return m_init_result;
+}
+
+
 /**
  * @brief Process the usage definitions internally
  *
@@ -235,9 +270,7 @@ bool CmdParameters::handle_commandline_intern(
  * @return true if all went well, false if an error occured during conversion.
  */
 bool CmdParameters::init_params() {
-  if (!validate()) return false;
-
-  m_parameters.clear();
+  //m_parameters.clear();
 
   for(auto &item : global_parameters) {
     TypedParameter *p = DefParameter_factory(item);
@@ -245,19 +278,7 @@ bool CmdParameters::init_params() {
 
     m_parameters.emplace_back(p);
  	}
-
-	if (m_parent != nullptr) {
-		// Add the param's of the parent to local list as well
-
-  	for(auto &item : m_parent->global_parameters) {
-	    TypedParameter *p = DefParameter_factory(item);
-			if (p == nullptr) return false;
-
-	    m_parameters.emplace_back(p);
-	 	}
-	}
  
-	if (!init_actions()) return false;
   return true;
 }
 
@@ -388,13 +409,6 @@ unsigned CmdParameters::max_width(StrList const &list) const {
 
 
 bool CmdParameters::init_actions() {
-	if (m_parent != nullptr) {
-		// Add parent actions to list of this instance
-  	for(auto &action : m_parent->actions) {
-			actions.push_back(action);
-		}
-	}
-
   for(auto &action : actions) {
     if (!action.init_params()) return false;
   }

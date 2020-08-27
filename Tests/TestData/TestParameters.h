@@ -28,6 +28,7 @@ public:
 	bool   bool_detected;
 
 	CmdParameters::List &parameters();
+	std::string get_errors() const;
 
 private:
 	void pass_params();
