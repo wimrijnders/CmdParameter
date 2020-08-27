@@ -4,7 +4,6 @@
 enum ParamType {
   NONE,             //> Parameter without a value, e.g. `-enabled`
   INTEGER,          //> Parameter takes any integer
-#ifndef LITE
   UNSIGNED_INTEGER, //> Parameter takes an integer >= 0
   POSITIVE_INTEGER, //> Parameter takes a integer > 0
   POSITIVE_FLOAT,   //> Parameter takes a float > 0
@@ -12,8 +11,6 @@ enum ParamType {
 	OPTION,           //> Parameter takes a string from a list of options
   UNNAMED,          //> Not a switch parameter, but expected on the command line.
                     //  Order is important
-#endif  // LITE
-
   NUM_PARAMTYPES   // TODO assert valid type
 };
 

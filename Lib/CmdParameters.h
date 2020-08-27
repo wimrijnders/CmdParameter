@@ -68,9 +68,6 @@ private:
   void show_just_params(TypedParameter::List &parameters, bool add_help = true);
   unsigned max_width(StrList const &list) const;
   std::string set_indent(int indent, std::string const &str);
-
-  static bool process_option(List &parameters, char const *curarg);
-  static std::string pad(unsigned width, std::string const &str = "");
 };
 
 #endif  // CMDPARAMETERS_H

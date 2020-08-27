@@ -1,6 +1,5 @@
 /**
  * Classes for the handling of command line parameters.
-#ifndef LITE
  *
  * ------------------------------------------------------------
  * ## TODO
@@ -13,7 +12,6 @@
  * ## TESTS
  *
  * - unnamed params: required or not/arbitrary number or limit
-#endif  // LITE
  */
 #include "TypedParameter.h"
 #include <cassert>
@@ -118,7 +116,6 @@ void TypedParameter::List::prepare_usage(
 }
 
 
-#ifndef LITE
 bool TypedParameter::List::process_unnamed(const char *curarg) {
   for (auto &item: *this) {
     TypedParameter &param = *item;
@@ -133,7 +130,6 @@ bool TypedParameter::List::process_unnamed(const char *curarg) {
 }
 
 
-#endif  // LITE
 //////////////////////////////////////////////
 // Class CmdParameter
 //////////////////////////////////////////////
@@ -191,7 +187,6 @@ bool TypedParameter::parse_param(const char *curarg) {
      error("has value specified, shouldn't have one.");
     }
   }
-#ifndef LITE
 
 /*
   // All param's except type NONE should have a value specified
@@ -203,7 +198,6 @@ bool TypedParameter::parse_param(const char *curarg) {
       }
     }
 */
-#endif  // LITE
 
   return parse_param_internal(value);
 }
@@ -239,13 +233,10 @@ bool TypedParameter::parse_bool_param(const string &in_value) {
 	assert(in_value.empty());
 	assert(def_param.param_type == NONE);
 
-#ifndef LITE
   bool_value = true;
-#endif  // LITE
   m_detected = true;
   return true;
 }
-#ifndef LITE
 
 
 bool TypedParameter::parse_string_param(const string &in_value) {
@@ -271,7 +262,6 @@ float TypedParameter::get_float_value(const string &param) {
 
   return value;
 }
-#endif  // LITE
 
 
 /**
@@ -284,14 +274,12 @@ bool TypedParameter::set_default() {
       int_value = def_param.int_default;
       return true;
     }
-#ifndef LITE
   } else if (def_param.is_float_type()) {
     if (def_param.float_default != DefParameter::FLOAT_NOT_SET) {
       // Use default instead
       float_value = def_param.float_default;
       return true;
     }
-#endif  // LITE
   } else {
     // All other cases for now: not handled or overriden
     // TODO: see if explicit default settings is needed for these types

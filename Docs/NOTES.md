@@ -1,12 +1,7 @@
 ## TODO
 
-- Replace `#ifdef LITE` with something better
-  * currently, usage is invalidated
-  * better to make 'LITE' compile output in some way
-
 - Central location for the version number. Now used in:
   * README.md
-  * Lite/gen_lite.rb
 
 ### Validation
 

@@ -26,9 +26,8 @@ struct TypedParameter {
       vector<string> &disp_defaults,
       vector<string> &disp_params,
       bool add_help = true);
-#ifndef LITE
+
     bool process_unnamed(const char *curarg);
-#endif  // LITE
   };
 
 
@@ -37,12 +36,10 @@ struct TypedParameter {
   TypedParameter(DefParameter &var);
 
   int    get_int_value()    { return int_value; }
-#ifndef LITE
   bool   get_bool_value()   { return bool_value; }
   float  get_float_value()  { return float_value; }
   string get_string_value() { return string_value; }
 
-#endif  // LITE
   bool detected() const { return m_detected; }
   bool parse_param(const char *curarg);
   virtual string usage();
@@ -55,7 +52,6 @@ protected:
   int  get_int_value(const string &param);
   bool parse_bool_param(const string &in_value);
 	void error(const string &msg) const;
-#ifndef LITE
 
   // Yes, crappy. Go ahead and enjoy your nausea.
   bool    bool_value{false};
@@ -69,7 +65,6 @@ protected:
     return get_param(param.c_str());
   }
 
-#endif  // LITE
   string get_param(const char *curarg);
 
 private:

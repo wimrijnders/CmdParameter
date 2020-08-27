@@ -6,9 +6,7 @@
 
 
 const int   DefParameter::INT_NOT_SET   = std::numeric_limits<int>::min();
-#ifndef LITE
 const float DefParameter::FLOAT_NOT_SET = nanf("");
-#endif  // LITE
 
 
 DefParameter::DefParameter(
@@ -85,10 +83,8 @@ DefParameter::DefParameter(
 bool DefParameter::is_int_type() const {
   switch(param_type) {
   case INTEGER:
-#ifndef LITE
   case UNSIGNED_INTEGER:
   case POSITIVE_INTEGER:
-#endif  // LITE
     return true;
 
   default:
@@ -97,7 +93,6 @@ bool DefParameter::is_int_type() const {
 }
 
 
-#ifndef LITE
 bool DefParameter::is_float_type() const {
   switch(param_type) {
   case POSITIVE_FLOAT:
@@ -109,7 +104,6 @@ bool DefParameter::is_float_type() const {
 }
 
 
-#endif  // LITE
 void DefParameter::handle_defaults() {
   switch(param_type) {
   case INTEGER:
@@ -117,7 +111,6 @@ void DefParameter::handle_defaults() {
       int_default = 0;
     }
   break;
-#ifndef LITE
   case UNSIGNED_INTEGER:
     if (int_default == INT_NOT_SET) {  // Note: same as INTEGER
       int_default = 0;
@@ -134,8 +127,6 @@ void DefParameter::handle_defaults() {
       float_default = 0.0f;
     }
   break;
-
-#endif  // LITE
   default:
     // do nothing
     break;
@@ -147,8 +138,6 @@ bool DefParameter::has_default() const {
   switch(param_type) {
   case INTEGER:
     return (int_default != INT_NOT_SET);
-
-#ifndef LITE
   case UNSIGNED_INTEGER:
   case POSITIVE_INTEGER:
     return (int_default != INT_NOT_SET);  // Note: same as INTEGER
@@ -156,7 +145,6 @@ bool DefParameter::has_default() const {
   case POSITIVE_FLOAT:
     return (!std::isnan(float_default));
 
-#endif  // LITE
   default:
     // Nothing special here
     break;

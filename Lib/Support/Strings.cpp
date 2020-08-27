@@ -105,7 +105,6 @@ string Strings::trim(const std::string& s, const std::string& delimiters) {
 bool Strings::contains(std::string const& haystack, std::string const& needle) {
   return (haystack.find(needle) != string::npos);
 }
-#ifndef LITE
 
 
 bool Strings::is_number(const std::string& s) {
@@ -229,5 +228,3 @@ bool Strings::includes(const char *arr[], const char *val) {
 	std::string tmp(val);
 	return includes(arr, tmp);
 }
-
-#endif  // LITE

@@ -7,6 +7,32 @@
 
 using namespace std;
 
+namespace {
+
+using List = TypedParameter::List;
+
+string pad(unsigned width, std::string const &str = "") {
+  string out;
+
+  for (auto i = str.length(); i < width; ++ i) {
+    out += " ";
+  }
+
+  return str + out;
+}
+
+
+bool process_option(List &parameters, char const *curarg) {
+  for (auto &item: parameters) {
+    TypedParameter &param = *item;
+    if (param.parse_param(curarg)) return true;
+  }
+
+  return false;
+}
+
+}  // anon namespace
+
 
 // Internal definition of help switch
 DefParameter CmdParameters::help_def(
@@ -260,17 +286,6 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
 }
 
 
-string CmdParameters::pad(unsigned width, string const &str) {
-  string out;
-
-  for (auto i = str.length(); i < width; ++ i) {
-    out += " ";
-  }
-
-  return str + out;
-}
-
-
 /**
  * @brief Scan for help and handle if present.
  *
@@ -304,16 +319,6 @@ bool CmdParameters::handle_help(int argc, char const *argv[]) {
 	}
 
 	return have_help;
-}
-
-
-bool CmdParameters::process_option(List &parameters, char const *curarg) {
-  for (auto &item: parameters) {
-    TypedParameter &param = *item;
-    if (param.parse_param(curarg)) return true;
-  }
-
-  return false;
 }
 
 

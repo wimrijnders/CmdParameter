@@ -166,7 +166,6 @@ void CmdValidation::check_parameter(DefParameter &param) {
 }
 
 
-#ifndef LITE
 /**
  * @brief Check that the action-labels are unique.
  *
@@ -185,4 +184,3 @@ void CmdValidation::check_actions_distinct(DefActions &actions) {
     }
   }
 }
-#endif  // LITE

@@ -12,9 +12,7 @@ struct DefParameter {
 	using Options = std::vector<char const *>;
 
   static const int   INT_NOT_SET;
-#ifndef LITE
   static const float FLOAT_NOT_SET;
-#endif  // LITE
 
   DefParameter(
     const char *in_name,
@@ -55,7 +53,6 @@ struct DefParameter {
   int          int_default{INT_NOT_SET};
 
   bool is_int_type() const;
-#ifndef LITE
 
   bool         bool_default{false};
   float        float_default{FLOAT_NOT_SET};
@@ -63,8 +60,6 @@ struct DefParameter {
 	Options const *options() { return &m_options; }
 
   bool is_float_type() const;
-
-#endif  // LITE
   bool has_default() const;
 
 private:

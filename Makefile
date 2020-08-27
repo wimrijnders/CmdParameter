@@ -138,6 +138,7 @@ RUN_TESTS := $(OBJ_DIR)/bin/runTests
 # Source files for unit tests to include in compilation
 UNIT_TESTS = \
 	Tests/testMain.cpp                \
+	Tests/testCmdLine.cpp                \
 	Tests/testParams.cpp              \
 	Tests/testActions.cpp             \
 	Tests/testOptions.cpp             \
@@ -181,60 +182,3 @@ $(EXAMPLES) :% :$(OBJ_DIR)/bin/%
 $(OBJ_DIR)/%.o: %.cpp | $(OBJ_DIR)
 	@echo Compiling $<
 	@$(CXX) -c $(CXX_FLAGS) -o $@ $<
-
-#
-# Targets for Lite Output
-#
-
-# WTF interim cpp files deleted
-.PRECIOUS: generated/Lib/%.h generated/Lib/%.cpp
-
-LITE_OBJ := \
-	Lib/Support/Strings.o \
-	Lib/TypedParameter.o \
-	Lib/Types/Types.o \
-	Lib/Types/NoneParameter.o \
-	Lib/Types/IntParameter.o \
-	Lib/DefParameter.o \
-	Lib/CmdParameters.o
-
-LITE_DEPS := $(LITE_OBJ:.o=.cpp)
-
-LITE_INC := $(LITE_OBJ:.o=.h)
-LITE_INC += Lib/Types/ParamType.h
-
-LITE_GEN := $(patsubst %,generated/%,$(LITE_DEPS))
-LITE_INC_GEN := $(patsubst %,generated/%,$(LITE_INC))
-
-init_lite:
-	@mkdir -p generated/Lib/Types
-	@mkdir -p generated/Lib/Support
-	@mkdir -p generated/obj/Lib/Types
-	@mkdir -p generated/obj/Lib/Support
-
-generated/Lib/%.cpp: $(ROOT)/%.cpp | init_lite
-	@echo Converting to lite $<
-	Lite/gen_lite.rb $@ $<
-
-generated/Lib/%.h: $(ROOT)/%.h | init_lite
-	@echo Converting include to lite $<
-	Lite/gen_lite.rb $@ $<
-
-#generated/Lib/Types/ParamType.h: $(ROOT)/Lib/Types/ParamType.h | init_lite
-#	@echo Converting include to lite $<
-#	Lite/gen_lite.rb $@ $<
-
-generated/obj/Lib/%.o: generated/Lib/%.cpp | $(LITE_GEN) $(LITE_INC_GEN)
-	@echo Compiling lite $<
-	@$(CXX) -c -o $@ $< $(CXX_FLAGS)
-
-GEN_TARGETS := $(patsubst %,generated/obj/%,$(LITE_OBJ))
-
-generated/obj/libLite.a: $(GEN_TARGETS)
-	@echo Creating $@
-	@ar rcs $@ $^
-
-
-lite: generated/obj/libLite.a
-
-

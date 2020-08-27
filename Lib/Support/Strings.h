@@ -15,7 +15,6 @@ public:
 	static std::string trim(const std::string& s, const std::string& delimiters = " \f\n\r\t\v");
 	static bool contains( std::string const& haystack, std::string const& needle);
 
-#ifndef LITE
 	static bool is_number(const std::string& s);
 
 	static std::string toString(int val, const int MAX_WIDTH = 1);
@@ -31,7 +30,6 @@ public:
 
 	static bool includes(const char *arr[], const char *val);
 	static bool includes(const char *arr[], const std::string &val);
-#endif  // LITE
 };
 
 #endif  // STRINGS_H_
