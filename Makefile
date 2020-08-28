@@ -157,14 +157,9 @@ $(UNIT_TESTS): $(TESTS_OBJ) $(TARGET)
 	@mkdir -p $(@D)
 	@$(CXX) $(CXX_FLAGS) -DDEBUG $(TESTS_OBJ) -L$(OBJ_DIR) -lCmdParameter -o $@
 
-make_test: $(UNIT_TESTS) | $(OBJ_DIR)/bin/Simple
+make_test: $(UNIT_TESTS) $(OBJ_DIR)/bin/Simple
 
-#
-# NOTE: tests are failing for the case of compiling without debug info,
-#       notably for the 'Simple' tool. I don't care, I'm want to be rid
-#       of the 'Simple' compilation anyway (in its current form).
-#
-test : $(UNIT_TESTS)
+test : make_test
 	@echo Running unit tests with '$(UNIT_TESTS)'
 	@$(UNIT_TESTS)
 

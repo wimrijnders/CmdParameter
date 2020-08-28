@@ -30,7 +30,6 @@ TEST_CASE("Test bad action definitions", "[actions]") {
 TEST_CASE("Test good action command lines", "[actions]") {
   int argc1 = 3;
   const char *argv1[] = { "Test", "action1", "-unsigned=51" };
-	//breakpoint;
   REQUIRE(CmdParameters::ALL_IS_WELL == defined_actions.handle_commandline(argc1, argv1, false));
 
   int argc2 = 2;
@@ -50,7 +49,6 @@ TEST_CASE("Test chained action definitions", "[actions]") {
       "This is the action in the parent",
       "Long blurb."
     }};
-
     CmdParameters parent_actions("blurb", a);
 
     DefActions b = {{
@@ -60,9 +58,9 @@ TEST_CASE("Test chained action definitions", "[actions]") {
     }};
 
     CmdParameters child_actions("blurb", b, &parent_actions);
+		child_actions.silent(true);
     REQUIRE(child_actions.init());
-
-		child_actions.show_usage();
+		//child_actions.show_usage();
 
 		// Both options should be available
 		int argc1 = 2;
@@ -71,17 +69,38 @@ TEST_CASE("Test chained action definitions", "[actions]") {
 
 		int argc2 = 2;
 		const char *argv2[] = { "PROG", "parent_action"};
-//breakpoint
 		REQUIRE(child_actions.handle_commandline(argc2, argv2, false) == CmdParameters::ALL_IS_WELL);
 
 		int argc3 = 2;
 		const char *argv3[] = { "PROG", "unknown_action"};
 		REQUIRE(child_actions.handle_commandline(argc3, argv3, false) != CmdParameters::ALL_IS_WELL);
 	}
+
+
+	SECTION("Validation should pick up same actions over chained definitions") {
+    DefActions a = {{
+      "some_action",
+      "This is the action in the parent",
+      "Long blurb."
+    }};
+    CmdParameters parent_actions("blurb", a);
+    REQUIRE(parent_actions.init());  // Single definition, should pass
+
+    DefActions b = {{
+      "some_action",
+      "This is the action in the child",
+      "Long blurb."
+    }};
+
+    CmdParameters child_actions("blurb", b, &parent_actions);
+    REQUIRE(!child_actions.init());  // Should fail due to double definition
+	}
 }
 
 
 TEST_CASE("Test bad action command lines", "[actions]") {
+	defined_actions.silent(true);
+
   // An action *must* be present
   int argc1 = 1;
   const char *argv1[] = { "Test" };
@@ -91,4 +110,6 @@ TEST_CASE("Test bad action command lines", "[actions]") {
   int argc2 = 3;
   const char *argv2[] = { "Test", "action1", "action2" };
   REQUIRE(CmdParameters::ALL_IS_WELL != defined_actions.handle_commandline(argc2, argv2, false));
+
+	defined_actions.silent(false);
 }

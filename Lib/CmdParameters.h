@@ -32,6 +32,7 @@ struct CmdParameters {
 
 	bool init();
   bool validate();
+	void silent(bool val) { m_silent = val; }
   void show_usage();
 	std::string get_errors() const { return errors.str(); }
   bool has_errors() const { return m_has_errors; }
@@ -57,6 +58,7 @@ private:
 	CmdParameters       *m_parent       = nullptr;
   DefAction           *m_p_action     = nullptr;
 	Buf                  errors;
+	bool                 m_silent       = false;
 
   static DefParameter help_def;
 

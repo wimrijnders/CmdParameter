@@ -75,6 +75,7 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
       { "Parent definition", "-1", NONE, "This switch is in the parent."}
     };
     CmdParameters c0("Test chaining - parent", a0);
+		c0.silent(true);
 
     DefParameters a1 = {
       { "Child definition", "-2", NONE, "This switch is in the child."}
@@ -99,6 +100,7 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
 		REQUIRE(c1.handle_commandline(argc3, argv3, false));
 	}
 
+
 	SECTION("Validation should pick up same params over chained definitions") {
     DefParameters a0 = {
       { "A definition", "-1", NONE, "This switch is in the parent."}
@@ -110,7 +112,6 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
 		int argc1 = 2;
 		const char *argv1[] = { PROG, "-1"};
 		REQUIRE(c0.handle_commandline(argc1, argv1, false) == CmdParameters::ALL_IS_WELL);
-		
 
     DefParameters a1 = {
       { "A definition", "-2", NONE, "This switch is in the child."}
@@ -118,7 +119,7 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
     CmdParameters c1("Test chaining - child", a1, &c0);
 		// Should fail due to double definition
     REQUIRE(!c1.init());
-		printf("Chained double definition:\n%s\n", c1.get_errors().c_str());
+		//printf("Chained double definition:\n%s\n", c1.get_errors().c_str());
 
 		// Now a double definition - should fail
 		// Both options should be available

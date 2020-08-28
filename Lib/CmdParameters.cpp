@@ -165,8 +165,7 @@ bool CmdParameters::handle_commandline_intern(
 			if (m_p_action != nullptr) {
 				// Check action options
 				if (process_option(m_p_action->parameters, curarg)) {
-					// WRI DEBUG
-					cout << "Found option '" << curarg << "' for action '" << m_p_action->name << "'." << endl;
+					//cout << "Found option '" << curarg << "' for action '" << m_p_action->name << "'." << endl;
 					found_action = true;
 				}
 			}
@@ -212,15 +211,18 @@ bool CmdParameters::handle_commandline_intern(
 	string err_string = errors.str();
 
 	if (!err_string.empty()) {
-		cout << "Error(s) on command line:\n" << err_string.c_str() << endl;
-
-		if (show_help_on_error) {
-			show_usage();
-		} else {
-			cout << "  Use 'help' or '-h' to view options\n"  << endl;
-		}
-
 		m_has_errors = true;
+
+		if (!m_silent) {
+			cout << "Error(s) on command line:\n" << err_string.c_str() << endl;
+
+			if (show_help_on_error) {
+				show_usage();
+			} else {
+				cout << "  Use 'help' or '-h' to view options\n"  << endl;
+			}
+
+		}
 	}
 
 	return !m_has_errors;

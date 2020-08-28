@@ -41,6 +41,8 @@ TEST_CASE("Fixed options for param", "[options]") {
 		REQUIRE(no_actions.parameters()[0]->get_string_value() == "opt2");
 
 		// Test invalid option
+		no_actions.silent(true);
+
 		int argc3 = 2;
 		char const *argv3[] = {
 			PROG,
@@ -48,5 +50,7 @@ TEST_CASE("Fixed options for param", "[options]") {
 		};
 
     REQUIRE(CmdParameters::ALL_IS_WELL != no_actions.handle_commandline(argc3, argv3, false));
+
+		no_actions.silent(false);
   }
 }
