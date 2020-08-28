@@ -33,7 +33,7 @@ public:
   void add_error(std::string const &msg);
   void add_warning(std::string const &msg);
   void check_actions_distinct(DefActions &params);
-  bool output_messages();
+  std::string  get_messages();
 
 private:
   StrList m_messages;

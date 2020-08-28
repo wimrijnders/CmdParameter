@@ -38,6 +38,12 @@ struct CmdParameters {
   TypedParameter::List &parameters() { return m_parameters; }
   ExitCode handle_commandline(int argc, char const *argv[], bool show_help_on_error = true);
 
+#ifdef DEBUG
+	// For unit testing only
+  CmdParameters() = default;
+  CmdParameters &operator=(CmdParameters const &rhs);
+#endif
+
 private:
   const char          *usage          = nullptr;
   DefParameters        global_parameters;

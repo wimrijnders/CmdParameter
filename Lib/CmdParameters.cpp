@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstring>   // strcmp
+#include "Support/debug.h"
 #include "Types/Types.h"
 #include "lib_local.h"
 
@@ -138,6 +139,7 @@ bool CmdParameters::handle_commandline_intern(
 
 	m_has_errors = false;
 	m_p_action = nullptr;
+	m_parameters.reset_values();
 
 	// Prescan for help; this overrides everything
 	if (handle_help(argc, argv)) return false;
@@ -226,6 +228,8 @@ bool CmdParameters::handle_commandline_intern(
 
 
 bool CmdParameters::init() {
+	errors.str(""); errors.clear();
+
 	if (m_done_init) {
 		return m_init_result;  // already initialized 
 	}
@@ -234,7 +238,6 @@ bool CmdParameters::init() {
 	if (m_parent != nullptr) {
 		if (!m_parent->init()) {
     	m_validation.add_error("parent instance has errors on init()");
-			// Perhaps TODO: add parent errors to this instance
 			return false;
 		}
 
@@ -291,6 +294,8 @@ bool CmdParameters::validate() {
   }
 
   m_validated = m_validation.validate(global_parameters, actions);
+	errors << m_validation.get_messages(); 
+
   return m_validated;
 }
 
@@ -492,3 +497,26 @@ void CmdParameters::show_action_usage() {
   show_just_params(p->parameters, false);
   cout << "\n";
 }
+
+#ifdef DEBUG
+
+CmdParameters &CmdParameters::operator=(CmdParameters const &rhs) {
+  usage = rhs.usage;
+
+ 	for(auto &item : rhs.global_parameters) {
+    global_parameters.push_back(item);
+ 	}
+
+  //m_parameters = rhs.m_parameters;
+
+ 	for(auto &action : rhs.actions) {
+		actions.push_back(action);
+	}
+
+	m_parent = rhs.m_parent;
+  //m_p_action = rhs.m_p_action;
+
+	return *this;
+}
+
+#endif

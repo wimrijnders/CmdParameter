@@ -15,9 +15,8 @@
  */
 #include "TypedParameter.h"
 #include <cassert>
-#include <iostream>
-#include <vector>
 #include <cstring>   // strcmp
+#include "Support/debug.h"
 #include "DefParameter.h"
 #include "CmdParameters.h"
 #include "lib_local.h"
@@ -117,16 +116,33 @@ void TypedParameter::List::prepare_usage(
 
 
 bool TypedParameter::List::process_unnamed(const char *curarg) {
+
   for (auto &item: *this) {
     TypedParameter &param = *item;
     if (param.def_param.param_type != UNNAMED) continue;
-    if (param.string_value.empty()) {
-      param.string_value = curarg;
+
+    if (param.m_values.string_value.empty()) {
+      param.m_values.string_value = curarg;
       return true;
-    }
+    } else if (param.m_values.string_value == curarg) {
+			printf("Parameter already there! Not expecting this: %s\n", curarg);
+			assert(false);  // Not expecting this any more
+
+			// NOTE: Already filled in. Apparently, this can be called twice.
+			//       As long as there are no side-effects, I don't mind.
+			return true;
+		}
   }
 
   return false;
+}
+
+
+void TypedParameter::List::reset_values() {
+  for (auto &item: *this) {
+    TypedParameter &param = *item;
+		param.reset_values();
+	}
 }
 
 
@@ -151,6 +167,12 @@ TypedParameter::TypedParameter(DefParameter &var) :
 }
 
 
+void TypedParameter::reset_values() {
+  m_detected = false;
+	m_values = m_defaults;
+}
+
+
 void TypedParameter::error(const string &msg) const {
 	string pre("Parameter '");
 	pre += def_param.name;
@@ -161,12 +183,14 @@ void TypedParameter::error(const string &msg) const {
 
 bool TypedParameter::parse_param(const char *curarg) {
 	bool found_prefix = false;
+
 	for (auto &p : m_prefixes) {
 		if (Strings::starts_with(curarg, p)) {
 			found_prefix = true;
 			break;
 		}
 	}
+
 	if (!found_prefix) {
 		return false;
 	}
@@ -229,21 +253,11 @@ string TypedParameter::get_param(const char *curarg) {
 }
 
 
-bool TypedParameter::parse_bool_param(const string &in_value) {
-	assert(in_value.empty());
-	assert(def_param.param_type == NONE);
-
-  bool_value = true;
-  m_detected = true;
-  return true;
-}
-
-
 bool TypedParameter::parse_string_param(const string &in_value) {
 	assert(!in_value.empty());
 	assert(def_param.param_type == STRING);
 
-  string_value = in_value;
+  m_values.string_value = in_value;
   m_detected = true;
   return true;
 }
@@ -268,16 +282,18 @@ float TypedParameter::get_float_value(const string &param) {
  * **TODO:** Split this out per type
  */
 bool TypedParameter::set_default() {
+	//assert(false);  // Don't want to call this any more
+
   if (def_param.is_int_type()) {
     if (def_param.int_default != DefParameter::INT_NOT_SET) {
       // Use default instead
-      int_value = def_param.int_default;
+      m_values.int_value = def_param.int_default;
       return true;
     }
   } else if (def_param.is_float_type()) {
     if (def_param.float_default != DefParameter::FLOAT_NOT_SET) {
       // Use default instead
-      float_value = def_param.float_default;
+      m_values.float_value = def_param.float_default;
       return true;
     }
   } else {
@@ -285,6 +301,7 @@ bool TypedParameter::set_default() {
     // TODO: see if explicit default settings is needed for these types
     return false;
   }
+
 
   return false;
 }

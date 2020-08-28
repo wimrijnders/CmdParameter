@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include "Support/debug.h"
 #include "../Lib/CmdParameters.h"
 #include "Support/cout_redirect.h"
 #include "TestData/TestParameters.h"
@@ -16,7 +17,10 @@ const char *PROG = "TestProg";  // Name of dummy executable
 bool single_param(TestParameters &params, const char *in_switch) {
   int argc = 3;
   const char *argv[] = { PROG, in_switch, "input_file.txt"	};
-  return params.handle_commandline(argc, argv, false);
+  bool ret = params.handle_commandline(argc, argv, false);
+
+	INFO(params.get_errors());
+	return ret;
 }
 
 
@@ -84,7 +88,7 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
 		const char *argv1[] = { PROG, "-1"};
 		REQUIRE(c0.handle_commandline(argc1, argv1, false) == CmdParameters::ALL_IS_WELL);
 
-		// Option -2 shouldi not be available in parent
+		// Option -2 should not be available in parent
 		int argc2 = 2;
 		const char *argv2[] = { PROG, "-2"};
 		REQUIRE(c0.handle_commandline(argc2, argv2, false) != CmdParameters::ALL_IS_WELL);
@@ -93,6 +97,37 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
 		int argc3 = 3;
 		const char *argv3[] = { PROG, "-1", "-2"};
 		REQUIRE(c1.handle_commandline(argc3, argv3, false));
+	}
+
+	SECTION("Validation should pick up same params over chained definitions") {
+    DefParameters a0 = {
+      { "A definition", "-1", NONE, "This switch is in the parent."}
+    };
+    CmdParameters c0("Test chaining - parent", a0);
+    REQUIRE(c0.init());
+
+		// Single definition, should pass
+		int argc1 = 2;
+		const char *argv1[] = { PROG, "-1"};
+		REQUIRE(c0.handle_commandline(argc1, argv1, false) == CmdParameters::ALL_IS_WELL);
+		
+
+    DefParameters a1 = {
+      { "A definition", "-2", NONE, "This switch is in the child."}
+    };
+    CmdParameters c1("Test chaining - child", a1, &c0);
+		// Should fail due to double definition
+    REQUIRE(!c1.init());
+		printf("Chained double definition:\n%s\n", c1.get_errors().c_str());
+
+		// Now a double definition - should fail
+		// Both options should be available
+		int argc3 = 2;
+		const char *argv3[] = { PROG, "-1"};
+		if (!c1.handle_commandline(argc3, argv3, false)) {
+			INFO(c1.get_errors());
+			REQUIRE(false);
+		}
 	}
 }
 
@@ -167,7 +202,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 		// Test expected defaults
 		REQUIRE(params.m_positive  == 1);
 		REQUIRE(params.m_unsigned  == 0);
-		REQUIRE(params.m_float     == 0.0f);  //Approx(3.1419).epsilon(0.00001));
+		REQUIRE(params.m_float     == 1.0f);  //Approx(3.1419).epsilon(0.00001));
 		REQUIRE(params.input_file  == "input_file.txt");
 		REQUIRE(params.output_file.empty());
 		REQUIRE(params.m_bool == false);
@@ -305,6 +340,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 		};
 
 		for (int n = 0; keys[n] != nullptr; ++n) {
+			INFO("Index: " << n << " - " << p[n]->get_int_value() << " == " << p[keys[n]]->get_int_value());
 			REQUIRE(p[n]->get_int_value() == p[keys[n]]->get_int_value());
 		}
 	}

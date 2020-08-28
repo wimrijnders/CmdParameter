@@ -1,10 +1,8 @@
 #include "catch.hpp"
-#include <signal.h>  // raise(SIGTRAP)
+#include "Support/debug.h"
 #include "TestData/TestActions.h"
 #include "../Lib/CmdParameters.h"
 #include "../Lib/TypedParameter.h"
-
-#define breakpoint raise(SIGTRAP);
 
 
 //
@@ -23,8 +21,8 @@ TEST_CASE("Test bad action definitions", "[actions]") {
       "This is also action 1",
       "Long blurb."
     }};
-    CmdParameters no_actions("blurb", a);
-    REQUIRE(!no_actions.init());
+    CmdParameters params("blurb", a);
+    REQUIRE(!params.init());
   }
 }
 

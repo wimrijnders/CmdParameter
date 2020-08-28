@@ -5,7 +5,7 @@
 
 struct PositiveIntParameter : public IntParameter {
 public:
-  PositiveIntParameter(DefParameter &var) : IntParameter(var) {}
+  PositiveIntParameter(DefParameter &var);
 
 private:
   bool parse_param_internal(const std::string &in_value) override;

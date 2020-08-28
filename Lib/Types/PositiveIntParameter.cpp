@@ -6,6 +6,11 @@
 using std::string;
 
 
+PositiveIntParameter::PositiveIntParameter(DefParameter &var) : IntParameter(var) {
+	m_defaults.int_value = 1;
+}
+
+
 bool PositiveIntParameter::parse_param_internal(const std::string &in_value) {
   assert(!in_value.empty());
 
@@ -16,7 +21,7 @@ bool PositiveIntParameter::parse_param_internal(const std::string &in_value) {
     throw string(msg + def_param.name + "' value must be positive.");
   }
 
-  int_value = value;
+  m_values.int_value = value;
   m_detected = true;
   return true;
 }

@@ -16,6 +16,13 @@ class DefParameter;
 struct TypedParameter {
   using string = std::string;
 
+	struct Values {
+  	bool   bool_value = false;
+  	int    int_value = -1;
+  	float  float_value = -1.0f;
+  	string string_value;
+	};
+
   class List : public std::vector<std::unique_ptr<TypedParameter>> {
     using Parent = std::vector<std::unique_ptr<TypedParameter>>;
    public:
@@ -28,6 +35,8 @@ struct TypedParameter {
       bool add_help = true);
 
     bool process_unnamed(const char *curarg);
+
+		void reset_values();
   };
 
 
@@ -35,28 +44,25 @@ struct TypedParameter {
 
   TypedParameter(DefParameter &var);
 
-  int    get_int_value()    { return int_value; }
-  bool   get_bool_value()   { return bool_value; }
-  float  get_float_value()  { return float_value; }
-  string get_string_value() { return string_value; }
+  int    get_int_value()    { return m_values.int_value; }
+  bool   get_bool_value()   { return m_values.bool_value; }
+  float  get_float_value()  { return m_values.float_value; }
+  string get_string_value() { return m_values.string_value; }
 
   bool detected() const { return m_detected; }
+	void reset_values();
   bool parse_param(const char *curarg);
   virtual string usage();
 
 protected:
   std::vector<string> m_prefixes;
-  bool   m_detected{false};
-  int    int_value{-1};
+  bool   m_detected = false;
+
+	Values m_defaults;
+	Values m_values;
 
   int  get_int_value(const string &param);
-  bool parse_bool_param(const string &in_value);
 	void error(const string &msg) const;
-
-  // Yes, crappy. Go ahead and enjoy your nausea.
-  bool    bool_value{false};
-  float   float_value{-1.0f};
-  string  string_value;
 
   bool parse_string_param(const string &in_value);
 

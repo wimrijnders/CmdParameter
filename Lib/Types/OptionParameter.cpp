@@ -5,7 +5,7 @@
 #include <string>
 #include <algorithm>
 #include <sstream>
-//#include <iostream>
+#include "../Support/debug.h"
 
 
 namespace {
@@ -39,9 +39,8 @@ OptionParameter::OptionParameter(DefParameter &var) :
 	//std::cout << "entered OptionParameter ctor" << std::endl;
 	//std::cout << "ctor() options size: " << m_options->size() << std::endl;
 
-	// TODO: This is temporary, allow an assigned default value
-	int_value = 0;
-	string_value = (*m_options)[0];
+	m_defaults.int_value = 0;
+	m_defaults.string_value = (*m_options)[0];
 }
 
 
@@ -67,7 +66,7 @@ std::string OptionParameter::param_usage_extra() {
 		}
 
 		out += v;
-		if (count == int_value) {
+		if (count == m_defaults.int_value) {
 			out += "(default)";
 		}
 
@@ -98,8 +97,8 @@ bool OptionParameter::parse_param_internal(const std::string &in_value) {
 
 
 	// value is an option
-  string_value = in_value;
-  int_value = index;
+  m_values.string_value = in_value;
+  m_values.int_value = index;
   m_detected = true;
 
   return true;
@@ -110,6 +109,6 @@ bool OptionParameter::set_default() {
 	assert(def_param.int_default != DefParameter::INT_NOT_SET);
 	assert(def_param.int_default == 0);  // Current setting, warn me if this changes
 
-	int_value = def_param.int_default;
+	m_values.int_value = def_param.int_default;
 	return true;
 }

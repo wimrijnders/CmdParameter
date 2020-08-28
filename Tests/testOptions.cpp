@@ -1,5 +1,6 @@
 #include "catch.hpp"
 #include "../Lib/CmdParameters.h"
+#include "Support/debug.h"
 
 namespace {
 const char *PROG = "TestProg";  // Name of dummy executable
@@ -23,6 +24,7 @@ TEST_CASE("Fixed options for param", "[options]") {
 			PROG
 		};
 
+		//breakpoint
     REQUIRE(CmdParameters::ALL_IS_WELL == no_actions.handle_commandline(argc1, argv1, false));
 		REQUIRE(no_actions.parameters()[0]->get_int_value() == 0);
 		REQUIRE(no_actions.parameters()[0]->get_string_value() == "opt1");

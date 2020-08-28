@@ -6,6 +6,11 @@
 
 using std::string;
 
+PositiveFloatParameter::PositiveFloatParameter(DefParameter &var) : TypedParameter(var) {
+	m_defaults.float_value = 1.0f;
+}
+
+
 bool PositiveFloatParameter::parse_param_internal(const std::string &in_value) {
   assert(!in_value.empty());
 
@@ -16,7 +21,7 @@ bool PositiveFloatParameter::parse_param_internal(const std::string &in_value) {
     throw string(msg + def_param.name + "' value must be positive.");
   }
 
-  float_value = value;
+  m_values.float_value = value;
   m_detected = true;
   return true;
 }

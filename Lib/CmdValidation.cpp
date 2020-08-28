@@ -38,20 +38,21 @@ void CmdValidation::add_warning(const std::string &msg) {
 }
 
 
-bool CmdValidation::output_messages() {
+std::string CmdValidation::get_messages() {
   assert((m_added_errors || m_added_warnings) == !m_messages.empty());
+	Buf out;
 
   if (!m_messages.empty()) {
-    cout << "Messages during validation:\n";
+    out << "Messages during validation:\n";
 
     for (auto const &msg :m_messages) {
-      cout << "  " << msg << "\n";
+      out << "  " << msg << "\n";
     }
 
-    cout << endl;
+    out << endl;
   }
 
-  return !m_added_errors;
+  return out.str();
 }
 
 
@@ -64,7 +65,7 @@ bool CmdValidation::validate(DefParameters &params, DefActions &actions) {
 
   check_labels(params);
   check_parameters(params);
-  return output_messages();
+  return !m_added_errors;
 }
 
 

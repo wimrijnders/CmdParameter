@@ -10,7 +10,7 @@ bool IntParameter::parse_param_internal(const std::string &in_value) {
 
   int value = get_int_value(in_value);
 
-  int_value = value;
+  m_values.int_value = value;
   m_detected = true;
   return true;
 }

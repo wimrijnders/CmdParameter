@@ -105,8 +105,6 @@ DEPS := $(LIB_OBJ:.o=.d)
 # Otherwise, deletion happens for targets of the form '%.o'
 .PRECIOUS: $(OBJ_DIR)/%.o
 
-HIDDEN_TARGET=$(OBJ_DIR)/libHidden.a
-EXPORT_TARGET=$(OBJ_DIR)/libExport.a
 TARGET=$(OBJ_DIR)/libCmdParameter.a
 #$(info TARGET: $(TARGET))
 
@@ -159,14 +157,14 @@ $(UNIT_TESTS): $(TESTS_OBJ) $(TARGET)
 	@mkdir -p $(@D)
 	@$(CXX) $(CXX_FLAGS) -DDEBUG $(TESTS_OBJ) -L$(OBJ_DIR) -lCmdParameter -o $@
 
-make_test: $(UNIT_TESTS)
+make_test: $(UNIT_TESTS) | $(OBJ_DIR)/bin/Simple
 
 #
 # NOTE: tests are failing for the case of compiling without debug info,
 #       notably for the 'Simple' tool. I don't care, I'm want to be rid
 #       of the 'Simple' compilation anyway (in its current form).
 #
-test : $(UNIT_TESTS) | $(OBJ_DIR)/bin/Simple
+test : $(UNIT_TESTS)
 	@echo Running unit tests with '$(UNIT_TESTS)'
 	@$(UNIT_TESTS)
 

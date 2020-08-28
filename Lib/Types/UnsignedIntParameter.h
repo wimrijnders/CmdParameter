@@ -4,7 +4,7 @@
 
 struct UnsignedIntParameter : public IntParameter {
 public:
-  UnsignedIntParameter(DefParameter &var) : IntParameter(var) {}
+  UnsignedIntParameter(DefParameter &var);
 
 private:
   bool parse_param_internal(const std::string &in_value) override;
