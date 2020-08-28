@@ -11,11 +11,8 @@
 namespace {
 
 int indexOf(std::vector<char const *> const &vec, char const *value) {
-	//std::cout << "indexOf() value: " << value << std::endl;
-	//std::cout << "indexOf() vec size: " << vec.size() << std::endl;
 
 	auto iter = std::find_if(vec.begin(), vec.end(), [&value] (char const *val) -> bool {
-		//std::cout << "indexOf() val: " << val << std::endl;
 		return !strcmp(val, value);
 	});
 
@@ -35,9 +32,6 @@ OptionParameter::OptionParameter(DefParameter &var) :
 	m_options(var.options()) {
 	assert(m_options != nullptr);
 	assert(!m_options->empty());
-
-	//std::cout << "entered OptionParameter ctor" << std::endl;
-	//std::cout << "ctor() options size: " << m_options->size() << std::endl;
 
 	m_defaults.int_value = 0;
 	m_defaults.string_value = (*m_options)[0];
@@ -84,10 +78,7 @@ bool OptionParameter::parse_param_internal(const std::string &in_value) {
 	assert(!in_value.empty());
 	assert(def_param.param_type == OPTION);
 
-	//std::cout << "entered parse_param_internal(), value: " << in_value << std::endl;
-
 	int index = indexOf(*m_options, in_value.c_str());
-	//std::cout << "index: " << index << std::endl;
 	if (index == -1) {
 		string msg = "Invalid value '";
 		msg += in_value + "'";
@@ -102,13 +93,4 @@ bool OptionParameter::parse_param_internal(const std::string &in_value) {
   m_detected = true;
 
   return true;
-}
-
-
-bool OptionParameter::set_default() {
-	assert(def_param.int_default != DefParameter::INT_NOT_SET);
-	assert(def_param.int_default == 0);  // Current setting, warn me if this changes
-
-	m_values.int_value = def_param.int_default;
-	return true;
 }

@@ -69,14 +69,12 @@ DefParameter::DefParameter(
   param_type(OPTION),
   usage(in_usage),
   int_default(0),
-	m_options(options) {   // NOTE: need to copy here, passed options can go out of context
-	// std::cout << "DefParameter ctor() options size: " << m_options.size() << std::endl;
+	m_options(options) {
 
-  if (in_prefix != nullptr) {
+	// Need to copy here, passed options can go out of context
+ 	if (in_prefix != nullptr) {
     prefixes.push_back(in_prefix);
   }
-  //handle_defaults(); No need to call this
-  //                   TODO: check if better to call
 }
 
 

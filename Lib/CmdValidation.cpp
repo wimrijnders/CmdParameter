@@ -77,7 +77,7 @@ void CmdValidation::check_labels(DefParameters &params) {
   for (auto &p : params) {
     if (p.name == nullptr) {
       add_error() << "Name can not be a null pointer "
-          << "for parameter with index " << index;
+                  << "for parameter with index " << index;
       continue; // protect for next check
     }
 
@@ -128,7 +128,7 @@ void CmdValidation::check_parameters(DefParameters &params) {
 
 
 void CmdValidation::check_parameter(DefParameter &param) {
-  auto &p = param;  // Local aliase
+  auto &p = param;  // Local alias
 
   // At least one prefix present
   if (p.prefixes.empty()) {

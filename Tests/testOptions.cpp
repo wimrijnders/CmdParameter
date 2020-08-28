@@ -3,7 +3,9 @@
 #include "Support/debug.h"
 
 namespace {
+
 const char *PROG = "TestProg";  // Name of dummy executable
+
 }  // anon namespace
 
 

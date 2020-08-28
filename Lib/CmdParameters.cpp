@@ -1,7 +1,7 @@
 #include "CmdParameters.h"
 #include <cassert>
 #include <iostream>
-#include <cstring>   // strcmp
+#include <cstring>   // strcmp()
 #include "Support/debug.h"
 #include "Types/Types.h"
 #include "lib_local.h"
@@ -257,7 +257,6 @@ bool CmdParameters::init() {
 		}
 	}
 
-
   m_init_result = validate()
 	             && init_params()
 	             && init_actions();
@@ -413,8 +412,6 @@ unsigned CmdParameters::max_width(StrList const &list) const {
 // Action handling
 ////////////////////////
 
-
-
 bool CmdParameters::init_actions() {
   for(auto &action : actions) {
     if (!action.init_params()) return false;
@@ -499,26 +496,3 @@ void CmdParameters::show_action_usage() {
   show_just_params(p->parameters, false);
   cout << "\n";
 }
-
-#ifdef DEBUG
-
-CmdParameters &CmdParameters::operator=(CmdParameters const &rhs) {
-  usage = rhs.usage;
-
- 	for(auto &item : rhs.global_parameters) {
-    global_parameters.push_back(item);
- 	}
-
-  //m_parameters = rhs.m_parameters;
-
- 	for(auto &action : rhs.actions) {
-		actions.push_back(action);
-	}
-
-	m_parent = rhs.m_parent;
-  //m_p_action = rhs.m_p_action;
-
-	return *this;
-}
-
-#endif

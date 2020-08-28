@@ -162,8 +162,6 @@ TypedParameter::TypedParameter(DefParameter &var) :
 			m_prefixes.push_back(tmp[0]);
 		}
 	}
-
-  set_default();
 }
 
 
@@ -275,35 +273,6 @@ float TypedParameter::get_float_value(const string &param) {
   }
 
   return value;
-}
-
-
-/**
- * **TODO:** Split this out per type
- */
-bool TypedParameter::set_default() {
-	//assert(false);  // Don't want to call this any more
-
-  if (def_param.is_int_type()) {
-    if (def_param.int_default != DefParameter::INT_NOT_SET) {
-      // Use default instead
-      m_values.int_value = def_param.int_default;
-      return true;
-    }
-  } else if (def_param.is_float_type()) {
-    if (def_param.float_default != DefParameter::FLOAT_NOT_SET) {
-      // Use default instead
-      m_values.float_value = def_param.float_default;
-      return true;
-    }
-  } else {
-    // All other cases for now: not handled or overriden
-    // TODO: see if explicit default settings is needed for these types
-    return false;
-  }
-
-
-  return false;
 }
 
 

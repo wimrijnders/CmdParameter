@@ -74,8 +74,6 @@ protected:
   string get_param(const char *curarg);
 
 private:
-  virtual bool set_default();
-
   virtual bool parse_param_internal(const string &in_value) = 0;
   virtual const char *value_indicator() const = 0;
   virtual void default_indicator(std::ostringstream &os) = 0;

@@ -1,5 +1,4 @@
 #include "TestParameters.h"
-//#include "../../Lib/CmdParameter.h"
 
 namespace {
 

@@ -16,7 +16,6 @@ public:
 
 private:
   bool parse_param_internal(const std::string &in_value) override;
-  bool set_default() override;
 	std::string param_usage_extra();
 
 	Options const *m_options = nullptr;

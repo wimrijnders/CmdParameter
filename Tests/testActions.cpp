@@ -5,11 +5,6 @@
 #include "../Lib/TypedParameter.h"
 
 
-//
-// TODO: something similar for parameters
-//
-// TODO: should no actions + global params be OK?
-//
 TEST_CASE("Test bad action definitions", "[actions]") {
   SECTION("No two actions named the same") {
     DefActions a = {{
