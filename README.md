@@ -1,7 +1,7 @@
 CmdParameter
 ============
 
-Version 0.2.1
+Version 0.2.2
 
 `CmdParameter` is a library for handling command line parameters in C++.
 

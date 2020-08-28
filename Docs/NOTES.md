@@ -26,7 +26,15 @@
 
 ## Release Notes
 
-```
+20200828  v0.2.2
+    - Removed 'LITE' build option, it was silly anyway
+    - Added chained dependencies. Parameters can now 'inherit' another list, this is not
+      really inherited by merged into the current list
+    - Cleaned up resetting of defaults for parameters
+    - Fixed dependencies in makefile for unit tests, some code cleanup
+    - Added silent option to class `CmdParameter`, to eliminate output during unit tests
+    - Code cleanup, especially debug code
+ 
 
 20190103  v0.2.1
     fix(static lib) : Hide symbols in static library
