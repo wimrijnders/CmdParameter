@@ -110,8 +110,8 @@ void CmdValidation::check_labels(DefParameters &params) {
           if (pr2[0] == '\0') continue;
 
           if (!strcmp(pr1, pr2)) {
-            add_error() << "Multiple parameter definitions with same prefix '" << pr1 << "' "
-                        << "for " << p1.name << " and " << p2.name;
+            add_error() << "Multiple parameter definitions with same prefix '" << pr1 << "', "
+                        << "namely parameters '" << p1.name << "' and '" << p2.name << "'";
           }
         }
       }
