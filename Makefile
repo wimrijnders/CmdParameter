@@ -109,7 +109,7 @@ TARGET=$(OBJ_DIR)/libCmdParameter.a
 #$(info TARGET: $(TARGET))
 
 
-all: $(OBJ_DIR) $(TARGET) $(EXAMPLE_TARGETS)
+all: $(TARGET) $(EXAMPLE_TARGETS)
 
 clean:
 	rm -rf obj obj-debug generated
@@ -169,6 +169,7 @@ test : make_test
 
 $(OBJ_DIR)/bin/%: $(OBJ_DIR)/Examples/%.o $(TARGET)
 	@echo Linking $@...
+	@mkdir -p $(@D)
 	@$(CXX) $(CXX_FLAGS) $^ $(LIBS) -o $@
 
 $(EXAMPLES) :% :$(OBJ_DIR)/bin/%
