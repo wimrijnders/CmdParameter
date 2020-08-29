@@ -21,14 +21,14 @@ struct CmdParameters {
 
   static NoneParameter help_switch;
 
-	CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent = nullptr);
-  CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent = nullptr);
+	CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters const *parent = nullptr);
+  CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters const *parent = nullptr);
 
   CmdParameters(
 		char const *in_usage,
 		DefActions in_actions,
 		DefParameters global_params,
-		CmdParameters *parent = nullptr);
+		CmdParameters const *parent = nullptr);
 
 	bool init();
   bool validate();
@@ -49,7 +49,7 @@ private:
   CmdValidation        m_validation;
   bool                 m_validated    = false;
   DefActions           actions;
-	CmdParameters       *m_parent       = nullptr;
+	CmdParameters const *m_parent       = nullptr;
   DefAction           *m_p_action     = nullptr;
 	Buf                  errors;
 	bool                 m_silent       = false;

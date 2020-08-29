@@ -58,30 +58,33 @@ DefParameter CmdParameters::help_def(
 NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
 
-CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent) :
+CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters const *parent) :
   usage(in_usage),
   global_parameters(global_params),
-	m_parent(parent)
-{}
+	m_parent(parent) {
+  init();
+}
 
 
-CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent) :
+CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters const *parent) :
   usage(in_usage),
   actions(in_actions),
-	m_parent(parent)
-{}
+	m_parent(parent) {
+  init();
+}
 
 
 CmdParameters::CmdParameters(
 	char const *in_usage,
 	DefActions in_actions,
 	DefParameters global_params,
-	CmdParameters *parent) :
+	CmdParameters const *parent) :
   usage(in_usage),
   global_parameters(global_params),
   actions(in_actions),
-	m_parent(parent)
-{}
+	m_parent(parent) {
+  init();
+}
 
 
 /**
@@ -137,6 +140,7 @@ bool CmdParameters::handle_commandline_intern(
 
 	//std::cout << "entered handle_commandline_intern()" << std::endl;
 
+	errors.str(""); errors.clear();
 	m_has_errors = false;
 	m_p_action = nullptr;
 	m_parameters.reset_values();
@@ -230,18 +234,25 @@ bool CmdParameters::handle_commandline_intern(
 
 
 bool CmdParameters::init() {
-	errors.str(""); errors.clear();
-
 	if (m_done_init) {
 		return m_init_result;  // already initialized 
 	}
+
+	errors.str(""); errors.clear();
 	m_done_init = true;  // Having run init() does not mean that it was successful!
 
 	if (m_parent != nullptr) {
+		if (m_parent->has_errors()) {
+    	errors << "parent instance has errors on init()";
+    	errors <<  m_parent->get_errors();
+			return false;
+		}
+/*
 		if (!m_parent->init()) {
     	m_validation.add_error("parent instance has errors on init()");
 			return false;
 		}
+*/
 
 		// Add the global param's of the parent to the local list.
 		// This means that some double work is done. I don't care

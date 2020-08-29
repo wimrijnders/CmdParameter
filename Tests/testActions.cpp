@@ -54,7 +54,8 @@ TEST_CASE("Test chained action definitions", "[actions]") {
 
     CmdParameters child_actions("blurb", b, &parent_actions);
 		child_actions.silent(true);
-    REQUIRE(child_actions.init());
+    INFO(child_actions.get_errors());
+    REQUIRE(!child_actions.has_errors());
 		//child_actions.show_usage();
 
 		// Both options should be available

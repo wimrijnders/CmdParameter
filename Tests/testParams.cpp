@@ -14,13 +14,22 @@ const char *PROG = "TestProg";  // Name of dummy executable
 /**
  * @brief Parse a command line with a single switch
  */
-bool single_param(TestParameters &params, const char *in_switch) {
+void single_param(TestParameters &params, char const *in_switch, int index = -1, bool check_false = false) {
   int argc = 3;
   const char *argv[] = { PROG, in_switch, "input_file.txt"	};
   bool ret = params.handle_commandline(argc, argv, false);
 
+	if (index != -1) {
+		INFO("Doing index " << index << ", value: " << in_switch);
+	}
+
 	INFO(params.get_errors());
-	return ret;
+
+	if (check_false) {
+		REQUIRE(!ret);
+	} else {
+		REQUIRE(ret);
+	}
 }
 
 
@@ -81,7 +90,8 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
       { "Child definition", "-2", NONE, "This switch is in the child."}
     };
     CmdParameters c1("Test chaining - child", a1, &c0);
-    REQUIRE(c1.init());
+    INFO(c1.get_errors());
+    REQUIRE(!c1.has_errors());
 
 		//c1.show_usage();
 
@@ -277,8 +287,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 		};
 
 		for (int n = 0; test_params[n] != nullptr; ++n) {
-			INFO("Doing index " << n << ", value: " << test_params[n]);
-			REQUIRE(!single_param(params, test_params[n]));
+			single_param(params, test_params[n], n, true);
 		}
 
 		//redirect.close();
@@ -287,9 +296,9 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 
 
 	SECTION("Check border cases") {
-		REQUIRE(single_param(params, "-positive=1"));
-		REQUIRE(single_param(params, "-unsigned=0"));
-		REQUIRE(single_param(params, "-output=123"));
+		single_param(params, "-positive=1");
+		single_param(params, "-unsigned=0");
+		single_param(params, "-output=123");
 	}
 
 
