@@ -58,7 +58,7 @@ DefParameter CmdParameters::help_def(
 NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
 
-CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters const *parent) :
+CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent) :
   usage(in_usage),
   global_parameters(global_params),
 	m_parent(parent) {
@@ -66,7 +66,7 @@ CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, 
 }
 
 
-CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters const *parent) :
+CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent) :
   usage(in_usage),
   actions(in_actions),
 	m_parent(parent) {
@@ -78,7 +78,7 @@ CmdParameters::CmdParameters(
 	char const *in_usage,
 	DefActions in_actions,
 	DefParameters global_params,
-	CmdParameters const *parent) :
+	CmdParameters *parent) :
   usage(in_usage),
   global_parameters(global_params),
   actions(in_actions),
@@ -114,13 +114,30 @@ CmdParameters::ExitCode CmdParameters::handle_commandline(
   int argc,
   char const *argv[],
   bool show_help_on_error) {
-  if (!init()) return EXIT_ERROR;
 
-  if (!handle_commandline_intern(argc, argv, show_help_on_error)) {
-    return (has_errors())? EXIT_ERROR: EXIT_NO_ERROR;
-  }
+	bool do_continue = true;
 
-  return ALL_IS_WELL;
+  if (init()) {
+		do_continue = handle_commandline_intern(argc, argv, show_help_on_error);
+	}
+
+	if (has_errors()) {
+		if (!m_silent) {
+			cout << "Error(s) on command line:\n" << get_errors() << endl;
+
+			if (show_help_on_error) {
+				show_usage();
+			} else {
+				cout << "  Use 'help' or '-h' to view options\n"  << endl;
+			}
+		}
+	}
+
+	if (has_errors()) {
+  	return EXIT_ERROR;
+	} else {
+  	return (do_continue)?ALL_IS_WELL:EXIT_NO_ERROR;
+	}
 }
 
 
@@ -141,7 +158,6 @@ bool CmdParameters::handle_commandline_intern(
 	//std::cout << "entered handle_commandline_intern()" << std::endl;
 
 	errors.str(""); errors.clear();
-	m_has_errors = false;
 	m_p_action = nullptr;
 	m_parameters.reset_values();
 
@@ -212,24 +228,7 @@ bool CmdParameters::handle_commandline_intern(
 		}
 	}
 
-	string err_string = errors.str();
-
-	if (!err_string.empty()) {
-		m_has_errors = true;
-
-		if (!m_silent) {
-			cout << "Error(s) on command line:\n" << err_string.c_str() << endl;
-
-			if (show_help_on_error) {
-				show_usage();
-			} else {
-				cout << "  Use 'help' or '-h' to view options\n"  << endl;
-			}
-
-		}
-	}
-
-	return !m_has_errors;
+	return true;
 }
 
 
@@ -242,17 +241,13 @@ bool CmdParameters::init() {
 	m_done_init = true;  // Having run init() does not mean that it was successful!
 
 	if (m_parent != nullptr) {
+		// parent should have been init'ed already (in ctor)
+
 		if (m_parent->has_errors()) {
     	errors << "parent instance has errors on init()";
     	errors <<  m_parent->get_errors();
 			return false;
 		}
-/*
-		if (!m_parent->init()) {
-    	m_validation.add_error("parent instance has errors on init()");
-			return false;
-		}
-*/
 
 		// Add the global param's of the parent to the local list.
 		// This means that some double work is done. I don't care

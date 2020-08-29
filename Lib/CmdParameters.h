@@ -21,21 +21,21 @@ struct CmdParameters {
 
   static NoneParameter help_switch;
 
-	CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters const *parent = nullptr);
-  CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters const *parent = nullptr);
+	CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent = nullptr);
+  CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent = nullptr);
 
   CmdParameters(
 		char const *in_usage,
 		DefActions in_actions,
 		DefParameters global_params,
-		CmdParameters const *parent = nullptr);
+		CmdParameters *parent = nullptr);
 
 	bool init();
   bool validate();
 	void silent(bool val) { m_silent = val; }
   void show_usage();
 	std::string get_errors() const { return errors.str(); }
-  bool has_errors() const { return m_has_errors; }
+  bool has_errors() const { return !errors.str().empty(); }
   TypedParameter::List &parameters() { return m_parameters; }
   ExitCode handle_commandline(int argc, char const *argv[], bool show_help_on_error = true);
 
@@ -43,13 +43,12 @@ private:
   const char          *usage          = nullptr;
   DefParameters        global_parameters;
   TypedParameter::List m_parameters;
-  bool                 m_has_errors   = false;
   bool                 m_done_init    = false;
   bool                 m_init_result  = false;
   CmdValidation        m_validation;
   bool                 m_validated    = false;
   DefActions           actions;
-	CmdParameters const *m_parent       = nullptr;
+	CmdParameters       *m_parent       = nullptr;  // Can't be const due to call to init() in init()
   DefAction           *m_p_action     = nullptr;
 	Buf                  errors;
 	bool                 m_silent       = false;
