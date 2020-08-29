@@ -28,18 +28,13 @@ int indexOf(std::vector<char const *> const &vec, char const *value) {
 
 
 OptionParameter::OptionParameter(DefParameter &var) :
-	TypedParameter(var),
+	TypedParameter(var, "<opt>"),
 	m_options(var.options()) {
 	assert(m_options != nullptr);
 	assert(!m_options->empty());
 
 	m_defaults.int_value = 0;
 	m_defaults.string_value = (*m_options)[0];
-}
-
-
-void OptionParameter::default_indicator(std::ostringstream &os) {
-	// Do nothing; don't show default here
 }
 
 
@@ -90,7 +85,7 @@ bool OptionParameter::parse_param_internal(const std::string &in_value) {
 	// value is an option
   m_values.string_value = in_value;
   m_values.int_value = index;
-  m_detected = true;
+  m_values.m_detected = true;
 
   return true;
 }

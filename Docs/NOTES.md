@@ -26,6 +26,11 @@
 
 ## Release Notes
 
+20200829  v0.2.3
+    - Fixed setting of defaults for integer parameters
+    - Some code cleanup and refactoring, making class `TypedParameter` simpler
+
+
 20200828  v0.2.2
     - Removed 'LITE' build option, it was silly anyway
     - Added chained dependencies. Parameters can now 'inherit' another list, this is not

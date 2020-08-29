@@ -95,22 +95,16 @@ void TypedParameter::List::prepare_usage(
 
   if (add_help) {
     // Internal help switch definition
-    string value_indicator;
     std::ostringstream default_indicator;
-
-    add_param(CmdParameters::help_switch, value_indicator, default_indicator);
+    add_param(CmdParameters::help_switch, "", default_indicator);
   }
 
   for (auto &item : *this) {
     TypedParameter &param = *item;
 
-    string value_indicator;
     std::ostringstream default_indicator;
-
-    value_indicator = param.value_indicator();
     param.default_indicator(default_indicator);
-
-    add_param(param, value_indicator, default_indicator);
+    add_param(param, param.m_value_indicator, default_indicator);
   }
 }
 
@@ -147,12 +141,14 @@ void TypedParameter::List::reset_values() {
 
 
 //////////////////////////////////////////////
-// Class CmdParameter
+// Class TypedParameter
 //////////////////////////////////////////////
 
-TypedParameter::TypedParameter(DefParameter &var) :
+TypedParameter::TypedParameter(DefParameter &var, char const *value_indicator) :
   def_param(var),
-  m_detected(false) {
+	m_value_indicator(value_indicator) {
+
+	assert(value_indicator != nullptr);
 
 	// Remove '=' from the field prefix
 	// NOTE: var.prefixes may be empty! (incorrect but possible, checks should catch this)
@@ -166,7 +162,6 @@ TypedParameter::TypedParameter(DefParameter &var) :
 
 
 void TypedParameter::reset_values() {
-  m_detected = false;
 	m_values = m_defaults;
 }
 
@@ -227,6 +222,7 @@ bool TypedParameter::parse_param(const char *curarg) {
 
 int TypedParameter::get_int_value(const string &param) {
   int value = -1;
+
   const char *str = param.c_str();
   char *end = nullptr;
   value = (int) strtol(str, &end, 10);
@@ -256,7 +252,7 @@ bool TypedParameter::parse_string_param(const string &in_value) {
 	assert(def_param.param_type == STRING);
 
   m_values.string_value = in_value;
-  m_detected = true;
+  m_values.m_detected = true;
   return true;
 }
 

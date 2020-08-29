@@ -7,7 +7,11 @@ using std::string;
 
 
 PositiveIntParameter::PositiveIntParameter(DefParameter &var) : IntParameter(var) {
-	m_defaults.int_value = 1;
+
+  if (m_defaults.int_value <= 0) {
+    string msg = "Field '";
+    throw string(msg + def_param.name + "': default value must be positive.");
+  }
 }
 
 
@@ -18,11 +22,11 @@ bool PositiveIntParameter::parse_param_internal(const std::string &in_value) {
 
   if (value <= 0) {
     string msg = "Field '";
-    throw string(msg + def_param.name + "' value must be positive.");
+    throw string(msg + def_param.name + "': value must be positive.");
   }
 
   m_values.int_value = value;
-  m_detected = true;
+  m_values.m_detected = true;
   return true;
 }
 

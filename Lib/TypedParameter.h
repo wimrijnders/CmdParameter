@@ -17,9 +17,9 @@ struct TypedParameter {
   using string = std::string;
 
 	struct Values {
-  	bool   bool_value = false;
-  	int    int_value = -1;
-  	float  float_value = -1.0f;
+  	bool   m_detected   = false;
+  	int    int_value    = -1;
+  	float  float_value  = -1.0f;
   	string string_value;
 	};
 
@@ -39,24 +39,23 @@ struct TypedParameter {
 		void reset_values();
   };
 
-
   DefParameter  &def_param;
 
-  TypedParameter(DefParameter &var);
+  TypedParameter(DefParameter &var, char const *value_indicator);
 
-  int    get_int_value()    { return m_values.int_value; }
-  bool   get_bool_value()   { return m_values.bool_value; }
-  float  get_float_value()  { return m_values.float_value; }
-  string get_string_value() { return m_values.string_value; }
+  bool   detected()         const { return m_values.m_detected; }
+  int    get_int_value()    const { return m_values.int_value; }
+  bool   get_bool_value()   const { return detected(); }
+  float  get_float_value()  const { return m_values.float_value; }
+  string get_string_value() const { return m_values.string_value; }
 
-  bool detected() const { return m_detected; }
 	void reset_values();
   bool parse_param(const char *curarg);
   virtual string usage();
 
 protected:
   std::vector<string> m_prefixes;
-  bool   m_detected = false;
+	std::string m_value_indicator;
 
 	Values m_defaults;
 	Values m_values;
@@ -75,8 +74,7 @@ protected:
 
 private:
   virtual bool parse_param_internal(const string &in_value) = 0;
-  virtual const char *value_indicator() const = 0;
-  virtual void default_indicator(std::ostringstream &os) = 0;
+  virtual void default_indicator(std::ostringstream &os) {};
 	virtual bool takes_value() const { return true; }
 };
 

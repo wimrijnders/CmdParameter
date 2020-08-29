@@ -50,17 +50,15 @@ struct DefParameter {
   ParamType   param_type;              //!> Parameter type
   const char *usage;                   //!> Long description of the parameter, displayed in the help text
 
-  int          int_default{INT_NOT_SET};
+  int          int_default   = INT_NOT_SET;
+  bool         bool_default  = false;
+  float        float_default = FLOAT_NOT_SET;
+  std::string  string_default;
 
   bool is_int_type() const;
-
-  bool         bool_default{false};
-  float        float_default{FLOAT_NOT_SET};
-  std::string  string_default;
-	Options const *options() { return &m_options; }
-
   bool is_float_type() const;
   bool has_default() const;
+	Options const *options() { return &m_options; }
 
 private:
   void handle_defaults();

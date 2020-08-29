@@ -6,8 +6,13 @@
 
 using std::string;
 
-PositiveFloatParameter::PositiveFloatParameter(DefParameter &var) : TypedParameter(var) {
-	m_defaults.float_value = 1.0f;
+PositiveFloatParameter::PositiveFloatParameter(DefParameter &var) : TypedParameter(var, "<float>") {
+	m_defaults.float_value = var.float_default;
+
+  if (var.float_default <= 0.0f) {
+    string msg = "Field '";
+    throw string(msg + def_param.name + "': default value must be positive.");
+  }
 }
 
 
@@ -18,11 +23,11 @@ bool PositiveFloatParameter::parse_param_internal(const std::string &in_value) {
 
   if (value <= 0.0f) {
     string msg = "Field '";
-    throw string(msg + def_param.name + "' value must be positive.");
+    throw string(msg + def_param.name + "': value must be positive.");
   }
 
   m_values.float_value = value;
-  m_detected = true;
+  m_values.m_detected = true;
   return true;
 }
 

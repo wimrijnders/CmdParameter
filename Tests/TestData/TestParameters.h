@@ -13,19 +13,18 @@ public:
     const char* argv[],
     bool show_help_on_error = true);
 
-	// These fields are intentionally initialized
-	// to illegal values for unit testing.
-	// The tested code should be able to deal with this.
-	int    m_unsigned{-1};
-	int	   m_positive{-1};
-	float  m_float{-1};
+	// Intentionally initialized to illegal values for unit testing.
+	// Should all be overwritten on initialization
+	int    m_unsigned = -1;
+	int	   m_positive = -1;
+	float  m_float    = -1;
+	int    m_int      = -1;
+	int    m_intdef   = -1;
+	bool   m_bool     = true;
 
 	string input_file;
 	string output_file;
 
-	int    m_int;
-	bool   m_bool;
-	bool   bool_detected;
 
 	CmdParameters::List &parameters();
 	std::string get_errors() const;

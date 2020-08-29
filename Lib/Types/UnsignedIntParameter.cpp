@@ -6,8 +6,13 @@
 using std::string;
 
 UnsignedIntParameter::UnsignedIntParameter(DefParameter &var) : IntParameter(var) {
-	m_defaults.int_value = 0;
+
+  if (m_defaults.int_value < 0) {
+    string msg = "Field '";
+    throw string(msg + def_param.name + "': default value must be zero or positive.");
+  }
 }
+
 
 bool UnsignedIntParameter::parse_param_internal(const std::string &in_value) {
   assert(!in_value.empty());
@@ -20,6 +25,6 @@ bool UnsignedIntParameter::parse_param_internal(const std::string &in_value) {
   }
 
   m_values.int_value = value;
-  m_detected = true;
+  m_values.m_detected = true;
   return true;
 }

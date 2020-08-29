@@ -2,7 +2,7 @@
 #include <cassert>
 #include <limits>
 #include <cmath>
-//#include <iostream>
+#include "Support/debug.h"
 
 
 const int   DefParameter::INT_NOT_SET   = std::numeric_limits<int>::min();
@@ -53,6 +53,8 @@ DefParameter::DefParameter(
   param_type(in_param_type),
   usage(in_usage),
   int_default(default_value) {
+
+	assert(in_prefix != nullptr);
   if (in_prefix != nullptr) {
     prefixes.push_back(in_prefix);
   }
@@ -68,7 +70,6 @@ DefParameter::DefParameter(
   name(in_name),
   param_type(OPTION),
   usage(in_usage),
-  int_default(0),
 	m_options(options) {
 
 	// Need to copy here, passed options can go out of context
@@ -105,12 +106,8 @@ bool DefParameter::is_float_type() const {
 void DefParameter::handle_defaults() {
   switch(param_type) {
   case INTEGER:
-    if (int_default == INT_NOT_SET) {
-      int_default = 0;
-    }
-  break;
   case UNSIGNED_INTEGER:
-    if (int_default == INT_NOT_SET) {  // Note: same as INTEGER
+    if (int_default == INT_NOT_SET) {
       int_default = 0;
     }
   break;
@@ -122,7 +119,7 @@ void DefParameter::handle_defaults() {
 
   case POSITIVE_FLOAT:
     if (std::isnan(float_default)) {
-      float_default = 0.0f;
+      float_default = 1.0f;
     }
   break;
   default:
@@ -135,10 +132,9 @@ void DefParameter::handle_defaults() {
 bool DefParameter::has_default() const {
   switch(param_type) {
   case INTEGER:
-    return (int_default != INT_NOT_SET);
   case UNSIGNED_INTEGER:
   case POSITIVE_INTEGER:
-    return (int_default != INT_NOT_SET);  // Note: same as INTEGER
+    return (int_default != INT_NOT_SET);
 
   case POSITIVE_FLOAT:
     return (!std::isnan(float_default));

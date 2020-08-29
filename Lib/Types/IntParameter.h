@@ -4,8 +4,7 @@
 
 struct IntParameter : public TypedParameter {
 public:
-  IntParameter(DefParameter &var) : TypedParameter(var) {}
-  const char *value_indicator() const override { return "<num>"; }
+  IntParameter(DefParameter &var);
   void default_indicator(std::ostringstream &os) override;
 
 private:

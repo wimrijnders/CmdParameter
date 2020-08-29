@@ -6,7 +6,6 @@
 struct PositiveFloatParameter : public TypedParameter {
 public:
   PositiveFloatParameter(DefParameter &var);
-  const char *value_indicator() const override { return "<float>"; }
   void default_indicator(std::ostringstream &os) override;
 
 private:

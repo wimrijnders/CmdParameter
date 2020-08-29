@@ -10,8 +10,6 @@ struct OptionParameter : public TypedParameter {
 
 public:
   OptionParameter(DefParameter &var);
-  const char *value_indicator() const override { return "<opt>"; }
-  void default_indicator(std::ostringstream &os) override;
 	std::string usage() override;
 
 private:

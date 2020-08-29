@@ -1,4 +1,5 @@
 #include "TestParameters.h"
+#include "Support/debug.h"
 
 namespace {
 
@@ -44,6 +45,12 @@ CmdParameters definition = {
     INTEGER,
     "This value can be any integer"
   }, {
+    "An integer value with a default",
+    "-intdef=",
+    INTEGER,
+    "This value can be any integer",
+		42
+  }, {
     "Input file",
     "first_file",
     UNNAMED,
@@ -83,15 +90,14 @@ std::string TestParameters::get_errors() const    { return  definition.get_error
 void TestParameters::pass_params() {
   CmdParameters::List &p = parameters();
 
-  // TODO: use keys here instead.
+  // TODO: perhaps use keys here instead.
   m_unsigned  = p[0]->get_int_value();
   m_positive  = p[1]->get_int_value();
   m_float     = p[2]->get_float_value();
   output_file = p[3]->get_string_value();
   m_bool      = p[4]->get_bool_value();
   m_int       = p[5]->get_int_value();
-  input_file  = p[6]->get_string_value();
-
-  bool_detected = p[4]->detected();
+  m_intdef    = p[6]->get_int_value();
+  input_file  = p[7]->get_string_value();
 }
 
