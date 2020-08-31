@@ -127,6 +127,7 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
       { "A definition", "-2", NONE, "This switch is in the child."}
     };
     CmdParameters c1("Test chaining - child", a1, &c0);
+		c1.silent(true);
 		// Should fail due to double definition
     REQUIRE(!c1.init());
 		//printf("Chained double definition:\n%s\n", c1.get_errors().c_str());
@@ -139,6 +140,42 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
 			INFO(c1.get_errors());
 			REQUIRE(false);
 		}
+	}
+
+
+	SECTION("Runtime adding of parameters should work") {
+		int argc = 2;
+		const char *argv1[] = { PROG, "-1"};
+		const char *argv2[] = { PROG, "-2"};
+
+    DefParameters a0 = {
+      { "Option 1", "-1", NONE, "This switch is in the original."}
+    };
+    CmdParameters c0("Test add - initial", a0);
+
+    DefParameters a1 = {
+      { "Option 2", "-2", NONE, "This switch is in the added list."}
+    };
+    CmdParameters c1("Test add - added", a1);
+
+		// Sanity checks
+		REQUIRE(c0.handle_commandline(argc, argv1, false) == CmdParameters::ALL_IS_WELL);
+		REQUIRE(c1.handle_commandline(argc, argv2, false) == CmdParameters::ALL_IS_WELL);
+
+		// The thing we want to test 
+		c0.show_usage();
+		REQUIRE(c0.handle_commandline(argc, argv2, false) != CmdParameters::ALL_IS_WELL);  // -2 not present yet
+
+		if (!c0.add(c1)) {
+			INFO(c0.get_errors());
+			REQUIRE(false);
+		}
+
+		c0.show_usage();
+		REQUIRE(c0.handle_commandline(argc, argv2, false) == CmdParameters::ALL_IS_WELL);  // -2 now present
+
+		// Doubles in added parameters should not be accepted
+		REQUIRE(!c0.add(c1));  // We already added this
 	}
 }
 

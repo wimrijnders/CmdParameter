@@ -27,6 +27,12 @@
 ## Release Notes
 
 ```
+20200831  v0.2.4
+    - Added method `CmdParameters::add()`.
+      Can now dynamically append parameter lists to an existing one.
+      Chaining lists can now be declared redundant.
+
+
 20200829  v0.2.3
     - Fixed setting of defaults for integer parameters
     - Some code cleanup and refactoring, making class `TypedParameter` simpler

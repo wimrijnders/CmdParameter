@@ -30,7 +30,8 @@ struct CmdParameters {
 		DefParameters global_params,
 		CmdParameters *parent = nullptr);
 
-	bool init();
+	bool init(CmdParameters *parent = nullptr);
+	bool add(CmdParameters const &rhs);
   bool validate();
 	void silent(bool val) { m_silent = val; }
   void show_usage();
@@ -48,13 +49,13 @@ private:
   CmdValidation        m_validation;
   bool                 m_validated    = false;
   DefActions           actions;
-	CmdParameters       *m_parent       = nullptr;  // Can't be const due to call to init() in init()
   DefAction           *m_p_action     = nullptr;
 	Buf                  errors;
 	bool                 m_silent       = false;
 
   static DefParameter help_def;
 
+	bool add_intern(CmdParameters const &rhs);
   bool init_params();
   bool init_actions();
   bool handle_action(char const *curarg, Buf *errors = nullptr);

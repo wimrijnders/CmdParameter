@@ -60,17 +60,15 @@ NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
 CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent) :
   usage(in_usage),
-  global_parameters(global_params),
-	m_parent(parent) {
-  init();
+  global_parameters(global_params) {
+  init(parent);
 }
 
 
 CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent) :
   usage(in_usage),
-  actions(in_actions),
-	m_parent(parent) {
-  init();
+  actions(in_actions) {
+  init(parent);
 }
 
 
@@ -81,9 +79,8 @@ CmdParameters::CmdParameters(
 	CmdParameters *parent) :
   usage(in_usage),
   global_parameters(global_params),
-  actions(in_actions),
-	m_parent(parent) {
-  init();
+  actions(in_actions) {
+  init(parent);
 }
 
 
@@ -232,34 +229,18 @@ bool CmdParameters::handle_commandline_intern(
 }
 
 
-bool CmdParameters::init() {
+bool CmdParameters::init(CmdParameters *parent) {
 	if (m_done_init) {
 		return m_init_result;  // already initialized 
 	}
 
 	errors.str(""); errors.clear();
-	m_done_init = true;  // Having run init() does not mean that it was successful!
+	m_validated = false;
 
-	if (m_parent != nullptr) {
-		// parent should have been init'ed already (in ctor)
-
-		if (m_parent->has_errors()) {
-    	errors << "parent instance has errors on init()";
-    	errors <<  m_parent->get_errors();
+	if (parent != nullptr) {
+		if (!add_intern(*parent)) {
+			m_init_result = false;
 			return false;
-		}
-
-		// Add the global param's of the parent to the local list.
-		// This means that some double work is done. I don't care
-  	for(auto &item : m_parent->global_parameters) {
-	    global_parameters.push_back(item);
-	 	}
-
-		// Add parent actions to list of this instance
-		// Init on these has already been called
-		// TODO: check if this is an issue
-  	for(auto &action : m_parent->actions) {
-			actions.push_back(action);
 		}
 	}
 
@@ -267,7 +248,44 @@ bool CmdParameters::init() {
 	             && init_params()
 	             && init_actions();
 
+	m_done_init = true;   // This does not mean that init() was successful!
 	return m_init_result;
+}
+
+
+bool CmdParameters::add_intern(CmdParameters const &rhs) {
+	// rhs should have been init'ed already (in ctor)
+
+	if (rhs.has_errors()) {
+   	errors << "Added instance has errors on init()";
+   	errors <<  rhs.get_errors();
+		return false;
+	}
+
+	// Add the global param's of the parent to the local list.
+	// This means that some double work is done. I don't care
+ 	for(auto &item : rhs.global_parameters) {
+    global_parameters.push_back(item);
+ 	}
+
+	// Add parent actions to list of this instance
+	// Init on these has already been called
+	// TODO: check if this is an issue
+ 	for(auto &action : rhs.actions) {
+		actions.push_back(action);
+	}
+
+	return true;
+}
+
+
+bool CmdParameters::add(CmdParameters const &rhs) {
+	m_done_init = false;  // Need to redo init
+	if (!add_intern(rhs)) {
+		return false;
+	}
+
+	return init();
 }
 
 
@@ -280,7 +298,7 @@ bool CmdParameters::init() {
  * @return true if all went well, false if an error occured during conversion.
  */
 bool CmdParameters::init_params() {
-  //m_parameters.clear();
+  m_parameters.clear();
 
   for(auto &item : global_parameters) {
     TypedParameter *p = DefParameter_factory(item);
