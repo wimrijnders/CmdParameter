@@ -21,6 +21,7 @@ struct CmdParameters {
 
   static NoneParameter help_switch;
 
+	CmdParameters(CmdParameters const &rhs);
 	CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent = nullptr);
   CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent = nullptr);
 
@@ -30,7 +31,7 @@ struct CmdParameters {
 		DefParameters global_params,
 		CmdParameters *parent = nullptr);
 
-	bool init(CmdParameters *parent = nullptr);
+	bool init(CmdParameters const *parent = nullptr);
 	bool add(CmdParameters const &rhs);
   bool validate();
 	void silent(bool val) { m_silent = val; }
@@ -41,7 +42,7 @@ struct CmdParameters {
   ExitCode handle_commandline(int argc, char const *argv[], bool show_help_on_error = true);
 
 private:
-  const char          *usage          = nullptr;
+  const char          *m_usage        = nullptr;
   DefParameters        global_parameters;
   TypedParameter::List m_parameters;
   bool                 m_done_init    = false;

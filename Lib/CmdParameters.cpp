@@ -57,16 +57,19 @@ DefParameter CmdParameters::help_def(
 
 NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
+CmdParameters::CmdParameters(CmdParameters const &rhs) : m_usage(rhs.m_usage) {
+  init(&rhs);
+}
 
 CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent) :
-  usage(in_usage),
+  m_usage(in_usage),
   global_parameters(global_params) {
   init(parent);
 }
 
 
 CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent) :
-  usage(in_usage),
+  m_usage(in_usage),
   actions(in_actions) {
   init(parent);
 }
@@ -77,7 +80,7 @@ CmdParameters::CmdParameters(
 	DefActions in_actions,
 	DefParameters global_params,
 	CmdParameters *parent) :
-  usage(in_usage),
+  m_usage(in_usage),
   global_parameters(global_params),
   actions(in_actions) {
   init(parent);
@@ -94,7 +97,7 @@ CmdParameters::CmdParameters(
  * Some effort is done to keep the descriptions aligned.
  */
 void CmdParameters::show_usage() {
-  cout << usage;
+  cout << m_usage;
   show_actions();
   show_params(m_parameters);
 }
@@ -229,7 +232,7 @@ bool CmdParameters::handle_commandline_intern(
 }
 
 
-bool CmdParameters::init(CmdParameters *parent) {
+bool CmdParameters::init(CmdParameters const *parent) {
 	if (m_done_init) {
 		return m_init_result;  // already initialized 
 	}
@@ -314,7 +317,7 @@ bool CmdParameters::init_params() {
 bool CmdParameters::validate() {
   if (m_validated) return true;
 
-  if (usage == nullptr) {
+  if (m_usage == nullptr) {
     m_validation.add_error("No usage passed");
   }
 
