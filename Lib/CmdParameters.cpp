@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstring>   // strcmp()
+#include "Support/Exception.h"
 #include "Support/debug.h"
 #include "Types/Types.h"
 #include "lib_local.h"
@@ -222,10 +223,8 @@ bool CmdParameters::handle_commandline_intern(
 
 			errors << "  Action expected, use one of: " << names << "\n";
 		}
-	} catch (string &error) {
-		if (error != "all is well") {
-			errors << "  " << error.c_str() << endl;
-		}
+	} catch (Exception &e) {
+		errors << "  " << e.what() << endl;
 	}
 
 	return true;

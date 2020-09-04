@@ -16,12 +16,14 @@
 #include "TypedParameter.h"
 #include <cassert>
 #include <cstring>   // strcmp
+#include "Support/Exception.h"
 #include "Support/debug.h"
 #include "DefParameter.h"
 #include "CmdParameters.h"
 #include "lib_local.h"
 
 using namespace std;
+
 
 
 //////////////////////////////////////////////
@@ -47,7 +49,7 @@ TypedParameter *TypedParameter::List::operator[] (const char *key) {
   }
 
   string msg = "'";
-  throw msg + key + "' is not a short name of a parameter.";
+  throw Exception(msg + key + "' is not a short name of a parameter.");
   return nullptr;
 }
 
@@ -170,7 +172,7 @@ void TypedParameter::error(const string &msg) const {
 	string pre("Parameter '");
 	pre += def_param.name;
 	pre += "' (" + m_prefixes[0] + ") ";  // NOTE: uses just first prefix definition
-	throw string(pre + msg);
+	throw Exception(pre + msg);
 }
 
 
@@ -211,7 +213,7 @@ bool TypedParameter::parse_param(const char *curarg) {
       if (def_param.has_default()) {
         return true;  // All is well, we have a default
       } else {
-        throw string(msg + " no value present and default not specified.");
+        throw Exception(msg + " no value present and default not specified.");
       }
     }
 */
@@ -265,7 +267,7 @@ float TypedParameter::get_float_value(const string &param) {
 
   if (end == str || *end != '\0') {
     string msg(def_param.name);
-    throw string(msg + " value not a float.");
+    throw Exception(msg + " value not a float.");
   }
 
   return value;
