@@ -259,8 +259,8 @@ bool CmdParameters::add_intern(CmdParameters const &rhs) {
 	// rhs should have been init'ed already (in ctor)
 
 	if (rhs.has_errors()) {
-   	errors << "Added instance has errors on init()";
-   	errors <<  rhs.get_errors();
+   	errors << "Added instance has errors on init()\n"
+   	       <<  rhs.get_errors();
 		return false;
 	}
 

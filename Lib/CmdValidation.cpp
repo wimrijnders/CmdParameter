@@ -150,8 +150,9 @@ void CmdValidation::check_parameter(DefParameter &param) {
       for (int j = i + 1; j < (int) p.prefixes.size(); ++j) {
         auto &pr1 = p.prefixes[i];
         auto &pr2 = p.prefixes[j];
+				//std::cout << pr1 << " - " << pr2 << std::endl;
 
-        if (strcmp(pr1, pr2)) {
+        if (strlen(pr1) == strlen(pr2) && strcmp(pr1, pr2)) {  // TIL stcmp() only compares length of shortest string
           add_error() << "Duplicate prefixes '" << pr1 << "' "
                       << "for " << p.name;
         }

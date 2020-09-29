@@ -392,3 +392,23 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 }
 
 
+TEST_CASE("Test issues during usage", "[params][issues]") {
+
+	CmdParameters base_params = {
+	  "blurb",
+	  {{
+	    "Disable logging",
+	    "-s", "-silent",
+	    ParamType::NONE,
+	    "Do not show the logging output on standard output"
+	  }}
+	};
+
+	SECTION("Check error 'Duplicate prefixes'") {
+		CmdParameters p(base_params);
+		INFO(p.get_errors());
+		REQUIRE(!p.has_errors());
+	}
+}
+
+
