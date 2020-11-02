@@ -181,6 +181,11 @@ bool TypedParameter::parse_param(const char *curarg) {
 
 	for (auto &p : m_prefixes) {
 		if (Strings::starts_with(curarg, p)) {
+			if (!takes_value()) {
+				// In this case, the match must be exact
+				if (p != curarg) continue;
+			}
+
 			found_prefix = true;
 			break;
 		}

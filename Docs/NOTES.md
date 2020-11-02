@@ -27,6 +27,10 @@
 ## Release Notes
 
 ```
+20201102  v0.2.6
+    - Fix on parameter parsing; match should be exact when parameter
+      takes no values.
+
 20200904  v0.2.5
     - Added proper Exception class, for proper display of message
       when they get thrown.
