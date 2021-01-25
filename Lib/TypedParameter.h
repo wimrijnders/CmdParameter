@@ -16,12 +16,12 @@ class DefParameter;
 struct TypedParameter {
   using string = std::string;
 
-	struct Values {
-  	bool   m_detected   = false;
-  	int    int_value    = -1;
-  	float  float_value  = -1.0f;
-  	string string_value;
-	};
+  struct Values {
+    bool   m_detected   = false;
+    int    int_value    = -1;
+    float  float_value  = -1.0f;
+    string string_value;
+  };
 
   class List : public std::vector<std::unique_ptr<TypedParameter>> {
     using Parent = std::vector<std::unique_ptr<TypedParameter>>;
@@ -36,7 +36,7 @@ struct TypedParameter {
 
     bool process_unnamed(const char *curarg);
 
-		void reset_values();
+    void reset_values();
   };
 
   DefParameter  &def_param;
@@ -49,19 +49,19 @@ struct TypedParameter {
   float  get_float_value()  const { return m_values.float_value; }
   string get_string_value() const { return m_values.string_value; }
 
-	void reset_values();
+  void reset_values();
   bool parse_param(const char *curarg);
   virtual string usage();
 
 protected:
   std::vector<string> m_prefixes;
-	std::string m_value_indicator;
+  std::string m_value_indicator;
 
-	Values m_defaults;
-	Values m_values;
+  Values m_defaults;
+  Values m_values;
 
   int  get_int_value(const string &param);
-	void error(const string &msg) const;
+  void error(const string &msg) const;
 
   bool parse_string_param(const string &in_value);
 
@@ -75,7 +75,7 @@ protected:
 private:
   virtual bool parse_param_internal(const string &in_value) = 0;
   virtual void default_indicator(std::ostringstream &os) {};
-	virtual bool takes_value() const { return true; }
+  virtual bool takes_value() const { return true; }
 };
 
 #endif // TYPEDPARAMETER_H

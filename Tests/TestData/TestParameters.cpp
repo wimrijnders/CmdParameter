@@ -49,7 +49,7 @@ CmdParameters definition = {
     "-intdef=",
     INTEGER,
     "This value can be any integer",
-		42
+    42
   }, {
     "Input file",
     "first_file",
@@ -73,13 +73,13 @@ bool TestParameters::handle_commandline(
   const char* argv[],
   bool show_help_on_error) {
 
-	auto ret = definition.handle_commandline(argc, argv, show_help_on_error);
-	if (ret == CmdParameters::ALL_IS_WELL) {
-		pass_params();
-		return true;
-	}
+  auto ret = definition.handle_commandline(argc, argv, show_help_on_error);
+  if (ret == CmdParameters::ALL_IS_WELL) {
+    pass_params();
+    return true;
+  }
 
-	return (ret != CmdParameters::EXIT_ERROR);
+  return (ret != CmdParameters::EXIT_ERROR);
 }
 
 

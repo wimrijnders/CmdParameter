@@ -8,7 +8,7 @@ public:
 
 private:
   bool parse_param_internal(const std::string &in_value) override;
-	bool takes_value() const override { return false; }
+  bool takes_value() const override { return false; }
 };
 
 #endif // NONEPARAMETER_H

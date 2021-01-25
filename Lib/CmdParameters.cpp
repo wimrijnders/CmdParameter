@@ -12,7 +12,7 @@ using namespace std;
 namespace {
 
 enum {
-	PAD_OFFSET = 5
+  PAD_OFFSET = 5
 };
 
 using List = TypedParameter::List;
@@ -50,7 +50,7 @@ string set_indent(int indent, string const &str) {
 // Internal definition of help switch
 DefParameter CmdParameters::help_def(
   "Help switch",
-  "help", "-h",
+  { "help", "-h" },
   NONE,
   "Show this information. Overrides all other parameters"
 );
@@ -77,10 +77,10 @@ CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdPar
 
 
 CmdParameters::CmdParameters(
-	char const *in_usage,
-	DefActions in_actions,
-	DefParameters global_params,
-	CmdParameters *parent) :
+  char const *in_usage,
+  DefActions in_actions,
+  DefParameters global_params,
+  CmdParameters *parent) :
   m_usage(in_usage),
   global_parameters(global_params),
   actions(in_actions) {
@@ -116,29 +116,42 @@ CmdParameters::ExitCode CmdParameters::handle_commandline(
   char const *argv[],
   bool show_help_on_error) {
 
-	bool do_continue = true;
+  bool do_continue = true;
 
   if (init()) {
-		do_continue = handle_commandline_intern(argc, argv, show_help_on_error);
-	}
+    do_continue = handle_commandline_intern(argc, argv, show_help_on_error);
+  }
 
-	if (has_errors()) {
-		if (!m_silent) {
-			cout << "Error(s) on command line:\n" << get_errors() << endl;
+  if (has_errors()) {
+    if (!m_silent) {
+      cout << "Error(s) on command line:\n" << get_errors() << endl;
 
-			if (show_help_on_error) {
-				show_usage();
-			} else {
-				cout << "  Use 'help' or '-h' to view options\n"  << endl;
-			}
-		}
-	}
+      if (show_help_on_error) {
+        show_usage();
+      } else {
+        cout << "  Use 'help' or '-h' to view options\n"  << endl;
+      }
+    }
+  }
 
-	if (has_errors()) {
-  	return EXIT_ERROR;
-	} else {
-  	return (do_continue)?ALL_IS_WELL:EXIT_NO_ERROR;
-	}
+  if (has_errors()) {
+    return EXIT_ERROR;
+  } else {
+    return (do_continue)?ALL_IS_WELL:EXIT_NO_ERROR;
+  }
+}
+
+
+void CmdParameters::show_errors(bool do_explicit) {
+  if (has_errors()) {
+    if (do_explicit || !m_silent) {
+      cout << "Error(s) on command line:\n" << get_errors() << endl;
+    }
+  } else {
+    if (do_explicit) {
+      cout << "  No errors encountered\n"  << endl;
+    }
+  }
 }
 
 
@@ -152,142 +165,142 @@ CmdParameters::ExitCode CmdParameters::handle_commandline(
  * @return true if execution can continue, false otherwise
  */
 bool CmdParameters::handle_commandline_intern(
-	int argc,
-	char const *argv[],
-	bool show_help_on_error) {
+  int argc,
+  char const *argv[],
+  bool show_help_on_error) {
 
-	//std::cout << "entered handle_commandline_intern()" << std::endl;
+  //std::cout << "entered handle_commandline_intern()" << std::endl;
 
-	errors.str(""); errors.clear();
-	m_p_action = nullptr;
-	m_parameters.reset_values();
+  errors.str(""); errors.clear();
+  m_p_action = nullptr;
+  m_parameters.reset_values();
 
-	// Prescan for help; this overrides everything
-	if (handle_help(argc, argv)) return false;
+  // Prescan for help; this overrides everything
+  if (handle_help(argc, argv)) return false;
 
-	int curindex = 0;
+  int curindex = 0;
 
-	try {
-		while (true) {
-			curindex++;
-			if (curindex >= argc) break;
+  try {
+    while (true) {
+      curindex++;
+      if (curindex >= argc) break;
 
-			const char *curarg = argv[curindex];
+      const char *curarg = argv[curindex];
 
-			//cout << "option: " << curarg << endl;
+      //cout << "option: " << curarg << endl;
 
-			// Global options first
-			if (process_option(m_parameters, curarg)) continue;
+      // Global options first
+      if (process_option(m_parameters, curarg)) continue;
 
-			// Actions
-			bool found_action = handle_action(curarg, &errors);
-			if (found_action) continue;
+      // Actions
+      bool found_action = handle_action(curarg, &errors);
+      if (found_action) continue;
 
-			if (m_p_action != nullptr) {
-				// Check action options
-				if (process_option(m_p_action->parameters, curarg)) {
-					//cout << "Found option '" << curarg << "' for action '" << m_p_action->name << "'." << endl;
-					found_action = true;
-				}
-			}
-			if (found_action) continue;
+      if (m_p_action != nullptr) {
+        // Check action options
+        if (process_option(m_p_action->parameters, curarg)) {
+          //cout << "Found option '" << curarg << "' for action '" << m_p_action->name << "'." << endl;
+          found_action = true;
+        }
+      }
+      if (found_action) continue;
 
-			// It's not one an option or an action, so it must be unnamed input
-			// NOTE: this implementation check UNNAMED on global options only!
-			if (!m_parameters.process_unnamed(curarg)) {
-				errors << "  Too many unnamed parameters on command line, '" << curarg << "' unexpected.\n";
-			}
-		}
+      // It's not one an option or an action, so it must be unnamed input
+      // NOTE: this implementation check UNNAMED on global options only!
+      if (!m_parameters.process_unnamed(curarg)) {
+        errors << "  Too many unnamed parameters on command line, '" << curarg << "' unexpected.\n";
+      }
+    }
 
-		// Check if all unnamed fields have a value
-		for (auto &ptr : m_parameters) {
-			auto &field = *ptr.get();
-			if (field.def_param.param_type != UNNAMED) continue;
+    // Check if all unnamed fields have a value
+    for (auto &ptr : m_parameters) {
+      auto &field = *ptr.get();
+      if (field.def_param.param_type != UNNAMED) continue;
 
-			if (field.get_string_value().empty()) {
-				errors << "  No " << field.def_param.name << " specified.\n";
-			}
-		}
+      if (field.get_string_value().empty()) {
+        errors << "  No " << field.def_param.name << " specified.\n";
+      }
+    }
 
-		// If actions defined, an action must have been detected
-		if (!actions.empty() && m_p_action == nullptr) {
-			// Collect all action names
-			std::string names;
-			for (auto & action : actions) {
-				if (!names.empty()) {
-					names += " ";
-				}
+    // If actions defined, an action must have been detected
+    if (!actions.empty() && m_p_action == nullptr) {
+      // Collect all action names
+      std::string names;
+      for (auto & action : actions) {
+        if (!names.empty()) {
+          names += " ";
+        }
 
-				names += action.name;
-			}
+        names += action.name;
+      }
 
-			errors << "  Action expected, use one of: " << names << "\n";
-		}
-	} catch (Exception &e) {
-		errors << "  " << e.what() << endl;
-	}
+      errors << "  Action expected, use one of: " << names << "\n";
+    }
+  } catch (Exception &e) {
+    errors << "  " << e.what() << endl;
+  }
 
-	return true;
+  return true;
 }
 
 
 bool CmdParameters::init(CmdParameters const *parent) {
-	if (m_done_init) {
-		return m_init_result;  // already initialized 
-	}
+  if (m_done_init) {
+    return m_init_result;  // already initialized 
+  }
 
-	errors.str(""); errors.clear();
-	m_validated = false;
+  errors.str(""); errors.clear();
+  m_validated = false;
 
-	if (parent != nullptr) {
-		if (!add_intern(*parent)) {
-			m_init_result = false;
-			return false;
-		}
-	}
+  if (parent != nullptr) {
+    if (!add_intern(*parent)) {
+      m_init_result = false;
+      return false;
+    }
+  }
 
   m_init_result = validate()
-	             && init_params()
-	             && init_actions();
+               && init_params()
+               && init_actions();
 
-	m_done_init = true;   // This does not mean that init() was successful!
-	return m_init_result;
+  m_done_init = true;   // This does not mean that init() was successful!
+  return m_init_result;
 }
 
 
 bool CmdParameters::add_intern(CmdParameters const &rhs) {
-	// rhs should have been init'ed already (in ctor)
+  // rhs should have been init'ed already (in ctor)
 
-	if (rhs.has_errors()) {
-   	errors << "Added instance has errors on init()\n"
-   	       <<  rhs.get_errors();
-		return false;
-	}
+  if (rhs.has_errors()) {
+     errors << "Added instance has errors on init()\n"
+            <<  rhs.get_errors();
+    return false;
+  }
 
-	// Add the global param's of the parent to the local list.
-	// This means that some double work is done. I don't care
- 	for(auto &item : rhs.global_parameters) {
+  // Add the global param's of the parent to the local list.
+  // This means that some double work is done. I don't care
+   for(auto &item : rhs.global_parameters) {
     global_parameters.push_back(item);
- 	}
+   }
 
-	// Add parent actions to list of this instance
-	// Init on these has already been called
-	// TODO: check if this is an issue
- 	for(auto &action : rhs.actions) {
-		actions.push_back(action);
-	}
+  // Add parent actions to list of this instance
+  // Init on these has already been called
+  // TODO: check if this is an issue
+   for(auto &action : rhs.actions) {
+    actions.push_back(action);
+  }
 
-	return true;
+  return true;
 }
 
 
 bool CmdParameters::add(CmdParameters const &rhs) {
-	m_done_init = false;  // Need to redo init
-	if (!add_intern(rhs)) {
-		return false;
-	}
+  m_done_init = false;  // Need to redo init
+  if (!add_intern(rhs)) {
+    return false;
+  }
 
-	return init();
+  return init();
 }
 
 
@@ -304,10 +317,10 @@ bool CmdParameters::init_params() {
 
   for(auto &item : global_parameters) {
     TypedParameter *p = DefParameter_factory(item);
-		if (p == nullptr) return false;
+    if (p == nullptr) return false;
 
     m_parameters.emplace_back(p);
- 	}
+   }
  
   return true;
 }
@@ -321,7 +334,7 @@ bool CmdParameters::validate() {
   }
 
   m_validated = m_validation.validate(global_parameters, actions);
-	errors << m_validation.get_messages(); 
+  errors << m_validation.get_messages(); 
 
   return m_validated;
 }
@@ -340,7 +353,7 @@ void CmdParameters::show_params(TypedParameter::List &parameters) {
  show_just_params(parameters);
 
   if (have_actions) {
-  	cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n"
+    cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n"
          << " * 'help' combined with an action shows the help for that action.\n"
          << " * Actions-specific options must come *after* the action on the commandline.\n";
   }
@@ -393,27 +406,27 @@ bool CmdParameters::handle_help(int argc, char const *argv[]) {
   bool have_help = false;
   int curindex = 0;
 
-	while (true) {
-		curindex++;
-		if (curindex >= argc) break;
+  while (true) {
+    curindex++;
+    if (curindex >= argc) break;
 
-		const char *curarg = argv[curindex];
+    const char *curarg = argv[curindex];
 
-		if (string("help") == curarg || string("-h") == curarg) {
-			have_help =true;
-			break;
-		}
-	}
+    if (string("help") == curarg || string("-h") == curarg) {
+      have_help =true;
+      break;
+    }
+  }
 
-	if (have_help) {
-		if (scan_action(argc, argv)) {
-			show_action_usage();
-		} else {
-			show_usage();
-		}
-	}
+  if (have_help) {
+    if (scan_action(argc, argv)) {
+      show_action_usage();
+    } else {
+      show_usage();
+    }
+  }
 
-	return have_help;
+  return have_help;
 }
 
 
@@ -448,41 +461,41 @@ bool CmdParameters::init_actions() {
 
 
 bool CmdParameters::handle_action(char const *curarg, Buf *errors) {
-	bool found_action = false;
+  bool found_action = false;
 
-	for (auto &action : actions) {
-		if (strcmp(action.name, curarg) == 0) {
-			found_action = true;
+  for (auto &action : actions) {
+    if (strcmp(action.name, curarg) == 0) {
+      found_action = true;
 
-			if (m_p_action != nullptr) {
-				if (errors != nullptr) {
-					*errors << "Multiple actions encountered on the command line.\n";
-				}
-				break;
-			}
+      if (m_p_action != nullptr) {
+        if (errors != nullptr) {
+          *errors << "Multiple actions encountered on the command line.\n";
+        }
+        break;
+      }
 
-			m_p_action = &action;
-			//cout << "Found action '" << m_p_action->name << "'." << endl;  // DEBUG
-		}
-	}
+      m_p_action = &action;
+      //cout << "Found action '" << m_p_action->name << "'." << endl;  // DEBUG
+    }
+  }
 
-	return found_action;
+  return found_action;
 }
 
 
 bool CmdParameters::scan_action(int argc, char const *argv[]) {
-	int curindex = 0;
-	m_p_action = nullptr;
+  int curindex = 0;
+  m_p_action = nullptr;
 
-	while (true) {
-		curindex++;
-		if (curindex >= argc) break;
+  while (true) {
+    curindex++;
+    if (curindex >= argc) break;
 
-		const char *curarg = argv[curindex];
-		if (handle_action(curarg)) return true;
-	}
+    const char *curarg = argv[curindex];
+    if (handle_action(curarg)) return true;
+  }
 
-	return false;
+  return false;
 }
 
 

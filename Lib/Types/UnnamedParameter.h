@@ -11,7 +11,7 @@ private:
     return parse_string_param(in_value);
   }
 
-	bool takes_value() const override { return false; }
+  bool takes_value() const override { return false; }
 };
 
 #endif // UNNAMEDPARAMETER_H

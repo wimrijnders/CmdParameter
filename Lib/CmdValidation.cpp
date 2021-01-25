@@ -40,7 +40,7 @@ void CmdValidation::add_warning(const std::string &msg) {
 
 std::string CmdValidation::get_messages() {
   assert((m_added_errors || m_added_warnings) == !m_messages.empty());
-	Buf out;
+  Buf out;
 
   if (!m_messages.empty()) {
     out << "Messages during validation:\n";
@@ -62,7 +62,6 @@ bool CmdValidation::validate(DefParameters &params, DefActions &actions) {
   }
 
   check_actions_distinct(actions);
-
   check_labels(params);
   check_parameters(params);
   return !m_added_errors;
@@ -110,8 +109,8 @@ void CmdValidation::check_labels(DefParameters &params) {
           if (pr2[0] == '\0') continue;
 
           if (!strcmp(pr1, pr2)) {
-            add_error() << "Multiple parameter definitions with same prefix '" << pr1 << "', "
-                        << "namely parameters '" << p1.name << "' and '" << p2.name << "'";
+            add_error() << "Same prefix '" << pr1 << "', "
+                        << "used for parameters '" << p1.name << "' and '" << p2.name << "'";
           }
         }
       }
@@ -136,23 +135,37 @@ void CmdValidation::check_parameter(DefParameter &param) {
                 << "in parameter " << p.name;
   }
 
+  // no null prefixes
+  bool failed = false;
+  for (auto &pr : p.prefixes) {
+    if (pr == nullptr) {
+      add_error() << "prefix can not be null "
+                  << "in parameter " << p.name;
+
+      failed = true; // Don't continue after this
+    }
+  }
+
+  if (failed) return;
+  failed = false;  // Paranoia
+
   // no empty prefix strings
   for (auto &pr : p.prefixes) {
     if (pr[0] == '\0') {
-      add_error() << "prefixes can not be an empty string "
+      add_error() << "prefix can not be an empty string "
                   << "in parameter " << p.name;
     }
   }
 
   // prefixes must be unique
   if (p.prefixes.size() >= 2) {
-    for (int i = 0; i < (int) p.prefixes.size() -1; ++i) {
+    for (int i = 0; i < (int) p.prefixes.size() - 1; ++i) {
       for (int j = i + 1; j < (int) p.prefixes.size(); ++j) {
         auto &pr1 = p.prefixes[i];
         auto &pr2 = p.prefixes[j];
-				//std::cout << pr1 << " - " << pr2 << std::endl;
+        //std::cout << pr1 << " - " << pr2 << std::endl;
 
-        if (strlen(pr1) == strlen(pr2) && strcmp(pr1, pr2)) {  // TIL stcmp() only compares length of shortest string
+        if (strlen(pr1) == strlen(pr2) && !strcmp(pr1, pr2)) {  // NOTE stcmp() compares to length of shortest string
           add_error() << "Duplicate prefixes '" << pr1 << "' "
                       << "for " << p.name;
         }

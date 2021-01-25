@@ -1,32 +1,42 @@
 ## TODO
 
-- Central location for the version number. Now used in:
-  * README.md
-
 ### Validation
 
-- Options must be unique within global (**DONE**) and action
-- Options must be unique over any combination of global and action
-- No whitespace in options and actions
+- [x] Options must be unique within global
+- [ ] Options must be unique within action
+- [ ] Options must be unique over any combination of global and action
+- [ ] No whitespace in options and actions
+- [ ] Check correct usage assign ('=') postfix in prefixes
+  * '=' not allowed for NONE
+  * '=' required for integers (etc.)
+  * check all prefixes in >1 list 
 
 
 ### Command line parsing
 
-- **DONE** Action-specific help - show options per action (+ long blurb)
-- Handle `UNNAMED` for actions, also in combination with global `UNNAMED`
-- If any action defined, action *must* be used on command line
+- [x] Action-specific help - show options per action (+ long blurb)
+- [ ] Handle `UNNAMED` for actions, also in combination with global `UNNAMED`
+- [ ] If any action defined, action *must* be used on command line
 
 
 ### Code
 
-- Get tabs/spaces right for indent -> 2 spaces
-- Use eastern const
+- [x] Get tabs/spaces right for indent -> 2 spaces
+- [ ] Use eastern const
+
 
 -----
 
 ## Release Notes
 
 ```
+20210125  v0.3.0
+    - Allow multiple prefixes for options, definition as vector.
+      This is an API change.
+    - Fix stupid bug: `!strcmp()` - '!' to test match (idiot)
+    - Converted all tab indents to 2 spaces
+
+
 20201102  v0.2.6
     - Fix on parameter parsing; match should be exact when parameter
       takes no values.

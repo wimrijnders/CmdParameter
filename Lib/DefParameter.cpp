@@ -16,7 +16,8 @@ DefParameter::DefParameter(
   const char *in_usage) :
   name(in_name),
   param_type(in_param_type),
-  usage(in_usage) {
+  usage(in_usage)
+{
   if (in_prefix != nullptr) {
     prefixes.push_back(in_prefix);
   }
@@ -26,19 +27,15 @@ DefParameter::DefParameter(
 
 DefParameter::DefParameter(
   const char *in_name,
-  const char *in_prefix,
-  const char *in_prefix2,
+  Prefixes    in_prefixes,
   ParamType   in_param_type,
   const char *in_usage) :
   name(in_name),
+  prefixes(in_prefixes),
   param_type(in_param_type),
-  usage(in_usage) {
-  if (in_prefix != nullptr) {
-    prefixes.push_back(in_prefix);
-  }
-  if (in_prefix2 != nullptr) {
-    prefixes.push_back(in_prefix2);
-  }
+  usage(in_usage)
+{
+  assert(in_prefixes.size() >= 2);
   handle_defaults();
 }
 
@@ -52,9 +49,9 @@ DefParameter::DefParameter(
   name(in_name),
   param_type(in_param_type),
   usage(in_usage),
-  int_default(default_value) {
-
-	assert(in_prefix != nullptr);
+  int_default(default_value)
+{
+  assert(in_prefix != nullptr);
   if (in_prefix != nullptr) {
     prefixes.push_back(in_prefix);
   }
@@ -64,18 +61,50 @@ DefParameter::DefParameter(
 
 DefParameter::DefParameter(
   const char *in_name,
+  Prefixes    in_prefixes,
+  ParamType   in_param_type,
+  const char *in_usage,
+  int default_value) :
+  name(in_name),
+  prefixes(in_prefixes),
+  param_type(in_param_type),
+  usage(in_usage),
+  int_default(default_value)
+{
+  assert(in_prefixes.size() >= 2);
+  handle_defaults();
+}
+
+
+DefParameter::DefParameter(
+  const char *in_name,
   const char *in_prefix,
-	Options const &options,
+  Options const &options,
   const char *in_usage) :
   name(in_name),
   param_type(OPTION),
   usage(in_usage),
-	m_options(options) {
-
-	// Need to copy here, passed options can go out of context
- 	if (in_prefix != nullptr) {
+  m_options(options)
+{
+  assert(in_prefix != nullptr);
+   if (in_prefix != nullptr) {
     prefixes.push_back(in_prefix);
   }
+}
+
+
+DefParameter::DefParameter(
+  const char *in_name,
+  Prefixes    in_prefixes,
+  Options const &options,
+  const char *in_usage) :
+  name(in_name),
+  prefixes(in_prefixes),
+  param_type(OPTION),
+  usage(in_usage),
+  m_options(options)
+{
+  assert(in_prefixes.size() >= 2);
 }
 
 

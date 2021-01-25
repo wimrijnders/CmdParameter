@@ -121,13 +121,13 @@ bool TypedParameter::List::process_unnamed(const char *curarg) {
       param.m_values.string_value = curarg;
       return true;
     } else if (param.m_values.string_value == curarg) {
-			printf("Parameter already there! Not expecting this: %s\n", curarg);
-			assert(false);  // Not expecting this any more
+      printf("Parameter already there! Not expecting this: %s\n", curarg);
+      assert(false);  // Not expecting this any more
 
-			// NOTE: Already filled in. Apparently, this can be called twice.
-			//       As long as there are no side-effects, I don't mind.
-			return true;
-		}
+      // NOTE: Already filled in. Apparently, this can be called twice.
+      //       As long as there are no side-effects, I don't mind.
+      return true;
+    }
   }
 
   return false;
@@ -137,8 +137,8 @@ bool TypedParameter::List::process_unnamed(const char *curarg) {
 void TypedParameter::List::reset_values() {
   for (auto &item: *this) {
     TypedParameter &param = *item;
-		param.reset_values();
-	}
+    param.reset_values();
+  }
 }
 
 
@@ -148,66 +148,66 @@ void TypedParameter::List::reset_values() {
 
 TypedParameter::TypedParameter(DefParameter &var, char const *value_indicator) :
   def_param(var),
-	m_value_indicator(value_indicator) {
+  m_value_indicator(value_indicator) {
 
-	assert(value_indicator != nullptr);
+  assert(value_indicator != nullptr);
 
-	// Remove '=' from the field prefix
-	// NOTE: var.prefixes may be empty! (incorrect but possible, checks should catch this)
-	for (auto &p : var.prefixes) {
-		auto tmp = Strings::explode(p, '=');
-		if (!tmp.empty()) {
-			m_prefixes.push_back(tmp[0]);
-		}
-	}
+  // Remove '=' from the field prefix
+  // NOTE: var.prefixes may be empty! (incorrect but possible, checks should catch this)
+  for (auto &p : var.prefixes) {
+    auto tmp = Strings::explode(p, '=');
+    if (!tmp.empty()) {
+      m_prefixes.push_back(tmp[0]);
+    }
+  }
 }
 
 
 void TypedParameter::reset_values() {
-	m_values = m_defaults;
+  m_values = m_defaults;
 }
 
 
 void TypedParameter::error(const string &msg) const {
-	string pre("Parameter '");
-	pre += def_param.name;
-	pre += "' (" + m_prefixes[0] + ") ";  // NOTE: uses just first prefix definition
-	throw Exception(pre + msg);
+  string pre("Parameter '");
+  pre += def_param.name;
+  pre += "' (" + m_prefixes[0] + ") ";  // NOTE: uses just first prefix definition
+  throw Exception(pre + msg);
 }
 
 
 bool TypedParameter::parse_param(const char *curarg) {
-	bool found_prefix = false;
+  bool found_prefix = false;
 
-	for (auto &p : m_prefixes) {
-		if (Strings::starts_with(curarg, p)) {
-			if (!takes_value()) {
-				// In this case, the match must be exact
-				if (p != curarg) continue;
-			}
+  for (auto &p : m_prefixes) {
+    if (Strings::starts_with(curarg, p)) {
+      if (!takes_value()) {
+        // In this case, the match must be exact
+        if (p != curarg) continue;
+      }
 
-			found_prefix = true;
-			break;
-		}
-	}
+      found_prefix = true;
+      break;
+    }
+  }
 
-	if (!found_prefix) {
-		return false;
-	}
+  if (!found_prefix) {
+    return false;
+  }
 
   string value = get_param(curarg);
 
-	if (takes_value()) {
+  if (takes_value()) {
     if (value.empty()) {
-			error("takes a value, none specified.");
-		} else {
-			// Disallow whitespace after '='
-			if (std::isspace(static_cast<unsigned char>(value[0]))) {
-				error(" has unexpected whitespace after '='.");
-			}
-		}
-	} else {
-		if (Strings::contains(curarg, "=") || !value.empty()) {
+      error("takes a value, none specified.");
+    } else {
+      // Disallow whitespace after '='
+      if (std::isspace(static_cast<unsigned char>(value[0]))) {
+        error(" has unexpected whitespace after '='.");
+      }
+    }
+  } else {
+    if (Strings::contains(curarg, "=") || !value.empty()) {
      error("has value specified, shouldn't have one.");
     }
   }
@@ -255,8 +255,8 @@ string TypedParameter::get_param(const char *curarg) {
 
 
 bool TypedParameter::parse_string_param(const string &in_value) {
-	assert(!in_value.empty());
-	assert(def_param.param_type == STRING);
+  assert(!in_value.empty());
+  assert(def_param.param_type == STRING);
 
   m_values.string_value = in_value;
   m_values.m_detected = true;

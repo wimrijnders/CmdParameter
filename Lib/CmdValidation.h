@@ -11,14 +11,14 @@ class CmdValidation;
 
 class MsgBuffer : public std::ostringstream {
 public:
-	MsgBuffer() = delete;
-	MsgBuffer(MsgBuffer const &rhs) : m_caller(rhs.m_caller), m_error(rhs.m_error) {}
-	MsgBuffer(CmdValidation &caller, bool error) : m_caller(caller), m_error(error) {}
-	~MsgBuffer();
+  MsgBuffer() = delete;
+  MsgBuffer(MsgBuffer const &rhs) : m_caller(rhs.m_caller), m_error(rhs.m_error) {}
+  MsgBuffer(CmdValidation &caller, bool error) : m_caller(caller), m_error(error) {}
+  ~MsgBuffer();
 
 private:
-	CmdValidation &m_caller;
-	bool const m_error;
+  CmdValidation &m_caller;
+  bool const m_error;
 };
 
 

@@ -19,12 +19,12 @@ CmdParameters params = {
 
 
 int main(int argc, const char *argv[]) {
-	auto ret = params.handle_commandline(argc, argv, false);
-	if (ret != CmdParameters::ALL_IS_WELL) {
-		return ret;
-	}
+  auto ret = params.handle_commandline(argc, argv, false);
+  if (ret != CmdParameters::ALL_IS_WELL) {
+    return ret;
+  }
 
-	cout << "switch value: " << params.parameters()[0]->get_int_value() << endl;
+  cout << "switch value: " << params.parameters()[0]->get_int_value() << endl;
 
-	return 0;
+  return 0;
 }

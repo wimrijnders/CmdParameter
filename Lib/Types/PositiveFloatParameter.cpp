@@ -8,7 +8,7 @@
 using std::string;
 
 PositiveFloatParameter::PositiveFloatParameter(DefParameter &var) : TypedParameter(var, "<float>") {
-	m_defaults.float_value = var.float_default;
+  m_defaults.float_value = var.float_default;
 
   if (var.float_default <= 0.0f) {
     string msg = "Field '";

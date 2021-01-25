@@ -9,34 +9,35 @@
 
 
 struct CmdParameters {
-	using List = TypedParameter::List;
-	using StrList = std::vector<std::string>;
-	using Buf = std::ostringstream;  // because it looks ugly in var declarations
+  using List = TypedParameter::List;
+  using StrList = std::vector<std::string>;
+  using Buf = std::ostringstream;  // because it looks ugly in var declarations
 
-	enum ExitCode {
-		ALL_IS_WELL   = -2,
-		EXIT_NO_ERROR =  0,
-		EXIT_ERROR    =  1
-	};
+  enum ExitCode {
+    ALL_IS_WELL   = -2,
+    EXIT_NO_ERROR =  0,
+    EXIT_ERROR    =  1
+  };
 
   static NoneParameter help_switch;
 
-	CmdParameters(CmdParameters const &rhs);
-	CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent = nullptr);
+  CmdParameters(CmdParameters const &rhs);
+  CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent = nullptr);
   CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent = nullptr);
 
   CmdParameters(
-		char const *in_usage,
-		DefActions in_actions,
-		DefParameters global_params,
-		CmdParameters *parent = nullptr);
+    char const *in_usage,
+    DefActions in_actions,
+    DefParameters global_params,
+    CmdParameters *parent = nullptr);
 
-	bool init(CmdParameters const *parent = nullptr);
-	bool add(CmdParameters const &rhs);
+  bool init(CmdParameters const *parent = nullptr);
+  bool add(CmdParameters const &rhs);
   bool validate();
-	void silent(bool val) { m_silent = val; }
+  void silent(bool val) { m_silent = val; }
   void show_usage();
-	std::string get_errors() const { return errors.str(); }
+  void show_errors(bool do_explicit = false);
+  std::string get_errors() const { return errors.str(); }
   bool has_errors() const { return !errors.str().empty(); }
   TypedParameter::List &parameters() { return m_parameters; }
   ExitCode handle_commandline(int argc, char const *argv[], bool show_help_on_error = true);
@@ -51,12 +52,12 @@ private:
   bool                 m_validated    = false;
   DefActions           actions;
   DefAction           *m_p_action     = nullptr;
-	Buf                  errors;
-	bool                 m_silent       = false;
+  Buf                  errors;
+  bool                 m_silent       = false;
 
   static DefParameter help_def;
 
-	bool add_intern(CmdParameters const &rhs);
+  bool add_intern(CmdParameters const &rhs);
   bool init_params();
   bool init_actions();
   bool handle_action(char const *curarg, Buf *errors = nullptr);

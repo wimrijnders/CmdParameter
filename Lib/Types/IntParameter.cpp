@@ -7,7 +7,7 @@
 
 
 IntParameter::IntParameter(DefParameter &var) : TypedParameter(var, "<num>") {
-	m_defaults.int_value = var.int_default;
+  m_defaults.int_value = var.int_default;
 }
 
 

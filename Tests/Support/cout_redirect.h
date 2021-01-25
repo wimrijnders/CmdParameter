@@ -60,16 +60,16 @@
  */
 class cout_redirect {
 public:
-	cout_redirect();
-	~cout_redirect() { close();	}
+  cout_redirect();
+  ~cout_redirect() { close();  }
 
-	std::string str() { return strCout.str(); }
-	void close();
-	void clear();
+  std::string str() { return strCout.str(); }
+  void close();
+  void clear();
 
 private:
-	std::streambuf* oldCoutStreamBuf{nullptr};
-	std::ostringstream strCout;
+  std::streambuf* oldCoutStreamBuf{nullptr};
+  std::ostringstream strCout;
 };
 
 #endif // COUT_REDIRECT_H
