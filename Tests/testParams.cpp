@@ -2,6 +2,7 @@
 #include "Support/debug.h"
 #include "../Lib/CmdParameters.h"
 #include "Support/cout_redirect.h"
+#include "Support/Settings.h"
 #include "TestData/TestParameters.h"
 
 const char *PROG = "TestProg";  // Name of dummy executable
@@ -484,3 +485,100 @@ TEST_CASE("Test issues during usage [params][issues]") {
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Test parameter sorting
+///////////////////////////////////////////////////////////////////////////////
+
+//
+// Parameters taken from Mandelbrot example in V3DLib.
+// Need to be global.
+//
+std::vector<const char *> const kernels = { "multi", "single", "cpu", "all" };  // Order important! First is default, 'all' must be last
+
+
+CmdParameters params = {
+  "Mandelbrot Generator\n"
+  "\n"
+  "Calculates Mandelbrot for a given region and outputs the result as a PGM bitmap file.\n"
+  "The kernel is compute-bound, the calculation time dominates over the data transfer during execution.\n"
+  "It is therefore an indicator of compute speed, "
+  "and is used for performance comparisons of platforms and configurations.\n",
+  {{
+    "Kernel",
+    "-k=",
+    kernels,
+    "Select the kernel to use"
+  }, {
+    "Output PGM file",
+    "-pgm",
+    ParamType::NONE,   // Prefix needed to disambiguate
+    "Output a (grayscale) PGM bitmap of the calculation results.\n"
+    "A PGM bitmap named 'mandelbrot.pgm' will be created in the current working directory.\n"
+    "Creating a bitmap takes significant time, and will skew the performance results\n",
+  }, {
+    "Output PPM file",
+    "-ppm",
+    ParamType::NONE,
+    "Output a (color) PPM bitmap of the calculation results.\n"
+    "A PPM bitmap named 'mandelbrot.ppm' will be created in the current working directory.\n"
+    "Creating a bitmap takes significant time, and will skew the performance results\n",
+  }, {
+    "Number of steps",
+    "-steps=",
+    ParamType::POSITIVE_INTEGER,
+    "Maximum number of iterations to perform per point",
+    1024
+  }, {
+    "Dimension",
+    "-dim=",
+    ParamType::POSITIVE_INTEGER,
+    "Number of steps (or 'pixels') in horizontal and vertical direction",
+    1024
+  }}
+};
+
+
+TEST_CASE("Test sorting of parameters [params][sort]") {
+
+Settings settings(&params, true);
+
+std::string const expected = 
+"Mandelbrot Generator\n"
+"\n"
+"Calculates Mandelbrot for a given region and outputs the result as a PGM bitmap file.\n"
+"The kernel is compute-bound, the calculation time dominates over the data transfer during execution.\n"
+"It is therefore an indicator of compute speed, and is used for performance comparisons of platforms and configurations.\n"
+"\n"
+"Options:\n"
+"\n"
+"   help, -h                  Show this information. Overrides all other parameters.\n"
+"   -k=<opt>                  Select the kernel to use\n"
+"                             Allowed values: multi(default)  single  cpu  all.\n"
+"   -pgm                      Output a (grayscale) PGM bitmap of the calculation results.\n"
+"                             A PGM bitmap named 'mandelbrot.pgm' will be created in the current working directory.\n"
+"                             Creating a bitmap takes significant time, and will skew the performance results.\n"
+"   -ppm                      Output a (color) PPM bitmap of the calculation results.\n"
+"                             A PPM bitmap named 'mandelbrot.ppm' will be created in the current working directory.\n"
+"                             Creating a bitmap takes significant time, and will skew the performance results.\n"
+"   -steps=<num>              Maximum number of iterations to perform per point; default '1024'.\n"
+"   -dim=<num>                Number of steps (or 'pixels') in horizontal and vertical direction; default '1024'.\n"
+"   -f                        Write representations of the generated code to file.\n"
+"   -c                        Compile the kernel but do not run it.\n"
+"   -r=<opt>                  Run the kernel on the QPU, emulator or on the interpreter\n"
+"                             Allowed values: default(default)  emulator  interpreter.\n"
+"   -s, -silent               Do not show the logging output on standard output.\n"
+"   -pc                       Show the values of the performance counters.\n"
+"   -t=<num>, -timeout=<num>  Time in seconds to wait for a result to come back from the QPUs; default '10'.\n"
+"   -n=<num>                  Number of QPU's to use. The values depends on the platform being run on:\n"
+"                             - vc4 (Pi3+ and earlier), emulator: an integer value from 1 to 12 (inclusive)\n"
+"                             - v3d (Pi4)                       : 1 or 8; default '1'.\n"
+;
+
+  //
+  // The actual test
+  //
+  int argc = 1;
+  char const *argv[1] = { "Mandelbrot" };
+  REQUIRE(settings.init(argc, argv));
+  std::cout << settings.get_usage() << std::endl;
+}

@@ -97,10 +97,12 @@ CmdParameters::CmdParameters(
  *
  * Some effort is done to keep the descriptions aligned.
  */
-void CmdParameters::show_usage() {
-  cout << m_usage;
-  show_actions();
-  show_params(m_parameters);
+std::string CmdParameters::get_usage() const {
+  std::string ret;
+  ret += m_usage;
+  ret += get_actions();
+  ret += get_params(m_parameters);
+  return ret;
 }
 
 
@@ -127,7 +129,7 @@ CmdParameters::ExitCode CmdParameters::handle_commandline(
       cout << "Error(s) on command line:\n" << get_errors() << endl;
 
       if (show_help_on_error) {
-        show_usage();
+        cout << get_usage();
       } else {
         cout << "  Use 'help' or '-h' to view options\n"  << endl;
       }
@@ -340,42 +342,52 @@ bool CmdParameters::validate() {
 }
 
 
-void CmdParameters::show_params(TypedParameter::List &parameters) {
+std::string CmdParameters::get_params(TypedParameter::List const &parameters) const {
+  std::string ret;
+
   bool have_actions = false;
   have_actions = !actions.empty();
 
   if (have_actions) {
-    cout << "\nGlobal Options:\n\n";
+    ret += "\nGlobal Options:\n\n";
   } else {
-    cout << "\nOptions:\n\n";
+    ret += "\nOptions:\n\n";
   }
 
- show_just_params(parameters);
+ ret += get_just_params(parameters);
 
   if (have_actions) {
-    cout << "\nNotes:\n\n * Global options can appear in any position on the command line after the program name.\n"
-         << " * 'help' combined with an action shows the help for that action.\n"
-         << " * Actions-specific options must come *after* the action on the commandline.\n";
+    ret += "\nNotes:\n\n"
+           " * Global options can appear in any position on the command line after the program name.\n"
+           " * 'help' combined with an action shows the help for that action.\n"
+           " * Actions-specific options must come *after* the action on the commandline.\n";
   }
-  cout << "\n";
+  ret +=  "\n";
+
+  return ret;
 }
 
 
-void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_help) {
+std::string CmdParameters::get_just_params(TypedParameter::List const &parameters, bool add_help) const {
+  std::string ret;
+
   StrList disp_defaults;  // TODO: Bring this under TypedParameter::usage()
   StrList disp_params;
 
   parameters.prepare_usage(disp_defaults, disp_params, add_help);
   unsigned width = max_width(disp_params);
 
-  auto output_padded = [width, this] (
+  auto output_padded = [&ret, width, this] (
     TypedParameter &param,
     const string &disp_param,
     const string &disp_default) {
     // Ensure line endings have proper indent
-    cout << "   " << pad(width, disp_param)
-         << "  " << set_indent(width + PAD_OFFSET, param.usage())
-         << disp_default << endl;
+    ret+= "   ";
+    ret+= pad(width, disp_param);
+    ret+= "  ";
+    ret+= set_indent(width + PAD_OFFSET, param.usage());
+    ret+= disp_default;
+    ret+= "\n";
   };
 
   int index = 0;
@@ -391,6 +403,8 @@ void CmdParameters::show_just_params(TypedParameter::List &parameters, bool add_
     output_padded(param, disp_params[index], disp_defaults[index]);
     index++;
   }
+
+  return ret;
 }
 
 
@@ -411,6 +425,7 @@ bool CmdParameters::handle_help(int argc, char const *argv[]) {
     if (curindex >= argc) break;
 
     const char *curarg = argv[curindex];
+    //std::cout << "curarg:" << curarg << std::endl;
 
     if (string("help") == curarg || string("-h") == curarg) {
       have_help =true;
@@ -419,10 +434,12 @@ bool CmdParameters::handle_help(int argc, char const *argv[]) {
   }
 
   if (have_help) {
+    //std::cout << "handle_help() showing usage" << std::endl;
+
     if (scan_action(argc, argv)) {
-      show_action_usage();
+      cout << get_action_usage();
     } else {
-      show_usage();
+      cout << get_usage();
     }
   }
 
@@ -499,8 +516,10 @@ bool CmdParameters::scan_action(int argc, char const *argv[]) {
 }
 
 
-void CmdParameters::show_actions() {
-  if (actions.empty()) return;
+std::string CmdParameters::get_actions() const {
+  std::string ret;
+
+  if (actions.empty()) return ret;
 
   // Determine max width
   StrList disp_names;
@@ -509,29 +528,44 @@ void CmdParameters::show_actions() {
   }
   unsigned width = max_width(disp_names);
 
-  cout << "\n\nActions:\n\n";
+  ret += "\n\nActions:\n\n";
 
   for (auto &action: actions) {
-    cout << "    " << pad(width, action.name)
-         << "   " << set_indent(width + PAD_OFFSET, action.usage) << endl;
+    ret += "    ";
+    ret += pad(width, action.name);
+    ret += "   ";
+    ret += set_indent(width + PAD_OFFSET, action.usage);
+    ret += "\n";
   }
+
+ return ret;
 }
 
 
-void CmdParameters::show_action_usage() {
+std::string CmdParameters::get_action_usage() const {
+  std::string ret;
+
   assert(m_p_action != nullptr);
   auto p = m_p_action;
 
-  cout << "\nHelp for action '" << p->name << "'\n\n"
-          "Description:\n\n";
+  ret += "\nHelp for action '";
+  ret += p->name;
+  ret += "'\n\n";
+  ret += "Description:\n\n";
 
-  cout << "  " << set_indent(2, p->usage) << ".\n";
+  ret += "  ";
+  ret += set_indent(2, p->usage);
+  ret += ".\n";
 
   if (p->long_usage != nullptr) {
-    cout << "  " << set_indent(2, p->long_usage) << "\n";
+    ret += "  ";
+    ret += set_indent(2, p->long_usage);
+    ret += "\n";
   }
 
-  cout << "\nOptions:\n\n";
-  show_just_params(p->parameters, false);
-  cout << "\n";
+  ret += "\nOptions:\n\n";
+  ret += get_just_params(p->parameters, false);
+  ret += "\n";
+
+  return ret;
 }

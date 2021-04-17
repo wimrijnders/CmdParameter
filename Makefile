@@ -140,11 +140,12 @@ UNIT_TESTS := $(OBJ_DIR)/bin/runTests
 # Source files for unit tests to include in compilation
 UNITTEST_FILES = \
 	Tests/testMain.cpp                \
-	Tests/testCmdLine.cpp                \
+	Tests/testCmdLine.cpp             \
 	Tests/testParams.cpp              \
 	Tests/testActions.cpp             \
 	Tests/testOptions.cpp             \
 	Tests/Support/cout_redirect.cpp   \
+	Tests/Support/Settings.cpp        \
 	Tests/TestData/TestParameters.cpp \
 	Tests/TestData/TestActions.cpp
 

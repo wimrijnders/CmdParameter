@@ -35,7 +35,7 @@ struct CmdParameters {
   bool add(CmdParameters const &rhs);
   bool validate();
   void silent(bool val) { m_silent = val; }
-  void show_usage();
+  std::string get_usage() const;
   void show_errors(bool do_explicit = false);
   std::string get_errors() const { return errors.str(); }
   bool has_errors() const { return !errors.str().empty(); }
@@ -62,13 +62,13 @@ private:
   bool init_actions();
   bool handle_action(char const *curarg, Buf *errors = nullptr);
   bool scan_action(int argc, char const *argv[]);
-  void show_actions();
-  void show_action_usage();
+  std::string get_actions() const;
+  std::string get_action_usage() const;
 
   bool handle_commandline_intern(int argc, char const *argv[], bool show_help_on_error);
   bool handle_help(int argc, char const *argv[]);
-  void show_params(TypedParameter::List &parameters);
-  void show_just_params(TypedParameter::List &parameters, bool add_help = true);
+  std::string get_params(TypedParameter::List const &parameters) const;
+  std::string get_just_params(TypedParameter::List const &parameters, bool add_help = true) const;
   unsigned max_width(StrList const &list) const;
   void check_actions_distinct(DefActions &params);
 };

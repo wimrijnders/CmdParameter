@@ -32,7 +32,7 @@ struct TypedParameter {
     void prepare_usage(
       vector<string> &disp_defaults,
       vector<string> &disp_params,
-      bool add_help = true);
+      bool add_help = true) const;
 
     bool process_unnamed(const char *curarg);
 

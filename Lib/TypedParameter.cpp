@@ -63,7 +63,7 @@ TypedParameter *TypedParameter::List::operator[] (const char *key) {
 void TypedParameter::List::prepare_usage(
   vector<string> &disp_defaults,
   vector<string> &disp_params,
-  bool add_help) {
+  bool add_help) const {
 
   auto add_param = [&] (
     TypedParameter &param,
