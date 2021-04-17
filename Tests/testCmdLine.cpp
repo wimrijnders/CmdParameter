@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include "doctest.h"
 #include <cstdlib>
 #include "Support/cout_redirect.h"
 
@@ -15,7 +15,7 @@
 #define BIN_PATH "obj" POSTFIX_DEBUG "/bin"
 
 
-TEST_CASE("Check correct working Simple app", "[cmdline]") {
+TEST_CASE("Check correct working Simple app [cmdline]") {
   #define APP BIN_PATH "/Simple "
   #define POST " > /dev/null"
 

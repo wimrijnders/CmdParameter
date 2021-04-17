@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include "doctest.h"
 #include "Support/debug.h"
 #include "../Lib/CmdParameters.h"
 #include "Support/cout_redirect.h"
@@ -37,9 +37,9 @@ void single_param(TestParameters &params, char const *in_switch, int index = -1,
 // The actual unit tests
 //////////////////////////////////////////////////
 
-TEST_CASE("Test parameter definitions", "[params]") {
+TEST_CASE("Test parameter definitions [params]") {
 
-  SECTION("null values not allowed") {
+  SUBCASE("null values not allowed") {
     // Reference value; this should succeed
     DefParameters a0 = {
       { "prefix1", "-switch2", NONE, "Long blurb."}
@@ -81,7 +81,7 @@ TEST_CASE("Test parameter definitions", "[params]") {
 /*
   TODO
 
-  SECTION("correct detection of assign postfix") {
+  SUBCASE("correct detection of assign postfix") {
     DefParameters a1 = {
       { "prefix1", "-switch=", NONE, "Long blurb."}
     };
@@ -93,8 +93,8 @@ TEST_CASE("Test parameter definitions", "[params]") {
 }
 
 
-TEST_CASE("Test multiple prefixes", "[params]") {
-  SECTION("Null values not allowed") {
+TEST_CASE("Test multiple prefixes [params]") {
+  SUBCASE("Null values not allowed") {
     // Reference implementation - this should succeed
     DefParameters a0 = {
       { "prefix1", { "-switch1", "-switch2" }, NONE, "Long blurb."}
@@ -122,7 +122,7 @@ TEST_CASE("Test multiple prefixes", "[params]") {
     REQUIRE(!c3.init());
   }
 
-  SECTION("Prefixes can not be the same in prefix list") {
+  SUBCASE("Prefixes can not be the same in prefix list") {
     DefParameters a1 = {
       { "prefix1", { "-switch1", "-switch2", "-switch1" }, NONE, "Long blurb."}
     };
@@ -131,7 +131,7 @@ TEST_CASE("Test multiple prefixes", "[params]") {
     REQUIRE(!c1.init());
   }
 
-  SECTION("Prefixes can not be the same over prefixes in list") {
+  SUBCASE("Prefixes can not be the same over prefixes in list") {
     // Reference, should succeed
     DefParameters a0 = {
       { "prefix1", { "-switch1", "-switch2", "-switch3" }, NONE, "Long blurb."},
@@ -150,8 +150,8 @@ TEST_CASE("Test multiple prefixes", "[params]") {
 }
 
 
-TEST_CASE("Test chained parameter definitions", "[params]") {
-  SECTION("Chained global parameters should work") {
+TEST_CASE("Test chained parameter definitions [params]") {
+  SUBCASE("Chained global parameters should work") {
     DefParameters a0 = {
       { "Parent definition", "-1", NONE, "This switch is in the parent."}
     };
@@ -183,7 +183,7 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
   }
 
 
-  SECTION("Validation should pick up same params over chained definitions") {
+  SUBCASE("Validation should pick up same params over chained definitions") {
     DefParameters a0 = {
       { "A definition", "-1", NONE, "This switch is in the parent."}
     };
@@ -215,7 +215,7 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
   }
 
 
-  SECTION("Runtime adding of parameters should work") {
+  SUBCASE("Runtime adding of parameters should work") {
     int argc = 2;
     const char *argv1[] = { PROG, "-1"};
     const char *argv2[] = { PROG, "-2"};
@@ -252,11 +252,11 @@ TEST_CASE("Test chained parameter definitions", "[params]") {
 }
 
 
-TEST_CASE("Test Command Line parameters", "[params]") {
+TEST_CASE("Test Command Line parameters [params]") {
   cout_redirect redirect;
   TestParameters params;  // NOTE: putting this in global space causes a segfault
 
-  SECTION("Check help short switch") {
+  SUBCASE("Check help short switch") {
     int argc1 = 2;
     const char *argv1[] = { PROG, "-h"};
     REQUIRE(params.handle_commandline(argc1, argv1, false));
@@ -275,7 +275,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
   }
 
 
-  SECTION("Check help long switch") {
+  SUBCASE("Check help long switch") {
     int argc1 = 2;
     const char *argv1[] = { PROG, "help"  };
     REQUIRE(params.handle_commandline(argc1, argv1, false));
@@ -297,7 +297,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
   }
 
 
-  SECTION("Check help both long and short switches") {
+  SUBCASE("Check help both long and short switches") {
     int argc4 = 11;
     const char *argv4[] = { PROG, "This", "-h", "should",
                             "help", "be", "-h", "no", "-h", "problem", "help"  };
@@ -305,7 +305,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
   }
 
 
-  SECTION("Check unset defaults of parameters") {
+  SUBCASE("Check unset defaults of parameters") {
     int argc1 = 2;
     const char *argv1[] = {
       PROG,
@@ -324,7 +324,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
     // Test expected defaults
     REQUIRE(params.m_unsigned  == 0);
     REQUIRE(params.m_positive  == 1);
-    REQUIRE(params.m_float     == 1.0f);  //Approx(3.1419).epsilon(0.00001));
+    REQUIRE(params.m_float     == 1.0f);  // doctest::Approx(3.1419).epsilon(0.00001));
     REQUIRE(params.m_int       == 0);
     REQUIRE(params.m_intdef    == 42);
     REQUIRE(params.m_bool      == false);
@@ -333,7 +333,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
   }
 
 
-  SECTION("Check good parameters") {
+  SUBCASE("Check good parameters") {
     int argc1 = 8;
     const char *argv1[] = {
       PROG,
@@ -353,14 +353,14 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 
     REQUIRE(params.m_positive  == 123);
     REQUIRE(params.m_unsigned  == 42);
-    REQUIRE(params.m_float     == Approx(3.1419).epsilon(0.00001));
+    REQUIRE(params.m_float     == doctest::Approx(3.1419).epsilon(0.00001));
     REQUIRE(params.input_file  == "input_file.txt");
     REQUIRE(params.output_file == "output_file.txt");
     REQUIRE(params.m_bool == true);
   }
 
 
-  SECTION("Check bad parameters") {
+  SUBCASE("Check bad parameters") {
     //redirect.clear();
 
     // Each value here is tested separately.
@@ -404,14 +404,14 @@ TEST_CASE("Test Command Line parameters", "[params]") {
   }
 
 
-  SECTION("Check border cases") {
+  SUBCASE("Check border cases") {
     single_param(params, "-positive=1");
     single_param(params, "-unsigned=0");
     single_param(params, "-output=123");
   }
 
 
-  SECTION("Same names for parameter definitions should not be allowed") {
+  SUBCASE("Same names for parameter definitions should not be allowed") {
     CmdParameters double_params = {
       "blurb", {  // Usage
       {  "Name not unique", "-a", UNNAMED,  "" },
@@ -422,7 +422,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
   }
 
 
-  SECTION("Empty name should not be allowed") {
+  SUBCASE("Empty name should not be allowed") {
     CmdParameters c = {
       "blurb", {  // Usage
       {  "", "-a", UNNAMED,  "" },
@@ -432,7 +432,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
   }
 
 
-  SECTION("Empty prefixes should not be allowed") {
+  SUBCASE("Empty prefixes should not be allowed") {
     CmdParameters c = {
       "blurb", {  // Usage
       {  "Name", "", UNNAMED,  "" },
@@ -441,7 +441,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
     REQUIRE(!c.init());
   }
 
-  SECTION("Indexed access of parameter values should return the same as keyed access") {
+  SUBCASE("Indexed access of parameter values should return the same as keyed access") {
     CmdParameters::List &p = params.parameters();
 
     const char *keys[] = {
@@ -464,7 +464,7 @@ TEST_CASE("Test Command Line parameters", "[params]") {
 }
 
 
-TEST_CASE("Test issues during usage", "[params][issues]") {
+TEST_CASE("Test issues during usage [params][issues]") {
 
   CmdParameters base_params = {
     "blurb",
@@ -476,7 +476,7 @@ TEST_CASE("Test issues during usage", "[params][issues]") {
     }}
   };
 
-  SECTION("Check error 'Duplicate prefixes'") {
+  SUBCASE("Check error 'Duplicate prefixes'") {
     CmdParameters p(base_params);
     INFO(p.get_errors());
     REQUIRE(!p.has_errors());

@@ -1,12 +1,12 @@
-#include "catch.hpp"
+#include "doctest.h"
 #include "Support/debug.h"
 #include "TestData/TestActions.h"
 #include "../Lib/CmdParameters.h"
 #include "../Lib/TypedParameter.h"
 
 
-TEST_CASE("Test bad action definitions", "[actions]") {
-  SECTION("No two actions named the same") {
+TEST_CASE("Test bad action definitions actions]") {
+  SUBCASE("No two actions named the same") {
     DefActions a = {{
       "action1",
       "This is action 1",
@@ -22,7 +22,7 @@ TEST_CASE("Test bad action definitions", "[actions]") {
 }
 
 
-TEST_CASE("Test good action command lines", "[actions]") {
+TEST_CASE("Test good action command lines [actions]") {
   int argc1 = 3;
   const char *argv1[] = { "Test", "action1", "-unsigned=51" };
   REQUIRE(CmdParameters::ALL_IS_WELL == defined_actions.handle_commandline(argc1, argv1, false));
@@ -37,8 +37,8 @@ TEST_CASE("Test good action command lines", "[actions]") {
 }
 
 
-TEST_CASE("Test chained action definitions", "[actions]") {
-  SECTION("Chained actions should work") {
+TEST_CASE("Test chained action definitions [actions]") {
+  SUBCASE("Chained actions should work") {
     DefActions a = {{
       "parent_action",
       "This is the action in the parent",
@@ -73,7 +73,7 @@ TEST_CASE("Test chained action definitions", "[actions]") {
   }
 
 
-  SECTION("Validation should pick up same actions over chained definitions") {
+  SUBCASE("Validation should pick up same actions over chained definitions") {
     DefActions a = {{
       "some_action",
       "This is the action in the parent",
@@ -94,7 +94,7 @@ TEST_CASE("Test chained action definitions", "[actions]") {
 }
 
 
-TEST_CASE("Test bad action command lines", "[actions]") {
+TEST_CASE("Test bad action command lines [actions]") {
   defined_actions.silent(true);
 
   // An action *must* be present

@@ -1,4 +1,4 @@
-#include "catch.hpp"
+#include "doctest.h"
 #include "../Lib/CmdParameters.h"
 #include "Support/debug.h"
 
@@ -9,8 +9,8 @@ const char *PROG = "TestProg";  // Name of dummy executable
 }  // anon namespace
 
 
-TEST_CASE("Fixed options for param", "[options]") {
-  SECTION("Options parameters should be accepted") {
+TEST_CASE("Fixed options for param [options]") {
+  SUBCASE("Options parameters should be accepted") {
     DefParameters a = {{
       "option",
       "-option=",
