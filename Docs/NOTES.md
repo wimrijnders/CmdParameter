@@ -30,6 +30,12 @@
 ## Release Notes
 
 ```
+20210417  v0.3.1
+    - Help usage now returned as string value
+    - Also Setting struct and unit test for param sorting (not done yet).
+    - Replaced CATCH2 with DocTest in unit test
+
+
 20210125  v0.3.0
     - Allow multiple prefixes for options, definition as vector.
       This is an API change.
