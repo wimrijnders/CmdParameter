@@ -34,6 +34,7 @@
     - Params sorted on display help usage
     - Added operator<< for string (from V3DLib)
     - Got rid of most usages of ostringstream
+    - Fixed wonky error on param '-n12'
 
 
 20210417  v0.3.1
