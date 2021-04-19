@@ -1,6 +1,7 @@
 #ifndef STRINGS_H_
 #define STRINGS_H_
-
+#include <string>
+#include <vector>
 
 /**
  * @brief Useful string handling methods.

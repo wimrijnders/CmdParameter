@@ -5,6 +5,10 @@
  *      Author: wim
  */
 #include "Strings.h"
+#include <sstream>
+#include <iomanip>
+#include <iterator>
+#include <algorithm>  // transform()
 
 using namespace std;
 

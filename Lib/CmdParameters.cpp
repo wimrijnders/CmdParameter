@@ -269,7 +269,7 @@ bool CmdParameters::handle_commandline_intern(
       // It's not one an option or an action, so it must be unnamed input
       // NOTE: this implementation check UNNAMED on global options only!
       if (!m_parameters.process_unnamed(curarg)) {
-        errors << "  Too many unnamed parameters on command line, '" << curarg << "' unexpected.\n";
+        errors << "  Unknown parameter '" << curarg << "', or too many unnamed parameters on command line.\n";
       }
     }
 
@@ -529,14 +529,10 @@ std::string CmdParameters::get_actions() const {
   }
   unsigned width = max_width(disp_names);
 
-  ret += "\n\nActions:\n\n";
+  ret << "\n\nActions:\n\n";
 
   for (auto &action: actions) {
-    ret += "    ";
-    ret += pad(width, action.name);
-    ret += "   ";
-    ret += set_indent(width + PAD_OFFSET, action.usage);
-    ret += "\n";
+    ret << "    " << pad(width, action.name) << "   " << set_indent(width + PAD_OFFSET, action.usage) << "\n";
   }
 
  return ret;

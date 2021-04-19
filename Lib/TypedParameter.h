@@ -34,6 +34,12 @@ struct TypedParameter {
   };
 
 
+  /**
+   * Used to create a view of sorted items for a types parameter list,
+   * for help display.
+   *
+   * The referred list should not be destroyed during its lifetime.
+   */
   class SortedList : public std::vector<TypedParameter const *> {
   public:
     SortedList(List const &parameters);

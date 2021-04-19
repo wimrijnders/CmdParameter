@@ -1,5 +1,6 @@
 #include "doctest.h"
 #include "Support/basics.h"
+#include "Support/Strings.h"
 #include "../Lib/CmdParameters.h"
 #include "Support/cout_redirect.h"
 #include "Support/Settings.h"
@@ -474,13 +475,39 @@ TEST_CASE("Test issues during usage [params][issues]") {
       { "-s", "-silent" },
       ParamType::NONE,
       "Do not show the logging output on standard output"
+    }, {
+      "Num Iterations",
+      "-n=",
+      ParamType::INTEGER,
+      "Number of iterations to perform"
     }}
   };
+
 
   SUBCASE("Check error 'Duplicate prefixes'") {
     CmdParameters p(base_params);
     INFO(p.get_errors());
     REQUIRE(!p.has_errors());
+  }
+
+
+  // Given message should not be be displayed any more, instead a more relevant and specific message.
+  SUBCASE("Check error 'takes a value, none specified' for -n12") {i
+    CmdParameters p(base_params);
+    REQUIRE(!p.has_errors());
+
+    char const *cmdline1[2] =  {"test", "-n=12"};
+    REQUIRE(CmdParameters::ALL_IS_WELL == p.handle_commandline(2, cmdline1, false));
+
+    char const *cmdline2[2] =  {"test", "-n12"};
+
+    // NOTE this displays an error on the console
+    // TODO perhaps add silent mode?
+    REQUIRE(CmdParameters::EXIT_ERROR == p.handle_commandline(2, cmdline2, false));
+
+    //INFO(p.get_errors());
+    REQUIRE(!Strings::contains(p.get_errors(), "(-n) takes a value, none specified"));
+    REQUIRE(Strings::contains(p.get_errors(), "Unknown parameter '-n12'"));
   }
 }
 

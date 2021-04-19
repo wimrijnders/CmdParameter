@@ -84,6 +84,7 @@ EXPORT_OBJ := \
 	Types/UnsignedIntParameter \
 	Types/PositiveIntParameter \
 	Types/PositiveFloatParameter \
+	Support/Strings \
 	DefAction \
 	CmdParameters \
 	DefParameter \

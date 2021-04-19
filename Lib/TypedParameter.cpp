@@ -60,7 +60,6 @@ TypedParameter *TypedParameter::List::operator[] (const char *key) {
 
 
 bool TypedParameter::List::process_unnamed(const char *curarg) {
-
   for (auto &item: *this) {
     TypedParameter &param = *item;
     if (param.def_param.param_type != UNNAMED) continue;
@@ -99,7 +98,6 @@ TypedParameter::SortedList::SortedList(TypedParameter::List const &parameters) {
 
   int index = 0;
   for (auto &item: parameters) {
-    //std::cout << item->def_param.name << std::endl;
     (*this)[index] = item.get();
     index++;
   }
@@ -202,9 +200,16 @@ bool TypedParameter::parse_param(const char *curarg) {
 
   for (auto &p : m_prefixes) {
     if (Strings::starts_with(curarg, p)) {
-      if (!takes_value()) {
-        // In this case, the match must be exact
-        if (p != curarg) continue;
+      if (p == curarg) {
+        // exact match, all is well
+        found_prefix = true;
+        break;
+      }
+
+      if (takes_value()) {
+        // The only character allowed after is an equals sign
+        assert(strlen(curarg) > p.size());
+        if (curarg[p.size()] != '=') continue;
       }
 
       found_prefix = true;
