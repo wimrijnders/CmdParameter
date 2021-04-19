@@ -3,7 +3,7 @@
 #include <iostream>
 #include <cstring>   // strcmp()
 #include "Support/Exception.h"
-#include "Support/debug.h"
+#include "Support/basics.h"
 #include "Types/Types.h"
 #include "lib_local.h"
 
@@ -42,6 +42,63 @@ string set_indent(int indent, string const &str) {
   string str_indent("\n");
   str_indent += pad(indent);
   return Strings::implode(Strings::explode(str, '\n'), str_indent.c_str());
+}
+
+
+/**
+ * @brief determine longest string length in string vector.
+ */
+unsigned max_width(CmdParameters::StrList const &list) {
+  // Determine max width of displayed param's
+  unsigned width = 0;
+  for (const string &str : list) {
+    // CRAP: Following fails when 'int width = -1', due to signedness
+    if (str.length() > width) {
+      width = (unsigned) str.length();
+    }
+  }
+
+  return width;
+}
+
+
+std::string get_just_params(TypedParameter::List const &parameters, bool add_help) {
+  using StrList = CmdParameters::StrList;
+
+  std::string ret;
+
+  StrList disp_defaults;  // TODO: Bring this under TypedParameter::usage()
+  StrList disp_params;
+
+  TypedParameter::SortedList sorted_list(parameters);
+  sorted_list.prepare_usage(disp_defaults, disp_params, add_help);
+  unsigned width = max_width(disp_params);
+
+  auto output_padded = [&ret, width] (
+    TypedParameter const &param,
+    string const &disp_param,
+    string const &disp_default) {
+    // Ensure line endings have proper indent
+    ret << "   " << pad(width, disp_param) << "  " << set_indent(width + PAD_OFFSET, param.usage())
+        << disp_default << "\n";
+  };
+
+  int index = 0;
+
+  if (add_help) {
+    output_padded(CmdParameters::help_switch, disp_params[index], disp_defaults[index]);
+    index++;
+  }
+
+
+  for (auto &item: sorted_list) {
+    TypedParameter const &param = *item;
+
+    output_padded(param, disp_params[index], disp_defaults[index]);
+    index++;
+  }
+
+  return ret;
 }
 
 }  // anon namespace
@@ -99,9 +156,11 @@ CmdParameters::CmdParameters(
  */
 std::string CmdParameters::get_usage() const {
   std::string ret;
-  ret += m_usage;
-  ret += get_actions();
-  ret += get_params(m_parameters);
+
+  ret << m_usage
+      << get_actions()
+      << get_params(m_parameters);
+
   return ret;
 }
 
@@ -345,16 +404,15 @@ bool CmdParameters::validate() {
 std::string CmdParameters::get_params(TypedParameter::List const &parameters) const {
   std::string ret;
 
-  bool have_actions = false;
-  have_actions = !actions.empty();
+  bool have_actions = !actions.empty();
 
   if (have_actions) {
-    ret += "\nGlobal Options:\n\n";
+    ret += "\nGlobal Options:\n";
   } else {
-    ret += "\nOptions:\n\n";
+    ret += "\nOptions:\n";
   }
 
- ret += get_just_params(parameters);
+ ret += get_just_params(parameters, true);
 
   if (have_actions) {
     ret += "\nNotes:\n\n"
@@ -363,46 +421,6 @@ std::string CmdParameters::get_params(TypedParameter::List const &parameters) co
            " * Actions-specific options must come *after* the action on the commandline.\n";
   }
   ret +=  "\n";
-
-  return ret;
-}
-
-
-std::string CmdParameters::get_just_params(TypedParameter::List const &parameters, bool add_help) const {
-  std::string ret;
-
-  StrList disp_defaults;  // TODO: Bring this under TypedParameter::usage()
-  StrList disp_params;
-
-  parameters.prepare_usage(disp_defaults, disp_params, add_help);
-  unsigned width = max_width(disp_params);
-
-  auto output_padded = [&ret, width, this] (
-    TypedParameter &param,
-    const string &disp_param,
-    const string &disp_default) {
-    // Ensure line endings have proper indent
-    ret+= "   ";
-    ret+= pad(width, disp_param);
-    ret+= "  ";
-    ret+= set_indent(width + PAD_OFFSET, param.usage());
-    ret+= disp_default;
-    ret+= "\n";
-  };
-
-  int index = 0;
-
-  if (add_help) {
-    output_padded(help_switch, disp_params[index], disp_defaults[index]);
-    index++;
-  }
-
-  for (auto &item: parameters) {
-    TypedParameter &param = *item;
-
-    output_padded(param, disp_params[index], disp_defaults[index]);
-    index++;
-  }
 
   return ret;
 }
@@ -444,23 +462,6 @@ bool CmdParameters::handle_help(int argc, char const *argv[]) {
   }
 
   return have_help;
-}
-
-
-/**
- * @brief determine longest string length in string vector.
- */
-unsigned CmdParameters::max_width(StrList const &list) const {
-  // Determine max width of displayed param's
-  unsigned width = 0;
-  for (const string &str : list) {
-    // CRAP: Following fails when 'int width = -1', due to signedness
-    if (str.length() > width) {
-      width = (unsigned) str.length();
-    }
-  }
-
-  return width;
 }
 
 
@@ -548,24 +549,16 @@ std::string CmdParameters::get_action_usage() const {
   assert(m_p_action != nullptr);
   auto p = m_p_action;
 
-  ret += "\nHelp for action '";
-  ret += p->name;
-  ret += "'\n\n";
-  ret += "Description:\n\n";
-
-  ret += "  ";
-  ret += set_indent(2, p->usage);
-  ret += ".\n";
+  ret << "\nHelp for action '" << p->name << "'\n\n"
+      << "Description:\n\n"
+      << "  " << set_indent(2, p->usage) << ".\n";
 
   if (p->long_usage != nullptr) {
-    ret += "  ";
-    ret += set_indent(2, p->long_usage);
-    ret += "\n";
+    ret << "  " << set_indent(2, p->long_usage) << "\n";
   }
 
-  ret += "\nOptions:\n\n";
-  ret += get_just_params(p->parameters, false);
-  ret += "\n";
+  ret << "\nOptions:\n"
+      << get_just_params(p->parameters, false) << "\n";
 
   return ret;
 }

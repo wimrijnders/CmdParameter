@@ -3,8 +3,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <sstream>
-
 
 class CmdParameters;
 class DefParameter;
@@ -27,17 +25,25 @@ struct TypedParameter {
     using Parent = std::vector<std::unique_ptr<TypedParameter>>;
    public:
     TypedParameter *operator[] (int index);
+    TypedParameter const *operator[] (int index) const;
     TypedParameter *operator[] (const char *key);
-
-    void prepare_usage(
-      vector<string> &disp_defaults,
-      vector<string> &disp_params,
-      bool add_help = true) const;
 
     bool process_unnamed(const char *curarg);
 
     void reset_values();
   };
+
+
+  class SortedList : public std::vector<TypedParameter const *> {
+  public:
+    SortedList(List const &parameters);
+
+    void prepare_usage(
+      vector<string> &disp_defaults,
+      vector<string> &disp_params,
+      bool add_help = true) const;
+  };
+
 
   DefParameter  &def_param;
 
@@ -51,7 +57,9 @@ struct TypedParameter {
 
   void reset_values();
   bool parse_param(const char *curarg);
-  virtual string usage();
+  virtual string usage() const;
+
+  bool operator<(TypedParameter const &rhs) const;
 
 protected:
   std::vector<string> m_prefixes;
@@ -74,7 +82,7 @@ protected:
 
 private:
   virtual bool parse_param_internal(const string &in_value) = 0;
-  virtual void default_indicator(std::ostringstream &os) {};
+  virtual std::string default_indicator() const { return ""; }
   virtual bool takes_value() const { return true; }
 };
 

@@ -10,11 +10,11 @@ struct OptionParameter : public TypedParameter {
 
 public:
   OptionParameter(DefParameter &var);
-  std::string usage() override;
+  std::string usage() const override;
 
 private:
   bool parse_param_internal(const std::string &in_value) override;
-  std::string param_usage_extra();
+  std::string param_usage_extra() const;
 
   Options const *m_options = nullptr;
 };

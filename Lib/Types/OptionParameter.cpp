@@ -4,7 +4,6 @@
 #include <cstring>  // strcmp()
 #include <string>
 #include <algorithm>
-#include <sstream>
 #include "../Support/debug.h"
 
 
@@ -38,12 +37,12 @@ OptionParameter::OptionParameter(DefParameter &var) :
 }
 
 
-std::string OptionParameter::usage() {
+std::string OptionParameter::usage() const {
   return Parent::usage() + param_usage_extra();
 }
 
 
-std::string OptionParameter::param_usage_extra() {
+std::string OptionParameter::param_usage_extra() const {
   std::string out = "\nAllowed values: ";
   bool did_first = false;
   int count = 0;

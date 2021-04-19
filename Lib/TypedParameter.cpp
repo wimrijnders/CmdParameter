@@ -16,8 +16,9 @@
 #include "TypedParameter.h"
 #include <cassert>
 #include <cstring>   // strcmp
+#include <iostream>
 #include "Support/Exception.h"
-#include "Support/debug.h"
+#include "Support/basics.h"
 #include "DefParameter.h"
 #include "CmdParameters.h"
 #include "lib_local.h"
@@ -25,15 +26,19 @@
 using namespace std;
 
 
-
 //////////////////////////////////////////////
-// Class CmdParameter::List
+// Class TypedParameter::List
 //////////////////////////////////////////////
 
 /**
  * Grumbl need to redefine this after adding the key version.
  */
 TypedParameter *TypedParameter::List::operator[] (int index) {
+  return at(index).get();
+}
+
+// grumbl
+TypedParameter const *TypedParameter::List::operator[] (int index) const {
   return at(index).get();
 }
 
@@ -51,63 +56,6 @@ TypedParameter *TypedParameter::List::operator[] (const char *key) {
   string msg = "'";
   throw Exception(msg + key + "' is not a short name of a parameter.");
   return nullptr;
-}
-
-
-/**
- * @brief Prepare the switch and value part of the usage line,
- *        so that we can determine their max width for formatting.
- *
- * Also create display of defaults.
- */
-void TypedParameter::List::prepare_usage(
-  vector<string> &disp_defaults,
-  vector<string> &disp_params,
-  bool add_help) const {
-
-  auto add_param = [&] (
-    TypedParameter &param,
-    const string &value_indicator,
-    std::ostringstream &default_indicator) {
-
-    string tmp;
-    for (auto &p : param.def_param.prefixes) {
-      assert(p != nullptr);
-
-      if (!tmp.empty()) {
-        tmp += ", ";
-      }
-
-      tmp += p;
-      tmp += value_indicator;
-    }
-
-    disp_params.push_back(tmp);
-
-
-    if (default_indicator.str().empty()) {
-      disp_defaults.push_back(".");
-    } else {
-      std::ostringstream buf;
-      buf << "; default '" << default_indicator.str() << "'.";
-      disp_defaults.push_back(buf.str());
-    }
-  };
-
-
-  if (add_help) {
-    // Internal help switch definition
-    std::ostringstream default_indicator;
-    add_param(CmdParameters::help_switch, "", default_indicator);
-  }
-
-  for (auto &item : *this) {
-    TypedParameter &param = *item;
-
-    std::ostringstream default_indicator;
-    param.default_indicator(default_indicator);
-    add_param(param, param.m_value_indicator, default_indicator);
-  }
 }
 
 
@@ -138,6 +86,79 @@ void TypedParameter::List::reset_values() {
   for (auto &item: *this) {
     TypedParameter &param = *item;
     param.reset_values();
+  }
+}
+
+
+//////////////////////////////////////////////
+// Class TypedParameter::SortedList
+//////////////////////////////////////////////
+
+TypedParameter::SortedList::SortedList(TypedParameter::List const &parameters) {
+  resize(parameters.size());
+
+  int index = 0;
+  for (auto &item: parameters) {
+    //std::cout << item->def_param.name << std::endl;
+    (*this)[index] = item.get();
+    index++;
+  }
+
+  std::sort(begin() , end(), [](TypedParameter const *a, TypedParameter const *b) {
+    return *a < *b; }
+  );
+}
+
+
+/**
+ * @brief Prepare the switch and value part of the usage line,
+ *        so that we can determine their max width for formatting.
+ *
+ * Also create display of defaults.
+ */
+void TypedParameter::SortedList::prepare_usage(
+  vector<string> &disp_defaults,
+  vector<string> &disp_params,
+  bool add_help) const {
+
+  auto add_param = [&] (
+    TypedParameter const &param,
+    std::string const &value_indicator,
+    std::string const &default_indicator) {
+
+    string tmp;
+    for (auto &p : param.def_param.prefixes) {
+      assert(p != nullptr);
+
+      if (!tmp.empty()) {
+        tmp << ", ";
+      }
+
+      tmp << p;
+      tmp << value_indicator;
+    }
+
+    disp_params.push_back(tmp);
+
+
+    if (default_indicator.empty()) {
+      disp_defaults.push_back(".");
+    } else {
+      std::ostringstream buf;
+      buf << "; default '" << default_indicator << "'.";
+      disp_defaults.push_back(buf.str());
+    }
+  };
+
+
+  if (add_help) {
+    // Internal help switch definition, always on top
+    add_param(CmdParameters::help_switch, "", "");
+  }
+
+  for (auto &item : *this) {
+    TypedParameter const &param = *item;
+    add_param(param, param.m_value_indicator, param.default_indicator());
   }
 }
 
@@ -279,4 +300,12 @@ float TypedParameter::get_float_value(const string &param) {
 }
 
 
-string TypedParameter::usage() { return def_param.usage; }
+string TypedParameter::usage() const { return def_param.usage; }
+
+
+bool TypedParameter::operator<(TypedParameter const &rhs) const {
+  assert(!m_prefixes.empty());
+  assert(!rhs.m_prefixes.empty());
+
+  return (m_prefixes[0] < rhs.m_prefixes[0]);
+}

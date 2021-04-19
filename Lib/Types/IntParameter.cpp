@@ -1,9 +1,8 @@
 #include "IntParameter.h"
 #include <cassert>
 #include <string>
-#include <sstream>
 #include "../DefParameter.h"
-#include "Support/debug.h"
+#include "Support/basics.h"
 
 
 IntParameter::IntParameter(DefParameter &var) : TypedParameter(var, "<num>") {
@@ -22,6 +21,8 @@ bool IntParameter::parse_param_internal(const std::string &in_value) {
 }
 
 
-void IntParameter::default_indicator(std::ostringstream &os) {
-  os << def_param.int_default;
+std::string IntParameter::default_indicator() const {
+  std::string ret;
+  ret <<  def_param.int_default;
+  return ret;
 }

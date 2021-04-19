@@ -5,7 +5,8 @@
 struct StringParameter : public TypedParameter {
 public:
   StringParameter(DefParameter &var) : TypedParameter(var, "<string>") {}
-  void default_indicator(std::ostringstream &os) override;
+
+  std::string default_indicator() const override;
 
 private:
   bool parse_param_internal(const std::string &in_value) override {

@@ -68,8 +68,6 @@ private:
   bool handle_commandline_intern(int argc, char const *argv[], bool show_help_on_error);
   bool handle_help(int argc, char const *argv[]);
   std::string get_params(TypedParameter::List const &parameters) const;
-  std::string get_just_params(TypedParameter::List const &parameters, bool add_help = true) const;
-  unsigned max_width(StrList const &list) const;
   void check_actions_distinct(DefActions &params);
 };
 

@@ -1,10 +1,8 @@
 #include "StringParameter.h"
 #include "../DefParameter.h"
-#include <cassert>
-#include <string>
-#include <sstream>
+#include "Support/basics.h"
 
 
-void StringParameter::default_indicator(std::ostringstream &os) {
-  os << def_param.string_default;
+std::string StringParameter::default_indicator() const {
+  return def_param.string_default;
 }

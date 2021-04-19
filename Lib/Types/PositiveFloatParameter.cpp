@@ -1,8 +1,8 @@
 #include "PositiveFloatParameter.h"
 #include <cassert>
 #include <string>
-#include <sstream>
-#include "../Support/Exception.h"
+#include "Support/Exception.h"
+#include "Support/basics.h"
 #include "../DefParameter.h"
 
 using std::string;
@@ -33,6 +33,8 @@ bool PositiveFloatParameter::parse_param_internal(const std::string &in_value) {
 }
 
 
-void PositiveFloatParameter::default_indicator(std::ostringstream &os) {
-  os << def_param.float_default;
+std::string PositiveFloatParameter::default_indicator() const {
+  std::string ret;
+  ret <<  def_param.float_default;
+  return ret;
 }

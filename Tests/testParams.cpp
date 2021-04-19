@@ -1,5 +1,5 @@
 #include "doctest.h"
-#include "Support/debug.h"
+#include "Support/basics.h"
 #include "../Lib/CmdParameters.h"
 #include "Support/cout_redirect.h"
 #include "Support/Settings.h"
@@ -489,6 +489,8 @@ TEST_CASE("Test issues during usage [params][issues]") {
 // Test parameter sorting
 ///////////////////////////////////////////////////////////////////////////////
 
+namespace {
+
 //
 // Parameters taken from Mandelbrot example in V3DLib.
 // Need to be global.
@@ -538,6 +540,37 @@ CmdParameters params = {
 };
 
 
+std::string diff_strings(std::string const &a, std::string const &b) {
+  std::string ret;
+
+  if (a.size() != b.size()) {
+    ret << "String sizes are different, " << "a: " << a.size() << ", b: " << b.size() << "\n";
+  }
+
+  int length = (int) std::min(a.size(), b.size());
+
+  int line = 0;
+  int kar = -1;
+  for (int i = 0; i < length; ++i) {
+    if (a[i] == '\n') {
+      line++;
+      kar = 0;
+    } else {
+      kar++;
+    }
+
+    if (a[i] != b[i]) {
+      ret << "First difference at line " << line << ", pos: " << kar << "\n";
+      break;
+    }
+  }
+
+  return ret;
+}
+
+}  // anon namespace
+
+
 TEST_CASE("Test sorting of parameters [params][sort]") {
 
 Settings settings(&params, true);
@@ -550,28 +583,27 @@ std::string const expected =
 "It is therefore an indicator of compute speed, and is used for performance comparisons of platforms and configurations.\n"
 "\n"
 "Options:\n"
-"\n"
 "   help, -h                  Show this information. Overrides all other parameters.\n"
+"   -c                        Compile the kernel but do not run it.\n"
+"   -dim=<num>                Number of steps (or 'pixels') in horizontal and vertical direction; default '1024'.\n"
+"   -f                        Write representations of the generated code to file.\n"
 "   -k=<opt>                  Select the kernel to use\n"
 "                             Allowed values: multi(default)  single  cpu  all.\n"
+"   -n=<num>                  Number of QPU's to use. The values depends on the platform being run on:\n"
+"                             - vc4 (Pi3+ and earlier), emulator: an integer value from 1 to 12 (inclusive)\n"
+"                             - v3d (Pi4)                       : 1 or 8; default '1'.\n"
 "   -pgm                      Output a (grayscale) PGM bitmap of the calculation results.\n"
 "                             A PGM bitmap named 'mandelbrot.pgm' will be created in the current working directory.\n"
 "                             Creating a bitmap takes significant time, and will skew the performance results.\n"
 "   -ppm                      Output a (color) PPM bitmap of the calculation results.\n"
 "                             A PPM bitmap named 'mandelbrot.ppm' will be created in the current working directory.\n"
 "                             Creating a bitmap takes significant time, and will skew the performance results.\n"
-"   -steps=<num>              Maximum number of iterations to perform per point; default '1024'.\n"
-"   -dim=<num>                Number of steps (or 'pixels') in horizontal and vertical direction; default '1024'.\n"
-"   -f                        Write representations of the generated code to file.\n"
-"   -c                        Compile the kernel but do not run it.\n"
 "   -r=<opt>                  Run the kernel on the QPU, emulator or on the interpreter\n"
 "                             Allowed values: default(default)  emulator  interpreter.\n"
 "   -s, -silent               Do not show the logging output on standard output.\n"
-"   -pc                       Show the values of the performance counters.\n"
+"   -steps=<num>              Maximum number of iterations to perform per point; default '1024'.\n"
 "   -t=<num>, -timeout=<num>  Time in seconds to wait for a result to come back from the QPUs; default '10'.\n"
-"   -n=<num>                  Number of QPU's to use. The values depends on the platform being run on:\n"
-"                             - vc4 (Pi3+ and earlier), emulator: an integer value from 1 to 12 (inclusive)\n"
-"                             - v3d (Pi4)                       : 1 or 8; default '1'.\n"
+"\n"
 ;
 
   //
@@ -580,5 +612,7 @@ std::string const expected =
   int argc = 1;
   char const *argv[1] = { "Mandelbrot" };
   REQUIRE(settings.init(argc, argv));
-  std::cout << settings.get_usage() << std::endl;
+  //std::cout << settings.get_usage() << std::endl;
+  INFO(diff_strings(settings.get_usage(), expected));
+  REQUIRE(settings.get_usage() == expected);
 }

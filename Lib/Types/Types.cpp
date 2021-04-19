@@ -1,7 +1,6 @@
 #include "Types.h"
 #include <cassert>
 #include <iostream>
-#include <sstream>   // ostringstream
 #include "../DefParameter.h"
 #include "NoneParameter.h"
 #include "IntParameter.h"
@@ -11,6 +10,7 @@
 #include "PositiveFloatParameter.h"
 #include "StringParameter.h"
 #include "UnnamedParameter.h"
+#include "Support/basics.h"
 
 
 TypedParameter *DefParameter_factory(DefParameter &item) {
@@ -27,9 +27,9 @@ TypedParameter *DefParameter_factory(DefParameter &item) {
   case UNNAMED:          p = new UnnamedParameter(item);       break;
 
   default: {
-      std::ostringstream msg;
+      std::string msg;
       msg << "Error: Unhandled parameter type " << item.param_type;
-      std::cout << msg.str() << std::endl;
+      std::cout << msg << std::endl;
     }
   }
 
