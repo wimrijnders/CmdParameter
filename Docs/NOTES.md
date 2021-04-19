@@ -30,6 +30,12 @@
 ## Release Notes
 
 ```
+20210418  v0.3.2
+    - Params sorted on display help usage
+    - Added operator<< for string (from V3DLib)
+    - Got rid of most usages of ostringstream
+
+
 20210417  v0.3.1
     - Help usage now returned as string value
     - Also Setting struct and unit test for param sorting (not done yet).
