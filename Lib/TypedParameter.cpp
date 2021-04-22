@@ -108,56 +108,39 @@ TypedParameter::SortedList::SortedList(TypedParameter::List const &parameters) {
 }
 
 
-/**
- * @brief Prepare the switch and value part of the usage line,
- *        so that we can determine their max width for formatting.
- *
- * Also create display of defaults.
- */
-void TypedParameter::SortedList::prepare_usage(
-  vector<string> &disp_defaults,
-  vector<string> &disp_params,
-  bool add_help) const {
-
-  auto add_param = [&] (
-    TypedParameter const &param,
-    std::string const &value_indicator,
-    std::string const &default_indicator) {
-
-    string tmp;
-    for (auto &p : param.def_param.prefixes) {
-      assert(p != nullptr);
-
-      if (!tmp.empty()) {
-        tmp << ", ";
-      }
-
-      tmp << p;
-      tmp << value_indicator;
-    }
-
-    disp_params.push_back(tmp);
-
-
-    if (default_indicator.empty()) {
-      disp_defaults.push_back(".");
-    } else {
-      std::ostringstream buf;
-      buf << "; default '" << default_indicator << "'.";
-      disp_defaults.push_back(buf.str());
-    }
-  };
-
+StrList TypedParameter::SortedList::prefixes_str(bool add_help) const {
+  StrList ret;
 
   if (add_help) {
     // Internal help switch definition, always on top
-    add_param(CmdParameters::help_switch, "", "");
+    TypedParameter const &param = CmdParameters::help_switch;
+    ret.push_back(param.prefixes_str());
   }
 
   for (auto &item : *this) {
     TypedParameter const &param = *item;
-    add_param(param, param.m_value_indicator, param.default_indicator());
+    ret.push_back(param.prefixes_str());
   }
+
+  return ret;
+}
+
+
+StrList TypedParameter::SortedList::defaults_str(bool add_help) const {
+  StrList ret;
+
+  if (add_help) {
+    // Internal help switch definition, always on top
+    TypedParameter const &param = CmdParameters::help_switch;
+    ret.push_back(param.defaults_str());
+  }
+
+  for (auto &item : *this) {
+    TypedParameter const &param = *item;
+    ret.push_back(param.defaults_str());
+  }
+
+  return ret;
 }
 
 
@@ -313,4 +296,34 @@ bool TypedParameter::operator<(TypedParameter const &rhs) const {
   assert(!rhs.m_prefixes.empty());
 
   return (m_prefixes[0] < rhs.m_prefixes[0]);
+}
+
+
+std::string TypedParameter::prefixes_str() const {
+  std::string ret;
+
+  for (auto &p : def_param.prefixes) {
+    assert(p != nullptr);
+
+    if (!ret.empty()) {
+      ret << ", ";
+    }
+
+    ret << p << m_value_indicator;
+  }
+
+  return ret;
+}
+
+
+std::string TypedParameter::defaults_str() const {
+  std::string ret;
+
+    if (default_indicator().empty()) {
+      ret << ".";
+    } else {
+      ret << "; default '" << default_indicator() << "'.";
+    }
+
+  return ret;
 }

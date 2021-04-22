@@ -48,9 +48,9 @@ string set_indent(int indent, string const &str) {
 /**
  * @brief determine longest string length in string vector.
  */
-unsigned max_width(CmdParameters::StrList const &list) {
-  // Determine max width of displayed param's
+unsigned max_width(StrList const &list) {
   unsigned width = 0;
+
   for (const string &str : list) {
     // CRAP: Following fails when 'int width = -1', due to signedness
     if (str.length() > width) {
@@ -63,15 +63,12 @@ unsigned max_width(CmdParameters::StrList const &list) {
 
 
 std::string get_just_params(TypedParameter::List const &parameters, bool add_help) {
-  using StrList = CmdParameters::StrList;
-
   std::string ret;
 
-  StrList disp_defaults;  // TODO: Bring this under TypedParameter::usage()
-  StrList disp_params;
-
   TypedParameter::SortedList sorted_list(parameters);
-  sorted_list.prepare_usage(disp_defaults, disp_params, add_help);
+  StrList disp_defaults = sorted_list.defaults_str(add_help);
+  StrList disp_params   = sorted_list.prefixes_str(add_help);
+
   unsigned width = max_width(disp_params);
 
   auto output_padded = [&ret, width] (
@@ -165,6 +162,20 @@ std::string CmdParameters::get_usage() const {
 }
 
 
+void CmdParameters::output_errors(bool show_help_on_error) const {
+  if (!has_errors()) return;
+  if (m_silent) return; 
+
+  cout << "Error(s) on command line:\n" << get_errors() << endl;
+
+  if (show_help_on_error) {
+    cout << get_usage();
+  } else {
+    cout << "  Use 'help' or '-h' to view options\n"  << endl;
+  }
+}
+
+
 /**
  * @brief Override of `handle_commandline()` which also does `init()`.
  *
@@ -172,30 +183,22 @@ std::string CmdParameters::get_usage() const {
  *         EXIT_NO_ERROR if should stop without errors,
  *         EXIT_ERROR    if should stop with errors
  */
-CmdParameters::ExitCode CmdParameters::handle_commandline(
-  int argc,
-  char const *argv[],
-  bool show_help_on_error) {
-
+CmdParameters::ExitCode CmdParameters::handle_commandline(int argc, char const *argv[], bool show_help_on_error) {
   bool do_continue = true;
 
   if (init()) {
-    do_continue = handle_commandline_intern(argc, argv, show_help_on_error);
-  }
+    reset();
 
-  if (has_errors()) {
-    if (!m_silent) {
-      cout << "Error(s) on command line:\n" << get_errors() << endl;
-
-      if (show_help_on_error) {
-        cout << get_usage();
-      } else {
-        cout << "  Use 'help' or '-h' to view options\n"  << endl;
-      }
+    if (has_help(argc, argv)) {
+      show_help(argc, argv);
+      do_continue = false;
+    } else {
+      handle_commandline_intern(argc, argv);
     }
   }
 
   if (has_errors()) {
+    output_errors(show_help_on_error);
     return EXIT_ERROR;
   } else {
     return (do_continue)?ALL_IS_WELL:EXIT_NO_ERROR;
@@ -216,6 +219,26 @@ void CmdParameters::show_errors(bool do_explicit) {
 }
 
 
+void CmdParameters::reset() {
+  errors.str("");
+  errors.clear();
+  m_p_action = nullptr;
+  m_parameters.reset_values();
+}
+
+
+/**
+ * Display help output
+ */
+void CmdParameters::show_help(int argc, char const *argv[]) {
+  if (scan_action(argc, argv)) {
+    cout << get_action_usage();
+  } else {
+    cout << get_usage();
+  }
+}
+
+
 /**
  * @brief Handle the command line and initialize files/dir's.
  *
@@ -225,27 +248,13 @@ void CmdParameters::show_errors(bool do_explicit) {
  *
  * @return true if execution can continue, false otherwise
  */
-bool CmdParameters::handle_commandline_intern(
-  int argc,
-  char const *argv[],
-  bool show_help_on_error) {
-
-  //std::cout << "entered handle_commandline_intern()" << std::endl;
-
-  errors.str(""); errors.clear();
-  m_p_action = nullptr;
-  m_parameters.reset_values();
-
-  // Prescan for help; this overrides everything
-  if (handle_help(argc, argv)) return false;
-
+void CmdParameters::handle_commandline_intern(int argc, char const *argv[]) {
   int curindex = 0;
 
   try {
     while (true) {
       curindex++;
       if (curindex >= argc) break;
-
       const char *curarg = argv[curindex];
 
       //cout << "option: " << curarg << endl;
@@ -254,54 +263,21 @@ bool CmdParameters::handle_commandline_intern(
       if (process_option(m_parameters, curarg)) continue;
 
       // Actions
-      bool found_action = handle_action(curarg, &errors);
-      if (found_action) continue;
-
-      if (m_p_action != nullptr) {
-        // Check action options
-        if (process_option(m_p_action->parameters, curarg)) {
-          //cout << "Found option '" << curarg << "' for action '" << m_p_action->name << "'." << endl;
-          found_action = true;
-        }
-      }
-      if (found_action) continue;
+      if (handle_action(curarg, &errors)) continue;
+      if (handle_action_option(curarg)) continue;
 
       // It's not one an option or an action, so it must be unnamed input
-      // NOTE: this implementation check UNNAMED on global options only!
+      // NOTE: this implementation checks UNNAMED on global options only
       if (!m_parameters.process_unnamed(curarg)) {
         errors << "  Unknown parameter '" << curarg << "', or too many unnamed parameters on command line.\n";
       }
     }
 
-    // Check if all unnamed fields have a value
-    for (auto &ptr : m_parameters) {
-      auto &field = *ptr.get();
-      if (field.def_param.param_type != UNNAMED) continue;
-
-      if (field.get_string_value().empty()) {
-        errors << "  No " << field.def_param.name << " specified.\n";
-      }
-    }
-
-    // If actions defined, an action must have been detected
-    if (!actions.empty() && m_p_action == nullptr) {
-      // Collect all action names
-      std::string names;
-      for (auto & action : actions) {
-        if (!names.empty()) {
-          names += " ";
-        }
-
-        names += action.name;
-      }
-
-      errors << "  Action expected, use one of: " << names << "\n";
-    }
+    check_unnamed_fields();
+    check_action_detected();
   } catch (Exception &e) {
     errors << "  " << e.what() << endl;
   }
-
-  return true;
 }
 
 
@@ -320,9 +296,7 @@ bool CmdParameters::init(CmdParameters const *parent) {
     }
   }
 
-  m_init_result = validate()
-               && init_params()
-               && init_actions();
+  m_init_result = validate() && init_params() && init_actions();
 
   m_done_init = true;   // This does not mean that init() was successful!
   return m_init_result;
@@ -336,6 +310,11 @@ bool CmdParameters::add_intern(CmdParameters const &rhs) {
      errors << "Added instance has errors on init()\n"
             <<  rhs.get_errors();
     return false;
+  }
+
+  // Add usage field
+  if (m_usage == nullptr) {
+    m_usage = rhs.m_usage;
   }
 
   // Add the global param's of the parent to the local list.
@@ -357,10 +336,8 @@ bool CmdParameters::add_intern(CmdParameters const &rhs) {
 
 bool CmdParameters::add(CmdParameters const &rhs) {
   m_done_init = false;  // Need to redo init
-  if (!add_intern(rhs)) {
-    return false;
-  }
 
+  if (!add_intern(rhs)) return false;
   return init();
 }
 
@@ -401,6 +378,11 @@ bool CmdParameters::validate() {
 }
 
 
+std::string CmdParameters::params_usage(bool add_help) const {
+ return get_just_params(m_parameters, add_help);
+}
+
+
 std::string CmdParameters::get_params(TypedParameter::List const &parameters) const {
   std::string ret;
 
@@ -412,7 +394,7 @@ std::string CmdParameters::get_params(TypedParameter::List const &parameters) co
     ret += "\nOptions:\n";
   }
 
- ret += get_just_params(parameters, true);
+ ret += params_usage(true);
 
   if (have_actions) {
     ret += "\nNotes:\n\n"
@@ -427,41 +409,29 @@ std::string CmdParameters::get_params(TypedParameter::List const &parameters) co
 
 
 /**
- * @brief Scan for help and handle if present.
+ * @brief Scan for help switch
  *
- * NOTE: Would have been nicer if the CmdParameter for help
- *       could handle this autonomously.
+ * NOTE: Better if the CmdParameter for help handles this autonomously.
+ * TODO investigate
  *
- * @return true if help handled, false otherwise
+ * @return true if help switch found, false otherwise
  */
-bool CmdParameters::handle_help(int argc, char const *argv[]) {
-  bool have_help = false;
+bool CmdParameters::has_help(int argc, char const *argv[]) const {
+  bool ret = false;
   int curindex = 0;
 
   while (true) {
     curindex++;
     if (curindex >= argc) break;
-
     const char *curarg = argv[curindex];
-    //std::cout << "curarg:" << curarg << std::endl;
 
     if (string("help") == curarg || string("-h") == curarg) {
-      have_help =true;
+      ret  = true;
       break;
     }
   }
 
-  if (have_help) {
-    //std::cout << "handle_help() showing usage" << std::endl;
-
-    if (scan_action(argc, argv)) {
-      cout << get_action_usage();
-    } else {
-      cout << get_usage();
-    }
-  }
-
-  return have_help;
+  return ret;
 }
 
 
@@ -477,7 +447,14 @@ bool CmdParameters::init_actions() {
   return true;
 }
 
-
+/**
+ * Check if passed string is an action.
+ *
+ * If valid, store locally.
+ * Presence of multiple valid actions is regarded as an error.
+ *
+ * @return true if action, false otherwise
+ */
 bool CmdParameters::handle_action(char const *curarg, Buf *errors) {
   bool found_action = false;
 
@@ -501,6 +478,56 @@ bool CmdParameters::handle_action(char const *curarg, Buf *errors) {
 }
 
 
+bool CmdParameters::handle_action_option(char const *curarg) {
+  if (m_p_action == nullptr) {
+    return false;
+  } 
+
+  if (process_option(m_p_action->parameters, curarg)) {
+    //cout << "Found option '" << curarg << "' for action '" << m_p_action->name << "'." << endl;
+    return true;
+  }
+
+  return false;
+}
+
+
+void CmdParameters::check_unnamed_fields() {
+  // Check if all unnamed fields have a value
+  for (auto &ptr : m_parameters) {
+    auto &field = *ptr.get();
+    if (field.def_param.param_type != UNNAMED) continue;
+
+    if (field.get_string_value().empty()) {
+      errors << "  No " << field.def_param.name << " specified.\n";
+    }
+  }
+}
+
+
+void CmdParameters::check_action_detected() {
+  // If actions defined, an action must have been detected
+  if (!actions.empty() && m_p_action == nullptr) {
+    // Collect all action names
+    std::string names;
+    for (auto & action : actions) {
+      if (!names.empty()) {
+        names += " ";
+      }
+
+      names += action.name;
+    }
+
+    errors << "  Action expected, use one of: " << names << "\n";
+  }
+}
+
+
+/**
+ * Scan command line for presence of actions
+ *
+ * @return true if (single) action foundm, false otherwise
+ */
 bool CmdParameters::scan_action(int argc, char const *argv[]) {
   int curindex = 0;
   m_p_action = nullptr;
@@ -508,8 +535,8 @@ bool CmdParameters::scan_action(int argc, char const *argv[]) {
   while (true) {
     curindex++;
     if (curindex >= argc) break;
-
     const char *curarg = argv[curindex];
+
     if (handle_action(curarg)) return true;
   }
 
@@ -517,18 +544,25 @@ bool CmdParameters::scan_action(int argc, char const *argv[]) {
 }
 
 
-std::string CmdParameters::get_actions() const {
-  std::string ret;
-
-  if (actions.empty()) return ret;
-
-  // Determine max width
+/**
+ * Collect all action names in a list
+ */
+StrList CmdParameters::action_names() const {
   StrList disp_names;
   for (auto &action: actions) {
     disp_names.push_back(action.name);
   }
-  unsigned width = max_width(disp_names);
 
+  return disp_names;
+}
+
+
+std::string CmdParameters::get_actions() const {
+  if (actions.empty()) return "";
+
+  unsigned width = max_width(action_names());
+
+  std::string ret;
   ret << "\n\nActions:\n\n";
 
   for (auto &action: actions) {

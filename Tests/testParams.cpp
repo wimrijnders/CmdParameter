@@ -218,6 +218,8 @@ TEST_CASE("Test chained parameter definitions [params]") {
 
 
   SUBCASE("Runtime adding of parameters should work") {
+    cout_redirect redirect;
+
     int argc = 2;
     const char *argv1[] = { PROG, "-1"};
     const char *argv2[] = { PROG, "-2"};
@@ -467,7 +469,6 @@ TEST_CASE("Test Command Line parameters [params]") {
 
 
 TEST_CASE("Test issues during usage [params][issues]") {
-
   CmdParameters base_params = {
     "blurb",
     {{
@@ -492,7 +493,9 @@ TEST_CASE("Test issues during usage [params][issues]") {
 
 
   // Given message should not be be displayed any more, instead a more relevant and specific message.
-  SUBCASE("Check error 'takes a value, none specified' for -n12") {i
+  SUBCASE("Check error 'takes a value, none specified' for -n12") {
+    cout_redirect redirect;
+
     CmdParameters p(base_params);
     REQUIRE(!p.has_errors());
 

@@ -30,6 +30,11 @@
 ## Release Notes
 
 ```
+20210420  v0.4.0
+    - Refactoring to make usage more flexible
+    - This is an API change
+
+
 20210418  v0.3.2
     - Params sorted on display help usage
     - Added operator<< for string (from V3DLib)

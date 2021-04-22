@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+using StrList = std::vector<std::string>;
+
 class CmdParameters;
 class DefParameter;
 
@@ -44,10 +46,8 @@ struct TypedParameter {
   public:
     SortedList(List const &parameters);
 
-    void prepare_usage(
-      vector<string> &disp_defaults,
-      vector<string> &disp_params,
-      bool add_help = true) const;
+    StrList prefixes_str(bool add_help = true) const;
+    StrList defaults_str(bool add_help = true) const;
   };
 
 
@@ -64,6 +64,8 @@ struct TypedParameter {
   void reset_values();
   bool parse_param(const char *curarg);
   virtual string usage() const;
+  std::string prefixes_str() const;
+  std::string defaults_str() const;
 
   bool operator<(TypedParameter const &rhs) const;
 
