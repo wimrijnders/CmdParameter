@@ -43,7 +43,7 @@ TypedParameter const *TypedParameter::List::operator[] (int index) const {
 }
 
 
-TypedParameter *TypedParameter::List::operator[] (const char *key) {
+TypedParameter const *TypedParameter::List::operator[] (const char *key) const {
   assert(key != nullptr);
 
   for (auto &ptr : *this) {

@@ -30,6 +30,13 @@
 ## Release Notes
 
 ```
+20210423  v0.4.1
+    - Renamed field 'm_usage' to the more appropriate 'm_description' in CmdParameters
+    - Added loop function to iterate of command line arguments
+    - Clamped down some more on API const usage
+    - Some minor cleanup and refactoring
+
+
 20210420  v0.4.0
     - Refactoring to make usage more flexible
     - This is an API change

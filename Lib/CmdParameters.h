@@ -22,11 +22,11 @@ struct CmdParameters {
 
   CmdParameters() = default;
   CmdParameters(CmdParameters const &rhs);
-  CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent = nullptr);
-  CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent = nullptr);
+  CmdParameters(char const *in_description, DefParameters global_params, CmdParameters *parent = nullptr);
+  CmdParameters(char const *in_description, DefActions in_actions, CmdParameters *parent = nullptr);
 
   CmdParameters(
-    char const *in_usage,
+    char const *in_description,
     DefActions in_actions,
     DefParameters global_params,
     CmdParameters *parent = nullptr);
@@ -35,9 +35,10 @@ struct CmdParameters {
   bool add(CmdParameters const &rhs);
   bool validate();
   void silent(bool val) { m_silent = val; }
+  std::string description() const { return m_description; }
   std::string get_usage() const;
   std::string params_usage(bool add_help) const;
-  TypedParameter::List &parameters() { return m_parameters; }
+  TypedParameter::List const &parameters() const { return m_parameters; }
 
   void show_errors(bool do_explicit = false);
   std::string get_errors() const { return errors.str(); }
@@ -49,7 +50,7 @@ struct CmdParameters {
   bool scan_action(int argc, char const *argv[]);
 
 private:
-  const char          *m_usage        = nullptr;
+  const char          *m_description  = nullptr;
   DefParameters        global_parameters;
   TypedParameter::List m_parameters;
   bool                 m_done_init    = false;
@@ -73,6 +74,7 @@ private:
   void show_help(int argc, char const *argv[]);
   bool handle_action(char const *curarg, Buf *errors = nullptr);
   bool handle_action_option(char const *curarg);
+  void process_arg(char const *curarg);
   void handle_commandline_intern(int argc, char const *argv[]);
   void check_unnamed_fields();
   void check_action_detected();

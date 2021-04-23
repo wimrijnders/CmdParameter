@@ -2,6 +2,7 @@
 #include <cassert>
 #include <iostream>
 #include <cstring>   // strcmp()
+#include <functional>
 #include "Support/Exception.h"
 #include "Support/basics.h"
 #include "Types/Types.h"
@@ -98,6 +99,19 @@ std::string get_just_params(TypedParameter::List const &parameters, bool add_hel
   return ret;
 }
 
+
+void cmdline_each(int argc, char const *argv[], std::function<void(char const *)> f) {
+  int curindex = 0;
+
+  while (true) {
+    curindex++;
+    if (curindex >= argc) break;
+    const char *curarg = argv[curindex];
+
+    f(curarg);
+  }
+}
+
 }  // anon namespace
 
 
@@ -112,30 +126,30 @@ DefParameter CmdParameters::help_def(
 
 NoneParameter CmdParameters::help_switch(CmdParameters::help_def);
 
-CmdParameters::CmdParameters(CmdParameters const &rhs) : m_usage(rhs.m_usage) {
+CmdParameters::CmdParameters(CmdParameters const &rhs) : m_description(rhs.m_description) {
   init(&rhs);
 }
 
-CmdParameters::CmdParameters(char const *in_usage, DefParameters global_params, CmdParameters *parent) :
-  m_usage(in_usage),
+CmdParameters::CmdParameters(char const *in_description, DefParameters global_params, CmdParameters *parent) :
+  m_description(in_description),
   global_parameters(global_params) {
   init(parent);
 }
 
 
-CmdParameters::CmdParameters(char const *in_usage, DefActions in_actions, CmdParameters *parent) :
-  m_usage(in_usage),
+CmdParameters::CmdParameters(char const *in_description, DefActions in_actions, CmdParameters *parent) :
+  m_description(in_description),
   actions(in_actions) {
   init(parent);
 }
 
 
 CmdParameters::CmdParameters(
-  char const *in_usage,
+  char const *in_description,
   DefActions in_actions,
   DefParameters global_params,
   CmdParameters *parent) :
-  m_usage(in_usage),
+  m_description(in_description),
   global_parameters(global_params),
   actions(in_actions) {
   init(parent);
@@ -154,7 +168,7 @@ CmdParameters::CmdParameters(
 std::string CmdParameters::get_usage() const {
   std::string ret;
 
-  ret << m_usage
+  ret << m_description
       << get_actions()
       << get_params(m_parameters);
 
@@ -239,6 +253,24 @@ void CmdParameters::show_help(int argc, char const *argv[]) {
 }
 
 
+void CmdParameters::process_arg(char const *curarg) {
+  assert(curarg != nullptr);
+
+  // Global options first
+  if (process_option(m_parameters, curarg)) return;
+
+  // Actions
+  if (handle_action(curarg, &errors)) return;
+  if (handle_action_option(curarg)) return;
+
+  // It's not one an option or an action, so it must be unnamed input
+  // NOTE: this implementation checks UNNAMED on global options only
+  if (!m_parameters.process_unnamed(curarg)) {
+    errors << "  Unknown parameter '" << curarg << "', or too many unnamed parameters on command line.\n";
+  }
+}
+
+
 /**
  * @brief Handle the command line and initialize files/dir's.
  *
@@ -249,29 +281,10 @@ void CmdParameters::show_help(int argc, char const *argv[]) {
  * @return true if execution can continue, false otherwise
  */
 void CmdParameters::handle_commandline_intern(int argc, char const *argv[]) {
-  int curindex = 0;
-
   try {
-    while (true) {
-      curindex++;
-      if (curindex >= argc) break;
-      const char *curarg = argv[curindex];
-
-      //cout << "option: " << curarg << endl;
-
-      // Global options first
-      if (process_option(m_parameters, curarg)) continue;
-
-      // Actions
-      if (handle_action(curarg, &errors)) continue;
-      if (handle_action_option(curarg)) continue;
-
-      // It's not one an option or an action, so it must be unnamed input
-      // NOTE: this implementation checks UNNAMED on global options only
-      if (!m_parameters.process_unnamed(curarg)) {
-        errors << "  Unknown parameter '" << curarg << "', or too many unnamed parameters on command line.\n";
-      }
-    }
+    cmdline_each(argc, argv, [this] (char const *curarg) {
+      this->process_arg(curarg);
+    });
 
     check_unnamed_fields();
     check_action_detected();
@@ -286,7 +299,8 @@ bool CmdParameters::init(CmdParameters const *parent) {
     return m_init_result;  // already initialized 
   }
 
-  errors.str(""); errors.clear();
+  errors.str("");
+  errors.clear();
   m_validated = false;
 
   if (parent != nullptr) {
@@ -312,9 +326,8 @@ bool CmdParameters::add_intern(CmdParameters const &rhs) {
     return false;
   }
 
-  // Add usage field
-  if (m_usage == nullptr) {
-    m_usage = rhs.m_usage;
+  if (m_description == nullptr) {
+    m_description = rhs.m_description;
   }
 
   // Add the global param's of the parent to the local list.
@@ -367,8 +380,8 @@ bool CmdParameters::init_params() {
 bool CmdParameters::validate() {
   if (m_validated) return true;
 
-  if (m_usage == nullptr) {
-    m_validation.add_error("No usage passed");
+  if (m_description == nullptr) {
+    m_validation.add_error("No description passed");
   }
 
   m_validated = m_validation.validate(global_parameters, actions);
@@ -418,18 +431,12 @@ std::string CmdParameters::get_params(TypedParameter::List const &parameters) co
  */
 bool CmdParameters::has_help(int argc, char const *argv[]) const {
   bool ret = false;
-  int curindex = 0;
 
-  while (true) {
-    curindex++;
-    if (curindex >= argc) break;
-    const char *curarg = argv[curindex];
-
+  cmdline_each(argc, argv, [&ret] (char const *curarg) {
     if (string("help") == curarg || string("-h") == curarg) {
-      ret  = true;
-      break;
+      ret  = true;  // Note that loop continues after found
     }
-  }
+  });
 
   return ret;
 }
@@ -526,21 +533,21 @@ void CmdParameters::check_action_detected() {
 /**
  * Scan command line for presence of actions
  *
- * @return true if (single) action foundm, false otherwise
+ * @return true if (single) action found, false otherwise
  */
 bool CmdParameters::scan_action(int argc, char const *argv[]) {
-  int curindex = 0;
-  m_p_action = nullptr;
-
-  while (true) {
-    curindex++;
-    if (curindex >= argc) break;
-    const char *curarg = argv[curindex];
-
-    if (handle_action(curarg)) return true;
+  //m_p_action = nullptr;
+  if(m_p_action != nullptr) {
+    std::cout << "BOINK!" << std::endl;
+    return true;
   }
 
-  return false;
+  cmdline_each(argc, argv, [this] (char const *curarg) {
+    this->handle_action(curarg);  // Will set m_p_action if found
+  });
+
+
+  return (m_p_action != nullptr);
 }
 
 

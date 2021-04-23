@@ -28,7 +28,7 @@ struct TypedParameter {
    public:
     TypedParameter *operator[] (int index);
     TypedParameter const *operator[] (int index) const;
-    TypedParameter *operator[] (const char *key);
+    TypedParameter const *operator[] (const char *key) const;
 
     bool process_unnamed(const char *curarg);
 
